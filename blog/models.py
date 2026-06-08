@@ -116,7 +116,8 @@ class Series(models.Model):
         return self.title
 
     def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'slug': self.slug})
+        # slug is enough since we have unique slugs
+        return reverse('blog:post_detail', kwargs={'slug': self.slug})
 
 
 class Post(models.Model):

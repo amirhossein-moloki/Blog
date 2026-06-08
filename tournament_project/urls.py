@@ -5,9 +5,6 @@ from django.urls import include, path, re_path
 from django.contrib.sitemaps.views import sitemap
 from .sitemaps import (
     PostSitemap,
-    TournamentLobySitemap,
-    TournamentResultSitemap,
-    GameTournamentsSitemap,
     StaticViewSitemap,
 )
 
@@ -22,7 +19,6 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from tournaments.views import private_media_view
 from tournament_project.ckeditor_views import ckeditor5_upload
 from blog.ckeditor_views import ckeditor_upload_view
 from .views import page_not_found_view
@@ -31,9 +27,6 @@ handler404 = page_not_found_view
 
 sitemaps = {
     "posts": PostSitemap,
-    "tournament_lobies": TournamentLobySitemap,
-    "tournament_results": TournamentResultSitemap,
-    "game_tournaments": GameTournamentsSitemap,
     "static": StaticViewSitemap,
 }
 
@@ -74,22 +67,6 @@ urlpatterns = [
 
     # --- App URLs ---
     path("api/users/", include("users.urls")),
-    path("api/teams/", include("teams.urls")),
-    path("api/tournaments/", include("tournaments.urls")),
-    path("api/chat/", include("chat.urls")),
-    path("api/wallet/", include("wallet.urls")),
-    path("api/notifications/", include("notifications.urls")),
-    re_path(
-        r"^api/private-media/(?P<path>.*)$",
-        private_media_view,
-        name="private_media",
-    ),
-    path("api/support/", include("support.urls")),
-    path("api/verification/", include("verification.urls")),
-    path("api/rewards/", include("rewards.urls")),
-    path("api/reporting/", include("reporting.urls")),
-    path("api/management/", include("management_dashboard.urls")),
-    path("api/atomgamebot/", include("atomgamebot.urls")),
     path("api/blog/", include("blog.urls", namespace="blog")),
     path("api/editor/upload/", ckeditor_upload_view, name="ckeditor_upload"),
 ]

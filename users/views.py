@@ -1,15 +1,6 @@
 import logging
-
 from django.conf import settings
-from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
-from django.db import models
-from decimal import Decimal
-
-from django.db.models import Count, F, Prefetch, Q, Sum, Value
-from django.db.models.functions import Coalesce
-from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from google.auth.transport import requests as google_requests
@@ -20,28 +11,17 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema
-
-from tournaments.models import Participant, Tournament
-from tournaments.serializers import (TournamentListSerializer,
-                                     TournamentReadOnlySerializer)
-from wallet.models import Transaction
-from wallet.serializers import TransactionSerializer
-from teams.models import Team
-from .models import Role, User
-from .permissions import (IsAdminUser, IsOwnerOrAdmin, IsOwnerOrReadOnly)
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from .serializers import CustomTokenObtainPairSerializer
 
-from .serializers import (RoleSerializer,
-                          TopPlayerByRankSerializer, TopPlayerSerializer,
+from .models import User
+from .permissions import (IsAdminUser, IsOwnerOrAdmin)
+from .serializers import (CustomTokenObtainPairSerializer,
                           UserCreateSerializer,
                           UserReadOnlySerializer, UserSerializer,
-                          GoogleLoginSerializer, DashboardSerializer,
-                          TotalPlayersSerializer)
+                          GoogleLoginSerializer)
 from .services import (ApplicationError, send_otp_service,
                        verify_otp_service)
 from common.throttles import (
@@ -53,14 +33,12 @@ from common.throttles import (
 
 logger = logging.getLogger(__name__)
 
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     throttle_classes = [VeryStrictThrottle]
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
@@ -72,74 +50,41 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 {"error": _("You are not authorized to login from here.")},
                 status=status.HTTP_403_FORBIDDEN,
             )
-
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
-
-
-class RoleViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing roles.
-    """
-
-    queryset = Role.objects.all()
-    serializer_class = RoleSerializer
-    permission_classes = [IsAdminUser]
-
 
 class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing users.
     """
-
-    queryset = (
-        User.objects.all()
-        .prefetch_related("in_game_ids")
-        .select_related("verification", "rank")
-    )
+    queryset = User.objects.all()
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["username", "email"]
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
-            # Use read-only serializer for lists or for retrieving other users
             if self.action == "retrieve" and self.request.user.is_authenticated and self.get_object() == self.request.user:
-                return UserSerializer  # The user is viewing their own profile
+                return UserSerializer
             return UserReadOnlySerializer
-        return UserSerializer  # For update, partial_update, etc.
+        return UserSerializer
 
     def get_permissions(self):
         if self.action in ["send_otp", "verify_otp", "create"]:
             return [AllowAny()]
         if self.action in ["list", "retrieve"]:
             return [IsOwnerOrAdmin()]
-        if self.action in ["update", "partial_update", "destroy", "tournaments"]:
+        if self.action in ["update", "partial_update", "destroy"]:
             return [IsOwnerOrAdmin()]
         return super().get_permissions()
 
     def get_queryset(self):
         queryset = super().get_queryset()
-
         user = self.request.user
         if user.is_authenticated and user.is_staff:
             return queryset
-
         if user.is_authenticated:
             return queryset.filter(pk=user.pk)
-
         return queryset.none()
-
-    @action(detail=True, methods=["get"])
-    def tournaments(self, request, pk=None):
-        user = self.get_object()
-        participant_queryset = Participant.objects.select_related("user")
-        tournaments = Tournament.objects.filter(participants=user).prefetch_related(
-            Prefetch("participant_set", queryset=participant_queryset), "teams", "game"
-        )
-        serializer = TournamentListSerializer(
-            tournaments, many=True, context={"request": request}
-        )
-        return Response(serializer.data)
 
     def get_throttles(self):
         if self.action in ['send_otp']:
@@ -154,9 +99,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def send_otp(self, request):
-        """
-        Send OTP to user based on email or phone number.
-        """
         identifier = request.data.get("identifier")
         try:
             send_otp_service(identifier=identifier)
@@ -168,9 +110,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["post"])
     def verify_otp(self, request):
-        """
-        Verify OTP and login user.
-        """
         identifier = request.data.get("identifier")
         code = request.data.get("code")
         try:
@@ -192,187 +131,9 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def me(self, request):
-        """
-        Return the authenticated user's data.
-        """
         user = self.get_queryset().get(pk=request.user.pk)
         serializer = UserSerializer(user, context={"request": request})
         return Response(serializer.data)
-
-
-@extend_schema(responses=DashboardSerializer)
-class DashboardView(APIView):
-    """
-    API view for user dashboard.
-    Provides all necessary data for the main dashboard UI.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        cache_key = f"dashboard:user:{user.id}"
-        cached_data = cache.get(cache_key)
-
-        if cached_data:
-            return Response(cached_data)
-
-        # Serialize user profile data
-        user_profile_data = UserSerializer(user, context={'request': request}).data
-
-        # Get user's teams
-        teams = Team.objects.filter(members=user).prefetch_related('members')
-        teams_data = []
-        for team in teams:
-            teams_data.append({
-                'id': team.id,
-                'name': team.name,
-                'team_picture': request.build_absolute_uri(team.team_picture.url) if team.team_picture else None,
-                'members_count': team.members.count(),
-                'is_captain': team.captain == user,
-            })
-
-        # Get user's tournament history (Optimized with Prefetch)
-        user_teams = user.teams.all()
-        user_participations = Participant.objects.filter(user=user).select_related(
-            'tournament', 'tournament__game'
-        ).prefetch_related(
-            Prefetch('tournament__teams', queryset=user_teams, to_attr='user_teams_in_tournament')
-        ).order_by('-tournament__start_date')
-
-        tournament_history_data = []
-        for p in user_participations:
-            team_name = None
-            if p.tournament.type == 'team' and hasattr(p.tournament, 'user_teams_in_tournament'):
-                user_team = next((team for team in p.tournament.user_teams_in_tournament), None)
-                if user_team:
-                    team_name = user_team.name
-
-            tournament_history_data.append({
-                'id': p.id,
-                'rank': p.rank,
-                'prize': p.prize,
-                'team': {'name': team_name} if team_name else None,
-                'tournament': {
-                    'name': p.tournament.name,
-                    'game': {'name': p.tournament.game.name},
-                    'start_date': p.tournament.start_date,
-                }
-            })
-
-        data = {
-            'user_profile': user_profile_data,
-            'teams': teams_data,
-            'tournament_history': tournament_history_data,
-        }
-
-        cache.set(cache_key, data, timeout=60 * 5)  # Cache for 5 minutes
-        return Response(data)
-
-
-@extend_schema(responses=TopPlayerSerializer(many=True))
-class TopPlayersView(APIView):
-    """
-    API view for getting top players by prize money.
-    """
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        cache_key = "top_players:prize"
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return Response(cached_data)
-
-        users = User.objects.annotate(
-            total_winnings=Coalesce(
-                models.Sum(
-                    "wallet__transactions__amount",
-                    filter=models.Q(wallet__transactions__transaction_type="prize"),
-                ),
-                Decimal("0.00"),
-            )
-        ).order_by("-total_winnings")
-        serializer = TopPlayerSerializer(users, many=True)
-        cache.set(cache_key, serializer.data, timeout=60 * 15)  # Cache for 15 minutes
-        return Response(serializer.data)
-
-
-@extend_schema(responses=TopPlayerByRankSerializer(many=True))
-class TopPlayersByRankView(APIView):
-    """
-    API view for getting top players by rank.
-    """
-
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        cache_key = "top_players:rank"
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return Response(cached_data)
-
-        users = (
-            User.objects.annotate(
-                total_winnings=Coalesce(
-                    Sum(
-                        "wallet__transactions__amount",
-                        filter=Q(wallet__transactions__transaction_type="prize"),
-                    ),
-                    Value(Decimal("0.00")),
-                ),
-                wins=Count("won_matches", distinct=True),
-            )
-            .order_by(F("rank__required_score").desc(nulls_last=True), "-score")
-        )
-        serializer = TopPlayerByRankSerializer(users, many=True)
-        cache.set(cache_key, serializer.data, timeout=60 * 15)  # Cache for 15 minutes
-        return Response(serializer.data)
-
-
-from django.db.models import Q
-from rest_framework import generics
-from tournaments.models import Match
-from tournaments.serializers import MatchReadOnlySerializer
-
-
-@extend_schema(responses=TotalPlayersSerializer)
-class TotalPlayersView(APIView):
-    """
-    API view for getting the total number of players.
-    """
-    permission_classes = [AllowAny]
-
-    def get(self, request):
-        total_players = User.objects.count()
-        return Response({"total_players": total_players})
-
-
-class UserMatchHistoryView(generics.ListAPIView):
-    """
-    API view to list match history for a specific user.
-    """
-
-    serializer_class = MatchReadOnlySerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user_id = self.kwargs["pk"]
-        target_user = get_object_or_404(User, pk=user_id)
-
-        user = self.request.user
-        shares_team = target_user.teams.filter(
-            id__in=user.teams.values_list("id", flat=True)
-        ).exists()
-
-        if not (user.is_staff or user == target_user or shares_team):
-            raise PermissionDenied(_("You do not have permission to view this user's matches."))
-
-        return Match.objects.filter(
-            Q(participant1_user=target_user)
-            | Q(participant2_user=target_user)
-            | Q(participant1_team__members=target_user)
-            | Q(participant2_team__members=target_user)
-        ).distinct()
-
 
 @extend_schema(request=GoogleLoginSerializer, responses={200: CustomTokenObtainPairSerializer})
 class GoogleLoginView(APIView):
