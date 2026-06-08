@@ -357,6 +357,10 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    "DEFAULT_RENDERER_CLASSES": (
+        "common.renderers.StandardResponseRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ),
     # Default throttle classes are removed to enforce endpoint-specific throttling.
     "DEFAULT_THROTTLE_CLASSES": [],
     "DEFAULT_THROTTLE_RATES": {
