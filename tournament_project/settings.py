@@ -361,30 +361,8 @@ REST_FRAMEWORK = {
         "common.renderers.StandardResponseRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
-    # Default throttle classes are removed to enforce endpoint-specific throttling.
-    "DEFAULT_THROTTLE_CLASSES": [],
-    "DEFAULT_THROTTLE_RATES": {
-        'very_strict': '1/minute',
-        'strict': '10/minute',
-        'medium': '100/minute',
-        'relaxed': '500/hour',
-        # Legacy throttles are kept for reference but should not be used directly.
-        "anon": os.environ.get("API_THROTTLE_RATE_ANON", "1000/day"),
-        "user": os.environ.get("API_THROTTLE_RATE_USER", "10000/day"),
-    },
     'EXCEPTION_HANDLER': 'blog.exceptions.custom_exception_handler',
 }
-
-# Disable throttling during tests by setting high throttle rates.
-if "test" in sys.argv or "pytest" in sys.modules:
-    REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {
-        'very_strict': '10000/s',
-        'strict': '10000/s',
-        'medium': '10000/s',
-        'relaxed': '10000/s',
-        "anon": '10000/s',
-        "user": '10000/s',
-    }
 
 SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
