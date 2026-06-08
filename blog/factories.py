@@ -24,7 +24,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     first_name = factory.LazyAttribute(lambda _: fake.first_name())
     last_name = factory.LazyAttribute(lambda _: fake.last_name())
     phone_number = factory.Sequence(lambda n: f'+98912{n:07d}')
-    referral_code = factory.Sequence(lambda n: f'ref_{n}')
     is_staff = False
 
 
