@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "jalali_date",
     "tempus_dominus",
     "formtools",
+    "core",
     "blog",
 ]
 
