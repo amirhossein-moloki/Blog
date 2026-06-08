@@ -1,158 +1,102 @@
-# Tournament Management System
+# Blog and User Management System
 
-This is a Django-based tournament management system that allows users to create and manage tournaments, participate in matches, and interact with other users through a built-in chat system. The project also includes a wallet system for managing tournament entry fees and prizes.
+This is a Django-based blog and user management system. It provides a robust backend for managing blog posts, categories, tags, comments, and user authentication with profile management.
 
 ## Features
 
-*   **Tournament Management:** Create, edit, and delete tournaments. Support for both individual and team-based tournaments.
-*   **Match Management:** Automatic match generation, result confirmation, and dispute resolution.
-*   **User Management:** User registration, authentication, and profile management. Role-based access control (admin, user).
-*   **Team Management:** Create and manage teams, add or remove members.
-*   **Wallet System:** Manage user wallets, including deposits, withdrawals, entry fees, and prize money.
-*   **Chat System:** Real-time chat between users.
-*   **Notification System:** Real-time notifications for users.
-*   **API Documentation:** Automatically generated API documentation using `drf-spectacular`.
+*   **User Management:**
+    *   Registration and authentication (Login/Logout).
+    *   OTP-based authentication.
+    *   Google OAuth2 login support.
+    *   User profile management.
+    *   Role-based access control (Admin, Author, User).
+*   **Blog System:**
+    *   Post creation with rich text editor (CKEditor 5).
+    *   Post scheduling and automated publishing.
+    *   Taxonomies (Categories and Tags).
+    *   Comment system with moderation.
+    *   Revisions and reactions for posts.
+    *   Media management with automatic image optimization (AVIF conversion and resizing).
+*   **Technical Features:**
+    *   Standardized API responses.
+    *   Asynchronous video optimization using Celery and FFmpeg.
+    *   Admin interface using Unfold.
+    *   API documentation with `drf-spectacular`.
+    *   Dockerized environment for easy deployment.
 
 ## Getting Started
 
 ### Prerequisites
 
-*   Python 3.8+
-*   PostgreSQL 12+
+*   Python 3.12+
+*   PostgreSQL
 *   Redis
+*   Docker and Docker Compose (recommended)
 
-### Installation
+### Running with Docker
+
+This is the recommended way to run the project for development and production.
 
 1.  **Clone the repository:**
-
     ```bash
-    git clone https://github.com/your-username/tournament-project.git
+    git clone <repository-url>
     cd tournament-project
     ```
 
-2.  **Create and activate a virtual environment:**
-
-    ```bash
-    python -m venv venv
-    source venv/bin/activate
-    ```
-
-3.  **Install the dependencies:**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-4.  **Set up the environment variables:**
-
+2.  **Set up environment variables:**
     Copy the example environment file and fill in your details.
-
     ```bash
     cp env.example .env
     ```
-
-    You must set the `SECRET_KEY` and `DATABASE_URL` for your local PostgreSQL instance. The other variables have sensible defaults for local development.
-
-    **Example `.env`:**
-    ```
-    SECRET_KEY="your-super-secret-key-here"
-    DEBUG=True
-    DATABASE_URL="postgres://user:password@localhost:5432/tournament_db"
-    REDIS_URL="redis://localhost:6379/0"
-    ```
-
-5.  **Run the database migrations:**
-
-    ```bash
-    python tournament_project/manage.py migrate
-    ```
-
-6.  **Create a superuser:**
-
-    ```bash
-    python tournament_project/manage.py createsuperuser
-    ```
-
-7.  **Run the development server:**
-
-    ```bash
-    python tournament_project/manage.py runserver
-    ```
-
-The API will be available at `http://127.0.0.1:8000/api/`.
-
-### API Documentation
-
-The API documentation is available at `http://127.0.0.1:8000/api/docs/`.
-
-## Running with Docker
-
-This project is configured to run with Docker and Docker Compose. This is the recommended way to run the project for development.
-
-### Prerequisites
-
-*   Docker
-*   Docker Compose
-
-### Installation
-
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/your-username/tournament-project.git
-    cd tournament-project
-    ```
-
-2.  **Set up the environment variables:**
-
-    The project uses a `.env` file for environment variables. You can copy the example file:
-
-    ```bash
-    cp env.example .env
-    ```
-
-    The default values in `.env` are configured to work with the Docker Compose setup. You may want to change the `SECRET_KEY` to a new, randomly generated value.
+    Ensure `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are correctly set.
 
 3.  **Build and run the application:**
-
     ```bash
     docker-compose up --build
     ```
+    The application will be available at `http://localhost:8000` (or `http://localhost` if using Nginx).
 
-    This command will build the Docker images and start all the services. The application will be available at `http://localhost:80`.
-
-4.  **Create a superuser (optional):**
-
-    To create a superuser, run the following command in a separate terminal:
-
+4.  **Create a superuser:**
     ```bash
     docker-compose exec web python manage.py createsuperuser
     ```
 
-### Stopping the application
+### Local Development (without Docker)
 
-To stop the application, press `Ctrl+C` in the terminal where `docker-compose up` is running, and then run:
+1.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-```bash
-docker-compose down
-```
+2.  **Run migrations:**
+    ```bash
+    python manage.py migrate
+    ```
+
+3.  **Run the development server:**
+    ```bash
+    python manage.py runserver
+    ```
+
+## API Documentation
+
+Once the server is running, you can access the API documentation at:
+*   Swagger UI: `http://localhost:8000/api/docs/`
 
 ## Project Structure
 
 ```
 .
-├── chat/                 # Chat application
-├── notifications/        # Notifications application
-├── tournament_project/   # Django project
-│   ├── tournaments/      # Tournaments application
-│   ├── users/            # Users application
-│   └── wallet/           # Wallet application
-├── .github/              # GitHub Actions workflows
-├── requirements.txt      # Python dependencies
-├── websockets.md         # WebSocket usage guide
-└── README.md
+├── blog/                 # Blog application (Posts, Comments, etc.)
+├── users/                # User management application (Auth, Profiles)
+├── common/               # Shared utilities, renderers, and mixins
+├── tournament_project/   # Project configuration and settings
+├── templates/            # HTML templates
+├── manage.py             # Django management script
+├── Dockerfile            # Docker configuration for the web app
+└── docker-compose.yml    # Docker Compose configuration
 ```
 
 ## Contributing
 
-Contributions are welcome! Please read the `CONTRIBUTING.md` file for more information.
+Contributions are welcome! Please follow the standard pull request process.

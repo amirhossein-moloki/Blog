@@ -24,17 +24,10 @@ from .serializers import (CustomTokenObtainPairSerializer,
                           GoogleLoginSerializer)
 from .services import (ApplicationError, send_otp_service,
                        verify_otp_service)
-from common.throttles import (
-    VeryStrictThrottle,
-    StrictThrottle,
-    MediumThrottle,
-    RelaxedThrottle,
-)
 
 logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    throttle_classes = [VeryStrictThrottle]
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
@@ -86,17 +79,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return queryset.filter(pk=user.pk)
         return queryset.none()
 
-    def get_throttles(self):
-        if self.action in ['send_otp']:
-            self.throttle_classes = [VeryStrictThrottle]
-        elif self.action in ['verify_otp', 'create', 'update', 'partial_update', 'destroy']:
-            self.throttle_classes = [StrictThrottle]
-        elif self.action in ['list', 'retrieve']:
-            self.throttle_classes = [MediumThrottle]
-        else:
-            self.throttle_classes = [RelaxedThrottle]
-        return super().get_throttles()
-
     @action(detail=False, methods=["post"])
     def send_otp(self, request):
         identifier = request.data.get("identifier")
@@ -138,7 +120,6 @@ class UserViewSet(viewsets.ModelViewSet):
 @extend_schema(request=GoogleLoginSerializer, responses={200: CustomTokenObtainPairSerializer})
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [VeryStrictThrottle]
 
     def post(self, request):
         token = request.data.get("id_token")
