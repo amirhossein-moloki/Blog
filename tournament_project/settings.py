@@ -48,7 +48,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 
 # Site configuration
 DOMAIN = os.environ.get("DOMAIN", "localhost")
-SITE_NAME = os.environ.get("SITE_NAME", "Tournament Platform")
+SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 
@@ -76,20 +76,11 @@ INSTALLED_APPS = [
     "drf_spectacular",  # Required for drf-spectacular
     "users",
     "common",
-    "teams",
-    "tournaments",
-    "wallet",
     "corsheaders",
     "axes",
-    "chat",
-    "notifications",
     "django_celery_results",
     "djoser",
-    "support",
     "sslserver",
-    "verification",
-    "rewards",
-    "reporting",
     "guardian",
     "simple_history",
     "import_export",
@@ -98,8 +89,6 @@ INSTALLED_APPS = [
     "jalali_date",
     "tempus_dominus",
     "formtools",
-    "management_dashboard",
-    "atomgamebot",
     "blog",
 ]
 
@@ -350,15 +339,14 @@ else:
 
 
 UNFOLD = {
-    "SITE_HEADER": "Tournament Platform",
-    "SITE_TITLE": "Tournament Platform Admin",
+    "SITE_HEADER": "Blog Platform",
+    "SITE_TITLE": "Blog Platform Admin",
     "SITE_URL": "/",
     "THEME": "dark",
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": True,
     },
-    "DASHBOARD_CALLBACK": "reporting.views.dashboard_callback",
 }
 
 # Django REST Framework Settings
@@ -396,16 +384,10 @@ if "test" in sys.argv or "pytest" in sys.modules:
 
 SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
-    "DESCRIPTION": "API for managing tournaments, users, wallets, and more.",
+    "DESCRIPTION": "API for managing blog posts and users.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,  # Optional: hides the schema endpoint from the UI
     "SCHEMA_PATH_PREFIX": r"/api",
-    "ENUM_NAME_OVERRIDES": {
-        "StatusD53Enum": "tournaments.models.Game.Status",
-        "StatusE7cEnum": "tournaments.models.Match.Status",
-        "Status224Enum": "tournaments.models.Participant.Status",
-        "TypeEnum": "tournaments.models.Tournament.TournamentType",
-    },
 }
 
 DJOSER = {
@@ -466,19 +448,11 @@ if DEBUG:
     )
 
 CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower() in ("true", "1", "t")
-ZIBAL_PAYMENT_SUCCESS_URL = "https://atom-game.ir/payment/success.html"
-ZIBAL_PAYMENT_FAILED_URL = "https://atom-game.ir/payment/failed.html"
-
-MINIMUM_WITHDRAWAL_AMOUNT = int(
-    os.environ.get("MINIMUM_WITHDRAWAL_AMOUNT", "1000000")
-)
 
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
-
-ZIBAL_MERCHANT_ID = os.environ.get("ZIBAL_MERCHANT_ID", "zibal")
 
 # Celery Configuration
 CELERY_BROKER_URL = REDIS_URL
@@ -494,12 +468,7 @@ CELERY_TASK_QUEUES = (
     Queue("default", Exchange("default"), routing_key="default"),
     Queue("low_priority", Exchange("low_priority"), routing_key="low_priority"),
 )
-CELERY_TASK_ROUTES = {
-    "tournaments.tasks.run_seed_data_task": {
-        "queue": "low_priority",
-        "routing_key": "low_priority",
-    }
-}
+CELERY_TASK_ROUTES = {}
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
