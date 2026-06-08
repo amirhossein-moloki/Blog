@@ -28,7 +28,7 @@ class PostPermissionAPITest(BaseAPITestCase):
         PostFactory.create_batch(3)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 3)
+        self.assertEqual(len(response.data['data']), 3)
 
     def test_guest_user_cannot_create_post(self):
         response = self.client.post(self.url, self.post_data, format='json')
@@ -89,7 +89,7 @@ class PostAPITest(BaseAPITestCase):
         url = reverse('blog:post-list')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 3)
+        self.assertEqual(len(response.data['data']), 3)
 
     def test_default_ordering_is_latest_first(self):
         older_post = PostFactory(published_at=timezone.now() - timedelta(days=3))
@@ -100,7 +100,7 @@ class PostAPITest(BaseAPITestCase):
         response = self.client.get(url, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        returned_ids = [post['id'] for post in response.data['results']]
+        returned_ids = [post['id'] for post in response.data['data']]
         self.assertEqual(returned_ids[:3], [newest_post.id, middle_post.id, older_post.id])
 
 
@@ -109,9 +109,9 @@ class PostAPITest(BaseAPITestCase):
         url = reverse('blog:post-list')
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 10)
-        self.assertIn('next', response.data)
-        self.assertIsNotNone(response.data['next'])
+        self.assertEqual(len(response.data['data']), 10)
+        self.assertIn('pagination', response.data)
+        self.assertIsNotNone(response.data['pagination'])
 
     def test_post_filtering(self):
         series = SeriesFactory()
@@ -126,26 +126,26 @@ class PostAPITest(BaseAPITestCase):
         # Filter by series
         response = self.client.get(url, {'series': series.pk}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['data']), 1)
 
         # Filter by visibility
         response = self.client.get(url, {'visibility': 'public'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data['data']), 2)
 
         # Filter by category
         response = self.client.get(url, {'category': category.slug}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['data']), 1)
 
         # Filter by tags
         response = self.client.get(url, {'tags': tag1.slug}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['data']), 1)
 
         response = self.client.get(url, {'tags': tag2.slug}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data['data']), 2)
 
     def test_post_is_hot_filtering(self):
         # Hot post: recent, high views
@@ -168,12 +168,12 @@ class PostAPITest(BaseAPITestCase):
         # Filter by is_hot=True
         response = self.client.get(url, {'is_hot': 'true'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['data']), 1)
 
         # Filter by is_hot=False
         response = self.client.get(url, {'is_hot': 'false'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(len(response.data['data']), 2)
 
     def test_post_date_filtering(self):
         PostFactory(published_at=timezone.now() - timedelta(days=5))
@@ -184,7 +184,7 @@ class PostAPITest(BaseAPITestCase):
         after_date = (timezone.now() - timedelta(days=10)).isoformat()
         response = self.client.get(url, {'published_after': after_date}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(len(response.data['data']), 1)
 
 
 
@@ -271,8 +271,8 @@ class PostAPITest(BaseAPITestCase):
         url = reverse('blog:post-related', kwargs={'slug': post.slug})
         response = self.client.get(url, {'page_size': 5})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 5)
-        self.assertIn('next', response.data)
+        self.assertEqual(len(response.data['data']), 5)
+        self.assertIn('pagination', response.data)
 
     def test_same_category_posts_pagination(self):
         category = CategoryFactory()
@@ -281,5 +281,5 @@ class PostAPITest(BaseAPITestCase):
         url = reverse('blog:post-same-category', kwargs={'slug': post.slug})
         response = self.client.get(url, {'page_size': 7})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 7)
-        self.assertIn('next', response.data)
+        self.assertEqual(len(response.data['data']), 7)
+        self.assertIn('pagination', response.data)

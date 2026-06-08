@@ -59,16 +59,31 @@ def custom_exception_handler(exc, context):
         error_code = "internal_server_error"
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    # اگر handler پیش‌فرض پاسخی برگردانده، از آن استفاده می‌کنیم.
-    if response is not None:
-        # می‌توانید فیلدهای دلخواه را به پاسخ اضافه کنید، اما مراقب تکرار نباشید.
-        # برای سادگی، فعلاً پاسخ اصلی را برمی‌گردانیم.
-        return response
+    # Prepare messagesList
+    messages_list = []
+    if isinstance(detail, list):
+        messages_list = detail
+    elif isinstance(detail, dict):
+        # Convert dict details to a list of messages
+        for field, errors in detail.items():
+            if isinstance(errors, list):
+                for error in errors:
+                    messages_list.append(f"{field}: {error}")
+            else:
+                messages_list.append(f"{field}: {errors}")
+    else:
+        messages_list.append(str(detail))
 
-    # ساخت پاسخ سفارشی برای خطاهایی که توسط handler پیش‌فرض مدیریت نشده‌اند.
     custom_response_data = {
-        'detail': detail,
-        'error_code': error_code
+        "data": None,
+        "pagination": {
+            "pageNo": 1,
+            "pageSize": 1000,
+            "totalPage": 0,
+            "totalCount": 0,
+            "lastId": None
+        },
+        "messagesList": messages_list
     }
 
     return Response(custom_response_data, status=status_code)
