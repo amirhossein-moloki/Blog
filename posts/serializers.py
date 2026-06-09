@@ -4,6 +4,7 @@ from django.utils import timezone
 from jalali_date import datetime2jalali
 from markdownify import markdownify as html_to_markdown
 from django.apps import apps
+from drf_spectacular.utils import extend_schema_field
 
 from common.mixins import DynamicFieldsMixin
 from medias.serializers import MediaDetailSerializer, PostMediaSerializer
@@ -105,6 +106,7 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
             'seo_description', 'og_image', 'media_attachments'
         )
 
+    @extend_schema_field(PostMediaSerializer(many=True))
     def get_media_attachments(self, obj):
         return PostMediaSerializer(obj.media_attachments.all(), many=True).data
 

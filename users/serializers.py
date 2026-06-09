@@ -2,12 +2,18 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from .models import User
 from django.core.files.uploadedfile import UploadedFile
+from drf_spectacular.utils import extend_schema_field
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
     """Serializer for public User profiles (read-only)."""
+    role = serializers.SerializerMethodField()
+
+    @extend_schema_field(serializers.ListField(child=serializers.CharField()))
+    def get_role(self, obj):
+        return obj.role
 
     class Meta:
         model = User

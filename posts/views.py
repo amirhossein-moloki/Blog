@@ -2,6 +2,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
@@ -171,6 +172,16 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         serializer = PostDetailSerializer(post, context=self.get_serializer_context())
         return Response(serializer.data)
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="post_slug",
+            type=str,
+            location=OpenApiParameter.PATH,
+            description="The slug of the post to get comments for.",
+        )
+    ]
+)
 class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CommentListSerializer
     pagination_class = CustomPageNumberPagination
@@ -188,6 +199,10 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
             likes_count=Count('reactions', filter=Q(reactions__reaction='like'))
         ).select_related('user__authorprofile')
 
+@extend_schema(
+    responses={200: PostDetailSerializer},
+    description="Publish a draft or scheduled post."
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
 def publish_post(request, slug):
@@ -212,6 +227,10 @@ def publish_post(request, slug):
     serializer = PostDetailSerializer(post)
     return Response(serializer.data)
 
+@extend_schema(
+    responses={200: PostListSerializer(many=True)},
+    description="Get related posts based on tags."
+)
 @api_view(['GET'])
 def related_posts(request, slug):
     try:
