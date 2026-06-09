@@ -26,7 +26,7 @@ python manage.py test core
 برای بازگشت به حالت قبل از این فاز:
 To rollback the changes from this phase:
 
-1. حذف اپلیکیشن `core` از `INSTALLED_APPS` در `tournament_project/settings.py`.
-   Remove `core` from `INSTALLED_APPS` in `tournament_project/settings.py`.
+1. حذف اپلیکیشن `core` از `INSTALLED_APPS` در `blog/settings.py`.
+   Remove `core` from `INSTALLED_APPS` in `blog/settings.py`.
 2. حذف پوشه `core`.
    Delete the `core` directory.

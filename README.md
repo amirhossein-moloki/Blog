@@ -94,7 +94,7 @@ Once the server is running, you can access the API documentation at:
 ├── navigation/           # Navigation application (Menus)
 ├── users/                # User management application (Auth, Profiles)
 ├── common/               # Shared utilities, renderers, and mixins
-├── tournament_project/   # Project configuration and settings
+├── blog/                 # Project configuration and settings
 ├── templates/            # HTML templates
 ├── manage.py             # Django management script
 ├── Dockerfile            # Docker configuration for the web app
