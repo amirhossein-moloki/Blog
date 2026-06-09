@@ -31,7 +31,7 @@ services:
 
   celery_high_priority:
     build: .
-    command: celery -A tournament_project worker -l info -Q high_priority
+    command: celery -A blog worker -l info -Q high_priority
     volumes:
       - .:/app
       - media_volume:/app/media
@@ -43,7 +43,7 @@ services:
 
   celery_default:
     build: .
-    command: celery -A tournament_project worker -l info -Q default
+    command: celery -A blog worker -l info -Q default
     volumes:
       - .:/app
       - media_volume:/app/media
@@ -55,7 +55,7 @@ services:
 
   celery_low_priority:
     build: .
-    command: celery -A tournament_project worker -l info -Q low_priority
+    command: celery -A blog worker -l info -Q low_priority
     volumes:
       - .:/app
       - media_volume:/app/media
@@ -67,7 +67,7 @@ services:
 
   celery-beat:
     build: .
-    command: celery -A tournament_project beat -l info
+    command: celery -A blog beat -l info
     volumes:
       - .:/app
       - media_volume:/app/media

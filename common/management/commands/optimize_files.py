@@ -10,18 +10,7 @@ class Command(BaseCommand):
 
         # List of models and fields to optimize
         models_to_optimize = {
-            'tournaments.Rank': ['image'],
-            'tournaments.GameImage': ['image'],
-            'tournaments.TournamentImage': ['image'],
-            'tournaments.Match': ['result_proof'],
-            'tournaments.Report': ['evidence'],
-            'tournaments.WinnerSubmission': ['video'],
-            'verification.Verification': ['id_card_image', 'selfie_image', 'video'],
-            'teams.Team': ['team_picture'],
-            'support.TicketAttachment': ['file'],
             'users.User': ['profile_picture'],
-            'rewards.Prize': ['image'],
-            'chat.Attachment': ['file'],
             'medias.Media': ['file'],
         }
 

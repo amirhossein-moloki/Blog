@@ -19,7 +19,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from tournament_project.ckeditor_views import ckeditor5_upload
+from .ckeditor_views import ckeditor5_upload
 from posts.ckeditor_views import ckeditor_upload_view
 from .views import page_not_found_view
 
