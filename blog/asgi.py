@@ -1,4 +1,4 @@
-# tournament_project/asgi.py
+# blog/asgi.py
 
 import os
 from django.core.asgi import get_asgi_application
@@ -7,7 +7,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 
 # این خط باید اولین دستور مربوط به جنگو باشد
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tournament_project.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")
 
 # !! مهم: ابتدا این تابع را فراخوانی می‌کنیم تا جنگو پیکربندی شود
 django_asgi_app = get_asgi_application()
