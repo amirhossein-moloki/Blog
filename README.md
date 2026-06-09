@@ -1,6 +1,6 @@
 # Blog and User Management System
 
-This is a Django-based blog and user management system. It provides a robust backend for managing blog posts, categories, tags, comments, and user authentication with profile management.
+This is a Django-based blog and user management system. It provides a robust backend for managing posts, categories, tags, comments, and user authentication with profile management.
 
 ## Features
 
@@ -87,7 +87,11 @@ Once the server is running, you can access the API documentation at:
 
 ```
 .
-├── blog/                 # Blog application (Posts, Comments, etc.)
+├── posts/                # Posts application (Core content)
+├── medias/               # Medias application (Media management)
+├── interactions/         # Interactions application (Comments, Reactions)
+├── pages/                # Pages application (Static content)
+├── navigation/           # Navigation application (Menus)
 ├── users/                # User management application (Auth, Profiles)
 ├── common/               # Shared utilities, renderers, and mixins
 ├── tournament_project/   # Project configuration and settings

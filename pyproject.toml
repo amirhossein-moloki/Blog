@@ -18,7 +18,7 @@ exclude = '''
 '''
 
 [tool.deptry]
-known_first_party = ["users", "tournaments", "wallet", "chat", "blog", "common", "support", "teams", "verification", "tournament_project"]
+known_first_party = ["users", "tournaments", "wallet", "chat", "posts", "common", "support", "teams", "verification", "tournament_project"]
 exclude = [
     "gunicorn",
     "celery",

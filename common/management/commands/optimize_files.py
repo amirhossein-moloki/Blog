@@ -22,7 +22,7 @@ class Command(BaseCommand):
             'users.User': ['profile_picture'],
             'rewards.Prize': ['image'],
             'chat.Attachment': ['file'],
-            'blog.Media': ['file'],
+            'medias.Media': ['file'],
         }
 
         for model_str, field_names in models_to_optimize.items():
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                                     obj.save()
                                 elif 'video' in field.file.content_type:
                                     optimize_video.delay(field.path)
-                            elif isinstance(field, str) and field.startswith('/media/'): # For blog.Media
+                            elif isinstance(field, str) and field.startswith('/media/'): # For medias.Media
                                 # This part is tricky as we don't have the file object directly
                                 # We'll need to find the file in the storage and optimize it
                                 pass

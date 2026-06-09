@@ -2,7 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from datetime import datetime
 
-from blog.models import Post
+from posts.models import Post
 
 
 class PostSitemap(Sitemap):
@@ -16,7 +16,7 @@ class PostSitemap(Sitemap):
         return obj.published_at
 
     def location(self, obj):
-        return f"/blog/{obj.slug}"
+        return f"/posts/{obj.slug}"
 
 
 class StaticViewSitemap(Sitemap):
