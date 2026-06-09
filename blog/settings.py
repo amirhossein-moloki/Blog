@@ -357,7 +357,7 @@ UNFOLD = {
 # Django REST Framework Settings
 REST_FRAMEWORK = {
     # This line is required for drf-spectacular
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "common.schema.StandardizedAutoSchema",
     # This line is for using JWT Authentication
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -373,8 +373,18 @@ SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
     "DESCRIPTION": "API for managing posts, medias, interactions, pages, navigation and users.",
     "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,  # Optional: hides the schema endpoint from the UI
+    "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api",
+    "CONTACT": {
+        "name": "Admin",
+        "url": "https://example.com",
+        "email": "admin@example.com",
+    },
+    "LICENSE": {
+        "name": "MIT License",
+    },
+    "COMPONENT_SPLIT_PATCH": True,
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 DJOSER = {
