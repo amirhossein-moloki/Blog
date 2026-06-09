@@ -20,7 +20,7 @@ from rest_framework_simplejwt.views import (
 )
 
 from tournament_project.ckeditor_views import ckeditor5_upload
-from blog.ckeditor_views import ckeditor_upload_view
+from posts.ckeditor_views import ckeditor_upload_view
 from .views import page_not_found_view
 
 handler404 = page_not_found_view
@@ -67,7 +67,11 @@ urlpatterns = [
 
     # --- App URLs ---
     path("api/users/", include("users.urls")),
-    path("api/blog/", include("blog.urls", namespace="blog")),
+    path("api/posts/", include("posts.urls", namespace="posts")),
+    path("api/medias/", include("medias.urls", namespace="medias")),
+    path("api/interactions/", include("interactions.urls", namespace="interactions")),
+    path("api/pages/", include("pages.urls", namespace="pages")),
+    path("api/navigation/", include("navigation.urls", namespace="navigation")),
     path("api/editor/upload/", ckeditor_upload_view, name="ckeditor_upload"),
 ]
 

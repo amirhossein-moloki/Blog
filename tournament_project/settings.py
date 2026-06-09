@@ -90,7 +90,11 @@ INSTALLED_APPS = [
     "tempus_dominus",
     "formtools",
     "core",
-    "blog",
+    "posts",
+    "medias",
+    "interactions",
+    "pages",
+    "navigation",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -362,12 +366,12 @@ REST_FRAMEWORK = {
         "common.renderers.StandardResponseRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
-    'EXCEPTION_HANDLER': 'blog.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
 }
 
 SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
-    "DESCRIPTION": "API for managing blog posts and users.",
+    "DESCRIPTION": "API for managing posts, medias, interactions, pages, navigation and users.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,  # Optional: hides the schema endpoint from the UI
     "SCHEMA_PATH_PREFIX": r"/api",
@@ -469,7 +473,7 @@ CELERY_RESULT_EXPIRES = timedelta(
 
 CELERY_BEAT_SCHEDULE = {
     'publish-scheduled-posts': {
-        'task': 'blog.tasks.publish_scheduled_posts',
+        'task': 'posts.tasks.publish_scheduled_posts_task',
         'schedule': timedelta(minutes=1),
     },
 }
@@ -541,7 +545,7 @@ CKEDITOR_5_CONFIGS = {
             "undo",
             "redo",
         ],
-        "uploadUrl": "/blog/upload/",
+        "uploadUrl": "/api/editor/upload/",
         "image": {
             "toolbar": [
                 "imageTextAlternative",

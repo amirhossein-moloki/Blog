@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from blog.tests.base import BaseAPITestCase
+from posts.blog_tests.base import BaseAPITestCase
 from .models import User, OTP
 from .services import verify_otp_service
 
