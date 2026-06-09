@@ -238,9 +238,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://127.0.0.1:6379")
+REDIS_URL = os.environ.get("REDIS_URL")
+USE_REDIS = os.environ.get("USE_REDIS", "false").lower() in ("true", "1", "t") and REDIS_URL
 
-if "test" in sys.argv:
+if "test" in sys.argv or not USE_REDIS:
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels.layers.InMemoryChannelLayer",
@@ -452,8 +453,12 @@ AXES_RESET_ON_SUCCESS = True
 AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
 # Celery Configuration
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
+if USE_REDIS:
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+else:
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
 
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
@@ -515,22 +520,22 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/1",  # DB 1 for cache, 0 for channels/celery
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-    },
-}
-
-if "test" in sys.argv or "pytest" in sys.modules:
+if "test" in sys.argv or "pytest" in sys.modules or not USE_REDIS:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             "LOCATION": "unique-snowflake",
         }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": f"{REDIS_URL}/1",  # DB 1 for cache, 0 for channels/celery
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        },
     }
 
 CKEDITOR_5_UPLOAD_PATH = "uploads/"
