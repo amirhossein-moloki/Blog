@@ -34,12 +34,19 @@ class CommentListSerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'content', 'created_at', 'parent', 'likes_count')
 
 class ReactionSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     created_at = JalaliDateTimeField()
 
     class Meta:
         model = Reaction
         fields = ('id', 'user', 'reaction', 'content_type', 'object_id', 'created_at')
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Reaction.objects.all(),
+                fields=('user', 'content_type', 'object_id', 'reaction'),
+                message="You have already reacted to this object with this reaction."
+            )
+        ]
 
     def validate(self, attrs):
         content_type = attrs['content_type']
@@ -50,3 +57,8 @@ class ReactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("The target object does not exist.")
 
         return attrs
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['user'] = instance.user.pk
+        return ret
