@@ -10,7 +10,6 @@ from django_select2.forms import Select2Widget
 
 # Local Imports
 from .models import (
-    OTP,
     User,
 )
 
@@ -35,17 +34,3 @@ class UserAdmin(BaseUserAdmin, SimpleHistoryAdmin, ModelAdmin):
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "is_phone_verified", "groups", "user_permissions"), "classes": ("tab",)}),
         ("Important dates", {"fields": ("last_login", "date_joined"), "classes": ("tab",)}),
     )
-
-
-@admin.register(OTP)
-class OTPAdmin(ModelAdmin):
-    list_display = ("identifier", "code", "created_at", "expires_at", "is_used", "is_expired_display")
-    search_fields = ("identifier", "user__username")
-    list_filter = ("is_used",)
-    autocomplete_fields = ("user",)
-    readonly_fields = ("created_at", "expires_at", "is_expired_display")
-
-    def is_expired_display(self, obj):
-        return obj.is_expired
-    is_expired_display.boolean = True
-    is_expired_display.short_description = 'Is Expired?'
