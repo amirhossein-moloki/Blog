@@ -1,71 +1,56 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from users.models import User, OTP
-from posts.factories import UserFactory
+from users.models import User
 
 class AuthFlowIntegrationTest(APITestCase):
-    def test_full_otp_auth_flow_new_user(self):
-        # 1. Request OTP
-        identifier = "+989121111111"
-        send_otp_url = reverse('user-send-otp')
-        response = self.client.post(send_otp_url, {'identifier': identifier})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Verify OTP was created in DB
-        otp = OTP.objects.get(identifier=identifier)
-        self.assertIsNotNone(otp.code)
-
-        # 2. Verify OTP
-        verify_otp_url = reverse('user-verify-otp')
-        response = self.client.post(verify_otp_url, {
-            'identifier': identifier,
-            'code': otp.code
-        })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
-
-        access_token = response.data['access']
+    def test_full_auth_flow_new_user(self):
+        # 1. Signup
+        signup_url = reverse('user-list')
+        data = {
+            'username': 'newuser',
+            'email': 'new@example.com',
+            'password': 'Password123!',
+            'password_confirm': 'Password123!',
+            'first_name': 'New',
+            'last_name': 'User'
+        }
+        response = self.client.post(signup_url, data)
+        if response.status_code != status.HTTP_201_CREATED:
+            print(f"Signup failed: {response.data}")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # Verify user was created
-        self.assertTrue(User.objects.filter(phone_number=identifier).exists())
-        user = User.objects.get(phone_number=identifier)
+        self.assertTrue(User.objects.filter(username='newuser').exists())
+        user = User.objects.get(username='newuser')
+
+        # 2. Login
+        login_url = reverse('token_obtain_pair')
+        response = self.client.post(login_url, {
+            'username': 'newuser',
+            'password': 'Password123!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token_data = response.data.get('data', response.data)
+        self.assertIn('access', token_data)
+        self.assertIn('refresh', token_data)
+
+        access_token = token_data['access']
 
         # 3. Access 'me' endpoint with token
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
         me_url = reverse('user-me')
         response = self.client.get(me_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['username'], user.username)
 
-    def test_otp_auth_flow_existing_user(self):
-        user = UserFactory(phone_number="+989122222222", username="existing_user")
-        identifier = str(user.phone_number)
+        user_data = response.data.get('data', response.data)
+        self.assertEqual(user_data['username'], user.username)
 
-        # Request OTP
-        self.client.post(reverse('user-send-otp'), {'identifier': identifier})
-        otp = OTP.objects.get(identifier=identifier)
-
-        # Verify OTP
-        response = self.client.post(reverse('user-verify-otp'), {
-            'identifier': identifier,
-            'code': otp.code
+    def test_invalid_login(self):
+        User.objects.create_user(username='testuser', password='Password123!')
+        login_url = reverse('token_obtain_pair')
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'wrongpassword'
         })
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Verify we got the same user
-        verified_user = User.objects.get(phone_number=identifier)
-        self.assertEqual(verified_user.pk, user.pk)
-        self.assertEqual(verified_user.username, "existing_user")
-
-    def test_invalid_otp_verification(self):
-        identifier = "+989123333333"
-        self.client.post(reverse('user-send-otp'), {'identifier': identifier})
-
-        response = self.client.post(reverse('user-verify-otp'), {
-            'identifier': identifier,
-            'code': 'wrong_code'
-        })
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

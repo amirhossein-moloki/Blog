@@ -22,8 +22,7 @@ from .serializers import (CustomTokenObtainPairSerializer,
                           UserCreateSerializer,
                           UserReadOnlySerializer, UserSerializer,
                           GoogleLoginSerializer)
-from .services import (ApplicationError, send_otp_service,
-                       verify_otp_service)
+from .services import ApplicationError
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +36,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         except TokenError as e:
             raise InvalidToken(e.args[0])
 
-        user = serializer.user
-        if not settings.DEBUG and not user.is_staff:
-            return Response(
-                {"error": _("You are not authorized to login from here.")},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -59,10 +52,12 @@ class UserViewSet(viewsets.ModelViewSet):
             if self.action == "retrieve" and self.request.user.is_authenticated and self.get_object() == self.request.user:
                 return UserSerializer
             return UserReadOnlySerializer
+        if self.action == "create":
+            return UserCreateSerializer
         return UserSerializer
 
     def get_permissions(self):
-        if self.action in ["send_otp", "verify_otp", "create"]:
+        if self.action == "create":
             return [AllowAny()]
         if self.action in ["list", "retrieve"]:
             return [IsOwnerOrAdmin()]
@@ -78,33 +73,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if user.is_authenticated:
             return queryset.filter(pk=user.pk)
         return queryset.none()
-
-    @action(detail=False, methods=["post"])
-    def send_otp(self, request):
-        identifier = request.data.get("identifier")
-        try:
-            send_otp_service(identifier=identifier)
-            return Response(
-                {"message": _("OTP sent successfully.")}, status=status.HTTP_200_OK
-            )
-        except ApplicationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=False, methods=["post"])
-    def verify_otp(self, request):
-        identifier = request.data.get("identifier")
-        code = request.data.get("code")
-        try:
-            user = verify_otp_service(identifier=identifier, code=code)
-            refresh = RefreshToken.for_user(user)
-            return Response(
-                {
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                }
-            )
-        except ApplicationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,
