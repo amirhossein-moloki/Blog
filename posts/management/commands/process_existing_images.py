@@ -1,6 +1,7 @@
+from common.tasks import convert_image_to_avif_task
 from django.core.management.base import BaseCommand
 from django.db.models import Q
-from posts.models import Media
+from medias.models import Media
 from posts.tasks import process_media_image
 
 class Command(BaseCommand):
@@ -22,7 +23,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(f'Found {count} image(s) to process.'))
 
         for media in images_to_process:
-            process_media_image.delay(media.id)
+            convert_image_to_avif_task.delay('medias', 'Media', media.id, 'storage_key')
             self.stdout.write(f'Queued task for Media ID: {media.id}')
 
         self.stdout.write(self.style.SUCCESS(f'Successfully queued {count} task(s).'))

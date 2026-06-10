@@ -46,7 +46,7 @@ def sync_post_media(post):
     for url in re.findall(r'<img [^>]*src="([^"]+)"', post.content):
         path = urlparse(url).path
         if path.startswith(settings.MEDIA_URL):
-            media_paths_in_content.add(path[len(settings.MEDIA_URL):].lstrip('/'))
+            media_paths_in_content.add(path[len(settings.MEDIA_URL):].lstrip('/').lstrip('/'))
 
     linked_media_ids = set(
         Media.objects.filter(storage_key__in=media_paths_in_content).values_list('id', flat=True)
