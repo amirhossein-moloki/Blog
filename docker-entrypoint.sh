@@ -17,4 +17,4 @@ python manage.py collectstatic --no-input
 
 # Start server
 echo "Starting server..."
-daphne -b 0.0.0.0 -p 8000 tournament_project.asgi:application
+daphne -b 0.0.0.0 -p 8000 blog.asgi:application

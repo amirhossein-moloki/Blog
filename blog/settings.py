@@ -41,7 +41,7 @@ LOGS_DIR.mkdir(exist_ok=True)
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dummy-key-for-testing")
+SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-with-a-very-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
@@ -514,8 +514,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://atom-game.ir",
-    "https://www.atom-game.ir",
+    origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
 ]
 
 

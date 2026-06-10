@@ -13,8 +13,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")
 django_asgi_app = get_asgi_application()
 
 # حالا که جنگو آماده است، می‌توانیم routing های خود را import کنیم
-import chat.routing
-import notifications.routing
+# import chat.routing
+# import notifications.routing
 
 # در نهایت، application را با استفاده از متغیری که ساختیم تعریف می‌کنیم
 application = ProtocolTypeRouter(
@@ -22,8 +22,9 @@ application = ProtocolTypeRouter(
         "http": django_asgi_app,
         "websocket": AuthMiddlewareStack(
             URLRouter(
-                chat.routing.websocket_urlpatterns
-                + notifications.routing.websocket_urlpatterns
+                # chat.routing.websocket_urlpatterns
+                # + notifications.routing.websocket_urlpatterns
+                []
             )
         ),
     }
