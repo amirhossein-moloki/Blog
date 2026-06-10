@@ -147,10 +147,21 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['get'], url_path='same-category')
     def same_category(self, request, slug=None):
         current_post = self.get_object()
-        paginator = self.pagination_class()
 
         if not current_post.category:
-            return paginator.get_paginated_response([])
+            return Response({
+                "data": [],
+                "pagination": {
+                    "pageNo": 1,
+                    "pageSize": 10,
+                    "totalPage": 0,
+                    "totalCount": 0,
+                    "lastId": None
+                },
+                "messagesList": []
+            })
+
+        paginator = self.pagination_class()
 
         category_posts = Post.objects.filter(
             status='published',
