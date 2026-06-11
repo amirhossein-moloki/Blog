@@ -1,11 +1,8 @@
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from interactions.models import Comment, Reaction
-from medias.models import Media
-from pages.models import Page
 from posts.factories import UserFactory
-from posts.models import AuthorProfile, Category, Post, Series, Tag
+from posts.models import AuthorProfile
 
 
 class BaseAPITestCase(APITestCase):

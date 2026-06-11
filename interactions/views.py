@@ -1,13 +1,11 @@
-from django.db.models import Count, Q
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.response import Response
 
 from common.pagination import CustomPageNumberPagination
 from users.permissions import IsOwnerOrAdmin
 
 from .models import Comment, Reaction
-from .serializers import CommentListSerializer, CommentSerializer, ReactionSerializer
+from .serializers import CommentSerializer, ReactionSerializer
 from .tasks import notify_author_on_new_comment
 
 

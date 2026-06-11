@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from medias.models import Media, PostMedia
-from posts.factories import AuthorProfileFactory, PostFactory
+from posts.factories import PostFactory
 from posts.models import Post
 from posts.services import (
     increment_post_view_count,

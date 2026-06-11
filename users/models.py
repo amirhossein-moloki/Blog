@@ -1,7 +1,5 @@
-import shortuuid
-from django.contrib.auth.models import AbstractUser, Group
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.signals import post_save
 from phonenumber_field.modelfields import PhoneNumberField
 
 from common.fields import OptimizedImageField

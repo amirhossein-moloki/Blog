@@ -1,9 +1,8 @@
 from unittest.mock import MagicMock
 
-from django.test import RequestFactory, TestCase
-from rest_framework.response import Response
+from django.test import TestCase
 
-from common.pagination import CustomPageNumberPagination, CustomPagination
+from common.pagination import CustomPagination
 from common.renderers import StandardResponseRenderer
 
 

@@ -17,7 +17,7 @@ class CommentModelTest(TestCase):
 
     def test_comment_replies(self):
         parent = CommentFactory()
-        reply = CommentFactory(parent=parent, post=parent.post)
+        CommentFactory(parent=parent, post=parent.post)
         self.assertEqual(parent.replies.count(), 1)
 
 

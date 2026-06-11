@@ -1,14 +1,9 @@
 from datetime import timedelta
 
-from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils import timezone
-from jalali_date import datetime2jalali
 from rest_framework import status
 
-from interactions.models import Comment, Reaction
-from medias.models import Media
-from pages.models import Page
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
     CategoryFactory,
@@ -18,7 +13,7 @@ from posts.factories import (
     TagFactory,
     UserFactory,
 )
-from posts.models import AuthorProfile, Category, Post, Series, Tag
+from posts.models import AuthorProfile, Post
 
 
 class PostPermissionAPITest(BaseAPITestCase):

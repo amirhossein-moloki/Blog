@@ -1,5 +1,3 @@
-import os
-
 from celery import shared_task
 from django.apps import apps
 from django.core.files.storage import default_storage

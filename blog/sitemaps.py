@@ -1,7 +1,6 @@
 from datetime import datetime
 
 from django.contrib.sitemaps import Sitemap
-from django.urls import reverse
 
 from posts.models import Post
 

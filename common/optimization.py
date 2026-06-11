@@ -3,7 +3,6 @@ import subprocess
 from io import BytesIO
 
 from celery import shared_task
-from django.core.files.base import ContentFile
 from PIL import Image
 
 

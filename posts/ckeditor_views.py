@@ -35,7 +35,7 @@ def ckeditor_upload_view(request):
         file_url = default_storage.url(storage_key)
 
         # Create a Media object for the new AVIF image
-        media = Media.objects.create(
+        Media.objects.create(
             storage_key=storage_key,
             url=file_url,
             mime="image/avif",  # Explicitly set the MIME type for AVIF

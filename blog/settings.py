@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-import locale
 import os
 import sys
 from datetime import timedelta
@@ -100,12 +99,12 @@ INSTALLED_APPS = [
 ]
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
     "guardian.backends.ObjectPermissionBackend",
 ]
 
-if "test" not in sys.argv and "pytest" not in sys.modules:
-    AUTHENTICATION_BACKENDS.insert(0, "axes.backends.AxesStandaloneBackend")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

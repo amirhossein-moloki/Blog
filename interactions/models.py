@@ -10,6 +10,10 @@ User = get_user_model()
 
 
 class Comment(BaseModel):
+
+    class Meta:
+        ordering = ["-created_at"]
+
     STATUS_CHOICES = (
         ("pending", "Pending"),
         ("approved", "Approved"),

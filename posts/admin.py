@@ -1,6 +1,4 @@
 from django.contrib import admin, messages
-from django.urls import reverse
-from django.utils.html import format_html
 from jalali_date.admin import ModelAdminJalaliMixin
 
 from medias.models import PostMedia
