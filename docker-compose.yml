@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: sh -c "/app/docker-entrypoint.sh"
+    command: sh -c "/usr/local/bin/docker-entrypoint.sh"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -10,18 +10,16 @@ services:
       - .env
     depends_on:
       - db
-      - redis
+      - cache
 
   db:
     image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    env_file:
+      - .env
 
-  redis:
+  cache:
     image: redis:8.2-alpine
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -38,7 +36,7 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
+      cache:
         condition: service_healthy
 
   celery_default:
@@ -50,7 +48,7 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
+      cache:
         condition: service_healthy
 
   celery_low_priority:
@@ -62,7 +60,7 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
+      cache:
         condition: service_healthy
 
   celery-beat:
@@ -74,7 +72,7 @@ services:
     env_file:
       - .env
     depends_on:
-      redis:
+      cache:
         condition: service_healthy
 
   nginx:
