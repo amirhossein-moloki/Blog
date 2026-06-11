@@ -389,6 +389,10 @@ SPECTACULAR_SETTINGS = {
     },
     "COMPONENT_SPLIT_PATCH": True,
     "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "PostStatusEnum": "posts.models.Post.STATUS_CHOICES",
+        "CommentStatusEnum": "interactions.models.Comment.STATUS_CHOICES",
+    },
 }
 
 DJOSER = {
