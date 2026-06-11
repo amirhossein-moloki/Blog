@@ -9,6 +9,9 @@ User = get_user_model()
 
 
 class Media(BaseModel):
+    class Meta:
+        ordering = ["-created_at"]
+
     storage_key = models.CharField(max_length=255)
     url = models.URLField()
     type = models.CharField(max_length=50)  # image/video/audio/file
