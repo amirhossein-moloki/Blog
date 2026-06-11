@@ -1,0 +1,218 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "first_name": "Admin",
+      "last_name": "User",
+      "is_staff": true,
+      "role": ["Admin"]
+    },
+    {
+      "id": 2,
+      "username": "author1",
+      "email": "author1@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "is_staff": false,
+      "role": ["Author"]
+    }
+  ],
+  "authorProfiles": [
+    {
+      "user": 1,
+      "display_name": "Super Admin",
+      "bio": "I am the administrator of this blog.",
+      "avatar": 1
+    },
+    {
+      "user": 2,
+      "display_name": "John Doe",
+      "bio": "Expert in Backend Development.",
+      "avatar": 2
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "slug": "technology",
+      "name": "Technology",
+      "parent": null,
+      "description": "All things tech."
+    },
+    {
+      "id": 2,
+      "slug": "programming",
+      "name": "Programming",
+      "parent": 1,
+      "description": "Coding and development."
+    }
+  ],
+  "tags": [
+    {
+      "id": 1,
+      "slug": "python",
+      "name": "Python"
+    },
+    {
+      "id": 2,
+      "slug": "django",
+      "name": "Django"
+    },
+    {
+      "id": 3,
+      "slug": "javascript",
+      "name": "JavaScript"
+    }
+  ],
+  "series": [
+    {
+      "id": 1,
+      "slug": "mastering-django",
+      "title": "Mastering Django",
+      "description": "A comprehensive series on Django.",
+      "order_strategy": "manual"
+    }
+  ],
+  "medias": [
+    {
+      "id": 1,
+      "storage_key": "avatars/admin.png",
+      "url": "http://localhost:8000/media/avatars/admin.png",
+      "type": "image",
+      "mime": "image/png",
+      "size_bytes": 1024,
+      "title": "Admin Avatar",
+      "uploaded_by": 1,
+      "created_at": "2024-01-01T12:00:00Z"
+    },
+    {
+      "id": 2,
+      "storage_key": "avatars/john.png",
+      "url": "http://localhost:8000/media/avatars/john.png",
+      "type": "image",
+      "mime": "image/png",
+      "size_bytes": 2048,
+      "title": "John Avatar",
+      "uploaded_by": 2,
+      "created_at": "2024-01-01T12:05:00Z"
+    },
+    {
+      "id": 3,
+      "storage_key": "posts/django-intro.jpg",
+      "url": "http://localhost:8000/media/posts/django-intro.jpg",
+      "type": "image",
+      "mime": "image/jpeg",
+      "size_bytes": 51200,
+      "title": "Django Intro Cover",
+      "uploaded_by": 2,
+      "created_at": "2024-01-02T10:00:00Z"
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "slug": "introduction-to-django",
+      "title": "Introduction to Django",
+      "excerpt": "Learn the basics of Django web framework.",
+      "content": "<p>Django is a high-level Python web framework...</p>",
+      "status": "published",
+      "visibility": "public",
+      "is_hot": true,
+      "published_at": "2024-01-02T11:00:00Z",
+      "author": 2,
+      "category": 2,
+      "series": 1,
+      "cover_media": 3,
+      "tags": [1, 2],
+      "views_count": 150,
+      "reading_time_sec": 300
+    },
+    {
+      "id": 2,
+      "slug": "advanced-python-tips",
+      "title": "Advanced Python Tips",
+      "excerpt": "Take your Python skills to the next level.",
+      "content": "<p>In this post, we explore advanced Python concepts...</p>",
+      "status": "published",
+      "visibility": "public",
+      "is_hot": false,
+      "published_at": "2024-01-03T09:00:00Z",
+      "author": 2,
+      "category": 2,
+      "series": null,
+      "cover_media": null,
+      "tags": [1],
+      "views_count": 85,
+      "reading_time_sec": 450
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "post": 1,
+      "user": 1,
+      "parent": null,
+      "content": "Great article!",
+      "status": "approved",
+      "created_at": "2024-01-02T14:00:00Z"
+    },
+    {
+      "id": 2,
+      "post": 1,
+      "user": 2,
+      "parent": 1,
+      "content": "Thank you, Admin!",
+      "status": "approved",
+      "created_at": "2024-01-02T15:00:00Z"
+    }
+  ],
+  "menus": [
+    {
+      "id": 1,
+      "name": "Main Menu",
+      "location": "header"
+    }
+  ],
+  "menuItems": [
+    {
+      "id": 1,
+      "menu": 1,
+      "parent": null,
+      "label": "Home",
+      "url": "/",
+      "order": 1,
+      "target_blank": false
+    },
+    {
+      "id": 2,
+      "menu": 1,
+      "parent": null,
+      "label": "Blog",
+      "url": "/blog",
+      "order": 2,
+      "target_blank": false
+    }
+  ],
+  "pages": [
+    {
+      "id": 1,
+      "slug": "about-us",
+      "title": "About Us",
+      "content": "<p>We are a team of developers sharing our knowledge.</p>",
+      "status": "published",
+      "published_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "reactions": [
+      {
+          "id": 1,
+          "user": 1,
+          "reaction": "like",
+          "content_type": "post",
+          "object_id": 1,
+          "created_at": "2024-01-02T13:00:00Z"
+      }
+  ]
+}

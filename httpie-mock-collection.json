@@ -1,0 +1,4078 @@
+{
+  "meta": {
+    "format": "httpie",
+    "version": "1.0.0"
+  },
+  "entry": {
+    "id": "5d1e9ca0-8be4-4b7e-8aab-c33b19a9e014",
+    "name": "Blog Platform API",
+    "collections": [
+      {
+        "id": "e330a8f8-9c50-43cf-957e-f1f050bd384d",
+        "name": "interactions",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "711c9741-edd6-4042-a1c5-d922271a9463",
+            "name": "interactions_comments_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/interactions/comments/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [
+              {
+                "name": "page",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page_size",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "9cc16adc-0eda-49cb-8c89-acc018509f0d",
+            "name": "interactions_comments_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/interactions/comments/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "efe949fc-7663-4194-a9f8-91577a1a9baa",
+            "name": "interactions_comments_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/interactions/comments/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "638ab775-3187-4f2b-936b-0bb4c7af6b26",
+            "name": "interactions_comments_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/interactions/comments/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "3e6addec-d8bf-4ade-a5fc-54ce49610c20",
+            "name": "interactions_comments_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/interactions/comments/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "5b3c6152-0cd8-478b-9886-7e5660a86f3b",
+            "name": "interactions_comments_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/interactions/comments/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "da1e7293-5b29-4deb-9a29-866d3ff171f7",
+            "name": "interactions_reactions_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/interactions/reactions/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "45d0b486-9589-4382-8822-1dc3612ce151",
+            "name": "interactions_reactions_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/interactions/reactions/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "reaction",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content_type",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "object_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "5a4eed0c-aa19-4cad-9fe5-7c4e511bc808",
+            "name": "interactions_reactions_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/interactions/reactions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "bb7fd9d4-a2f9-45bc-8043-0446ac6228d4",
+            "name": "interactions_reactions_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/interactions/reactions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "reaction",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content_type",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "object_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "4269ab57-2ab7-47f0-a49b-8e7f1c6b79d9",
+            "name": "interactions_reactions_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/interactions/reactions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "reaction",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content_type",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "object_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "38704c65-f0dd-4de0-86ef-c1ca54eeecf9",
+            "name": "interactions_reactions_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/interactions/reactions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "5dce5244-e589-4ef7-ad55-a94431414469",
+        "name": "medias",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "73461217-a4be-4b3a-90ef-dbb1fe156623",
+            "name": "medias_media_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/medias/media/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [
+              {
+                "name": "page",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page_size",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "21e258ab-d77c-46d1-a1fd-7e3d07710774",
+            "name": "medias_media_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/medias/media/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "file",
+                    "value": "",
+                    "enabled": true,
+                    "type": "file"
+                  },
+                  {
+                    "name": "alt_text",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "c1adc878-0dc8-45de-9582-3db5277aa84c",
+            "name": "medias_media_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/medias/media/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "988cb7ed-620b-40fc-8eb4-e232a5f572ac",
+            "name": "medias_media_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/medias/media/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "storage_key",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "type",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "mime",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "width",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "height",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "duration",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "size_bytes",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "alt_text",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "uploaded_by",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "f8e1e764-b516-4e33-a41a-84f6d3e7ff9b",
+            "name": "medias_media_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/medias/media/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "storage_key",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "type",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "mime",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "width",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "height",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "duration",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "size_bytes",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "alt_text",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "uploaded_by",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "baf464da-50ac-493e-9231-da5306ece689",
+            "name": "medias_media_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/medias/media/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "da449bac-7ff5-489e-a7c4-6e7afbb5d64f",
+        "name": "navigation",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "d7aea08c-4af8-4fe5-b3ab-a98ec7788822",
+            "name": "navigation_menu_items_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "bce6c2f1-b67c-4896-9dbd-706ab83a03c2",
+            "name": "navigation_menu_items_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "label",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "target_blank",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "menu",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "d93213b4-8209-40d8-a078-2666614ab549",
+            "name": "navigation_menu_items_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "c8c4a4bd-e6b7-47d6-94cb-8796a6abfdc0",
+            "name": "navigation_menu_items_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "label",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "target_blank",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "menu",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "2bafefd6-c208-410e-b5ea-85f6756add81",
+            "name": "navigation_menu_items_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "label",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "target_blank",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "menu",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "8843ba3b-3d8f-47e0-ae82-9554260a05f1",
+            "name": "navigation_menu_items_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/navigation/menu-items/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "a83f4447-24e0-4e3d-8d36-767cd245fdef",
+            "name": "navigation_menus_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/navigation/menus/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "019846dd-49dc-40ac-acc9-40a483a647c5",
+            "name": "navigation_menus_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/navigation/menus/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "location",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "6ef5a203-2f09-4e29-ac01-6855ee401ea1",
+            "name": "navigation_menus_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/navigation/menus/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "90d6bfe0-abf7-40fc-8ae4-f4b238458e0d",
+            "name": "navigation_menus_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/navigation/menus/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "location",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "781a0965-52b4-49eb-a367-5b5e21f90264",
+            "name": "navigation_menus_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/navigation/menus/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "location",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "0b9656c7-a4b9-47eb-931b-4da0b8b531e0",
+            "name": "navigation_menus_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/navigation/menus/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bfd42e49-a570-4e0e-afea-faed0b19136e",
+        "name": "pages",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "f0702c1b-47a7-4685-a5ae-3e8ab1610931",
+            "name": "pages_pages_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/pages/pages/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "b23992b5-5d76-4605-aa5f-e52d3e376a5c",
+            "name": "pages_pages_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/pages/pages/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "published_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "5deedea3-ce06-45c2-9742-725ef8799994",
+            "name": "pages_pages_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/pages/pages/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "ddcb5b09-be3b-45b2-aa9a-432f8b1457b5",
+            "name": "pages_pages_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/pages/pages/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "published_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "3ffda8a8-1265-4049-b74a-5ef0d622471a",
+            "name": "pages_pages_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/pages/pages/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "published_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "7d11a46b-fc64-48ca-a762-e9705c336743",
+            "name": "pages_pages_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/pages/pages/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "d2d68de3-0c54-420a-bc18-bb12e6e0f8f5",
+        "name": "posts",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "5df88c90-80bf-4ab8-84e2-0a10ceece8b9",
+            "name": "posts_authors_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/authors/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "953ae7a6-4c77-42c8-84a3-54b09377bb20",
+            "name": "posts_authors_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/authors/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "user",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "display_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "bio",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "avatar",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "85b5ced8-f3ae-4b37-ae11-750a79fafd4a",
+            "name": "posts_authors_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/authors/{user}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "user",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "25cf1247-2078-4094-970c-2c7fa8e1cadc",
+            "name": "posts_authors_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/authors/{user}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "user",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "user",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "display_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "bio",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "avatar",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "4bf47328-bfd5-40ba-bfa7-7adc844d9cc2",
+            "name": "posts_authors_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/authors/{user}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "user",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "user",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "display_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "bio",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "avatar",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "cc928277-cc27-4e0b-9cf6-a204a9e285e1",
+            "name": "posts_authors_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/authors/{user}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "user",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "87dc9766-d613-49be-a42b-83833d8105f3",
+            "name": "posts_categories_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/categories/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "f3367545-3aed-41ac-8790-05e4ad3d6247",
+            "name": "posts_categories_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/categories/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "624c16b7-fc1d-4dbc-baac-498d21449f19",
+            "name": "posts_categories_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/categories/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "4dcdf2ca-9753-4954-99d0-1a4d56eb90e4",
+            "name": "posts_categories_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/categories/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "e7c1424d-b504-4f77-8b56-47501c248274",
+            "name": "posts_categories_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/categories/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "parent",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "fd31bedd-eca7-4e12-8a58-bf6a1912fe15",
+            "name": "posts_categories_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/categories/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "e98ea332-9e5b-4af6-bb35-554d37b71d89",
+            "name": "posts_posts_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [
+              {
+                "name": "category",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "is_hot",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "ordering",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page_size",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "published_after",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "published_before",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "search",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "series",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "tags",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "visibility",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "89e3ec5b-3e84-46d7-974e-b86e7817655d",
+            "name": "posts_posts_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/posts/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "visibility",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "is_hot",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "series",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "canonical_url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "tag_ids",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "category_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "cover_media_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "og_image_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "publish_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "5532f8c1-ada6-49f1-8778-273de8c6778f",
+            "name": "posts_posts_comments_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{post_slug}/comments/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [
+              {
+                "name": "ordering",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "page_size",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "pathParams": [
+              {
+                "name": "post_slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "d5caab0f-4ae5-45b3-8c4b-a4603c61ceea",
+            "name": "posts_posts_comments_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{post_slug}/comments/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "post_slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "e2663f1f-3eb6-4382-83cf-edffd5bca6b1",
+            "name": "posts_posts_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "825e6ff8-7b2f-4232-857a-3a2dc7b8b685",
+            "name": "posts_posts_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "visibility",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "is_hot",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "series",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "canonical_url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "tag_ids",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "category_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "cover_media_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "og_image_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "publish_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "7f78efad-779d-4d21-bb64-2eee3b5b3042",
+            "name": "posts_posts_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "status",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "visibility",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "is_hot",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "series",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "seo_description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "canonical_url",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "tag_ids",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "category_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "cover_media_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "og_image_id",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "publish_at",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "fdc0fc68-93c4-4155-b574-f0ac769cdedc",
+            "name": "posts_posts_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "3124fa73-a6ab-429f-8b52-3643a4cc18a0",
+            "name": "posts_posts_publish_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/publish/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "4f39c1a4-68ab-4e40-a5e0-84a243a1c29e",
+            "name": "posts_posts_related_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/related/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "36017e3a-eb4f-4d51-82c2-e590e9689724",
+            "name": "posts_posts_same_category_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/same-category/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "a351e184-a8a4-474d-bd53-85b659d3d00f",
+            "name": "posts_posts_similar_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/{slug}/similar/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "33cb46f9-fc3e-4625-bf78-e004541bd2e7",
+            "name": "posts_posts_slug_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/posts/slug/{slug}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "slug",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "338fd623-2d23-4164-8766-edb3e2f4cba6",
+            "name": "posts_revisions_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/revisions/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "22b895bc-6e9c-49f9-bff2-9b9d53c2ebae",
+            "name": "posts_revisions_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/revisions/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "change_note",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "editor",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "b96e8326-783c-4a61-a95d-47bad787a848",
+            "name": "posts_revisions_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/revisions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "c3d647ba-bfe6-4e48-9a60-713e1e4a80f0",
+            "name": "posts_revisions_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/revisions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "change_note",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "editor",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "4aece377-58bf-4b09-bc83-850ae19042be",
+            "name": "posts_revisions_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/revisions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "content",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "excerpt",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "change_note",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "post",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "editor",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "49a72fff-2ce0-40a0-af1c-93860094b741",
+            "name": "posts_revisions_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/revisions/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "5dd9d741-a3e3-4ce4-985b-28cc60822359",
+            "name": "posts_series_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/series/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "e46670f6-a300-4c6b-b2a8-a4b830a43b48",
+            "name": "posts_series_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/series/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order_strategy",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "f4d65629-d454-489e-b8ad-1378bd20bdeb",
+            "name": "posts_series_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/series/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "4c202f20-afff-4e8c-8dd6-bfa2148e8895",
+            "name": "posts_series_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/series/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order_strategy",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "84f85ed6-4d0f-4ce3-8c43-a1e366ef6c2e",
+            "name": "posts_series_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/series/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "is_active",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "title",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "description",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "order_strategy",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "c76d491d-b033-4f52-aae2-1df5344f0c12",
+            "name": "posts_series_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/series/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "9b430443-23da-493d-abc5-8a535152bd37",
+            "name": "posts_tags_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/tags/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "3f203f6e-cdfc-47a7-bf0f-28959234767b",
+            "name": "posts_tags_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/posts/tags/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "e0cea1c3-5820-4016-b2c1-517596b933e1",
+            "name": "posts_tags_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/posts/tags/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "1caa28f2-bf7e-4bf6-8a29-483123efd2b7",
+            "name": "posts_tags_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/posts/tags/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "f9cfc7d0-67d9-47be-a2ff-86753331200f",
+            "name": "posts_tags_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/posts/tags/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "slug",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "513b5bab-788d-4835-b584-88093033d362",
+            "name": "posts_tags_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/posts/tags/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      },
+      {
+        "id": "04ae196e-3d61-41e4-bfb4-ac1cea323d1c",
+        "name": "token",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "267712e8-081e-49f1-a2cb-fbf3cc4a354c",
+            "name": "token_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/token/",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "none"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "username",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "password",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "fdeff6a3-13cf-4e72-9175-9e90752a5e30",
+            "name": "token_refresh_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/token/refresh/",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "none"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "refresh",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "7a2aa86c-89f2-4d1f-b73d-787b8b68629b",
+        "name": "users",
+        "auth": {
+          "type": "none"
+        },
+        "requests": [
+          {
+            "id": "b6863e68-19fc-4490-baf9-db4735c94857",
+            "name": "users_auth_admin_login_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/users/auth/admin-login/",
+            "headers": [],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "none"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "username",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "password",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "858c9133-5533-43ea-9130-9619961b91e0",
+            "name": "users_auth_google_login_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/users/auth/google/login/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "id_token",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "c5ab6004-333f-4bb1-9085-556b71665890",
+            "name": "users_users_list",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/users/users/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [
+              {
+                "name": "email",
+                "value": "",
+                "enabled": true
+              },
+              {
+                "name": "username",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "ca4dad4f-ed63-4858-bd67-a2b598158d25",
+            "name": "users_users_create",
+            "method": "POST",
+            "url": "{{BASE_URL}}/api/users/users/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "username",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "email",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "phone_number",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "first_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "last_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "password",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "password_confirm",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "7cb8a049-2684-4a97-9878-98b60ed37e1a",
+            "name": "users_users_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/users/users/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "34bd03bf-c455-4598-91bb-e7eb4ad89c01",
+            "name": "users_users_update",
+            "method": "PUT",
+            "url": "{{BASE_URL}}/api/users/users/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "username",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "first_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "last_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "email",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "phone_number",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "profile_picture",
+                    "value": "",
+                    "enabled": true,
+                    "type": "file"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "aee507c2-ed23-4f76-83a4-52e1f90895f5",
+            "name": "users_users_partial_update",
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/api/users/users/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "form",
+              "form": {
+                "isMultipart": true,
+                "fields": [
+                  {
+                    "name": "username",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "first_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "last_name",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "email",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "phone_number",
+                    "value": "",
+                    "enabled": true,
+                    "type": "text"
+                  },
+                  {
+                    "name": "profile_picture",
+                    "value": "",
+                    "enabled": true,
+                    "type": "file"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "ef71f8a5-8dd7-49f1-b131-6a34daf0e5e8",
+            "name": "users_users_destroy",
+            "method": "DELETE",
+            "url": "{{BASE_URL}}/api/users/users/{id}/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [
+              {
+                "name": "id",
+                "value": "",
+                "enabled": true
+              }
+            ],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          },
+          {
+            "id": "67a9284f-a2b7-4390-aa51-e98c15bf19ab",
+            "name": "users_users_me_retrieve",
+            "method": "GET",
+            "url": "{{BASE_URL}}/api/users/users/me/",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "enabled": true
+              }
+            ],
+            "queryParams": [],
+            "pathParams": [],
+            "auth": {
+              "type": "inherited"
+            },
+            "body": {
+              "type": "none"
+            }
+          }
+        ]
+      }
+    ],
+    "environments": [
+      {
+        "id": "b7eaf047-faea-48a1-86ef-6199c8142454",
+        "name": "Development",
+        "isDefault": true,
+        "isLocalOnly": false,
+        "color": "blue",
+        "variables": [
+          {
+            "id": "3f73019c-1831-467b-ad2e-557655aa36a5",
+            "name": "BASE_URL",
+            "value": "http://localhost:4010",
+            "isSecret": false
+          },
+          {
+            "id": "227dbd93-3043-46de-a4cf-d240ce4e9350",
+            "name": "ACCESS_TOKEN",
+            "value": "",
+            "isSecret": true
+          },
+          {
+            "id": "79abeda3-3499-4ce3-bff6-dd378d8224ba",
+            "name": "REFRESH_TOKEN",
+            "value": "",
+            "isSecret": true
+          },
+          {
+            "id": "f5c282ce-3de5-4dd5-9cb3-749829a4cfc5",
+            "name": "USER_ID",
+            "value": "",
+            "isSecret": false
+          }
+        ]
+      }
+    ],
+    "drafts": []
+  }
+}
