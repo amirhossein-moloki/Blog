@@ -40,7 +40,7 @@ This is the recommended way to run the project for development and production.
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd tournament-project
+    cd blog
     ```
 
 2.  **Set up environment variables:**
@@ -81,7 +81,7 @@ This is the recommended way to run the project for development and production.
 ## API Documentation
 
 Once the server is running, you can access the API documentation at:
-*   Swagger UI: `http://localhost:8000/api/docs/`
+*   Swagger UI: `http://localhost:8000/api/schema/swagger-ui/`
 
 ## Project Structure
 

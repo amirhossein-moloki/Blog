@@ -17,7 +17,6 @@ from rest_framework_simplejwt.views import (
 
 from posts.ckeditor_views import ckeditor_upload_view
 
-from .ckeditor_views import ckeditor5_upload
 from .sitemaps import (
     PostSitemap,
     StaticViewSitemap,
@@ -42,11 +41,6 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # --- Admin Panel ---
-    path(
-        "ckeditor5/image_upload/",
-        ckeditor5_upload,
-        name="ck_editor_5_upload_file",
-    ),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
     path("admin/", admin.site.urls),
     # --- Third-party integrations ---
