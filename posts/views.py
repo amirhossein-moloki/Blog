@@ -248,6 +248,7 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @extend_schema(
+    request=None,
     responses={200: PostDetailSerializer},
     description="Publish a draft or scheduled post.",
 )
