@@ -15,12 +15,8 @@ User = get_user_model()
 class PermissionTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create(
-            username="testuser"
-        )
-        self.admin = User.objects.create(
-            username="adminuser", is_staff=True
-        )
+        self.user = User.objects.create(username="testuser")
+        self.admin = User.objects.create(username="adminuser", is_staff=True)
         self.permission_author = IsAuthorOrAdminOrReadOnly()
         self.permission_owner = IsOwnerOrReadOnly()
         self.permission_admin = IsAdminUserOrReadOnly()

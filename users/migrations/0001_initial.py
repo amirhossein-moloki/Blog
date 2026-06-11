@@ -6,7 +6,6 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.db.models.deletion
 import django.utils.timezone
-import phonenumber_field.modelfields
 from django.conf import settings
 from django.db import migrations, models
 
@@ -104,9 +103,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "phone_number",
-                    phonenumber_field.modelfields.PhoneNumberField(
-                        max_length=128, region=None, unique=True
-                    ),
+                    models.CharField(max_length=128, unique=True),
                 ),
                 (
                     "profile_picture",
