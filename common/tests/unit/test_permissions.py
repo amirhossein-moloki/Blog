@@ -16,10 +16,10 @@ class PermissionTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.user = User.objects.create(
-            username="testuser", phone_number="+989120000010"
+            username="testuser"
         )
         self.admin = User.objects.create(
-            username="adminuser", is_staff=True, phone_number="+989120000011"
+            username="adminuser", is_staff=True
         )
         self.permission_author = IsAuthorOrAdminOrReadOnly()
         self.permission_owner = IsOwnerOrReadOnly()
@@ -110,7 +110,7 @@ class PermissionTests(TestCase):
             self.permission_author.has_object_permission(request, None, obj)
         )
 
-        other_user = User.objects.create(username="other", phone_number="+989120000999")
+        other_user = User.objects.create(username="other")
         request.user = other_user
         self.assertFalse(
             self.permission_author.has_object_permission(request, None, obj)

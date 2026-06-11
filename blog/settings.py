@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "channels",
     "django_filters",
-    "phonenumber_field",
     "drf_spectacular",  # Required for drf-spectacular
     "users",
     "common",
@@ -508,10 +507,6 @@ if "test" in sys.argv or "pytest" in sys.modules:
     CELERY_TASK_ALWAYS_EAGER = True
     # Disable guardian's anonymous user during tests to prevent test failures
     ANONYMOUS_USER_NAME = None
-
-# SMS.ir Configuration
-SMSIR_API_KEY = os.environ.get("SMSIR_API_KEY")
-SMSIR_LINE_NUMBER = os.environ.get("SMSIR_LINE_NUMBER")
 
 # Email Configuration
 EMAIL_BACKEND = os.environ.get(

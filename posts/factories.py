@@ -25,7 +25,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.LazyAttribute(lambda _: fake.email())
     first_name = factory.LazyAttribute(lambda _: fake.first_name())
     last_name = factory.LazyAttribute(lambda _: fake.last_name())
-    phone_number = factory.Sequence(lambda n: f"+98912{n:07d}")
     is_staff = False
 
 
