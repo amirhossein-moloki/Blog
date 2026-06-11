@@ -1,5 +1,7 @@
-# فاز ۱: ایجاد ساختار پروژه + اپلیکیشن هسته + BaseModel
-# Phase 1: Project Structure + Core App + BaseModel
+# [HISTORICAL REFERENCE] Phase 1: Project Structure + Core App + BaseModel
+# [مرجع تاریخی] فاز ۱: ایجاد ساختار پروژه + اپلیکیشن هسته + BaseModel
+
+> **Note:** This document describes the initial phase of the project and is kept for historical reference. The project has since undergone significant refactoring into a modular architecture.
 
 ## دستورات مهاجرت (Migration Commands)
 در این فاز مهاجرت خاصی برای دیتابیس وجود ندارد زیرا `BaseModel` یک مدل انتزاعی (abstract) است.
