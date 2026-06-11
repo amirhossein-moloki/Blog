@@ -3,7 +3,7 @@
 ## Architecture Overview
 
 ### Modules
-*   **users:** Authentication (JWT, OTP, Google OAuth2), Profile management.
+*   **users:** Authentication (JWT, Google OAuth2), Profile management.
 *   **posts:** Blog posts, categories, tags, series, revisions.
 *   **medias:** Centralized media management, image optimization, file attachments.
 *   **interactions:** Comments and Reactions (Generic Foreign Keys).
@@ -29,10 +29,9 @@
 *   **Transactions:** Service layer usage of `transaction.atomic`.
 
 ### Controller ↔ Service
-*   Views delegate business logic to services (e.g., `UserViewSet.send_otp` -> `send_otp_service`).
+*   Views delegate business logic to services (e.g., `PostViewSet.publish` -> `publish_post_service`).
 
 ### Service ↔ External APIs
-*   `verify_otp_service` handles identity verification.
 *   `GoogleLoginView` interacts with Google's token verification.
 
 ### Service ↔ Message Broker (Celery)
@@ -45,17 +44,17 @@
 ## Module-Specific Integration Documentation
 
 ### 1. Authentication (Users Module)
-*   **Integration Scope:** `users.views.UserViewSet`, `users.services.send_otp_service`, `users.services.verify_otp_service`, `SimpleJWT`.
+*   **Integration Scope:** `users.views.UserViewSet`, `users.views.CustomTokenObtainPairView`, `SimpleJWT`, `users.views.GoogleLoginView`.
 *   **Test Scenarios:**
-    *   Happy path: OTP Request -> OTP Verify -> JWT Issue.
-    *   New user creation via OTP.
-    *   Existing user login via OTP.
-    *   Invalid OTP handling.
+    *   User Registration: Valid and invalid payloads.
+    *   JWT Login: Username/Password authentication.
+    *   Token Refresh: Obtaining new access tokens.
+    *   Google OAuth2 Login: Mocked token verification.
 *   **Test Implementation:** `tests/integration/test_auth_flow.py`
 *   **Test Data Setup:** `UserFactory` for existing users.
-*   **Environment Requirements:** Database, Cache (for OTP storage/check if using Redis).
-*   **Coverage Report:** 100% of the OTP-based authentication flow.
-*   **Risks:** External SMS gateway latency/failures (simulated in tests).
+*   **Environment Requirements:** Database.
+*   **Coverage Report:** Covers registration, JWT, and Google OAuth2 flows.
+*   **Risks:** Google API changes or transport errors.
 
 ### 2. Posts & Medias Module
 *   **Integration Scope:** `posts.views.PostViewSet`, `posts.services.sync_post_media`, `posts.services.publish_scheduled_posts`, `medias.models.Media`.

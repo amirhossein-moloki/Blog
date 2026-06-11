@@ -135,48 +135,6 @@
             }
           ]
         },
-        {
-          "name": "Send OTP",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/users/send_otp/",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "users",
-                "send_otp"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"identifier\": \"test@example.com\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        }
       ]
     },
     {
@@ -249,7 +207,7 @@
           ]
         },
         {
-          "name": "Create User",
+          "name": "Register User",
           "request": {
             "method": "POST",
             "header": [],
@@ -266,12 +224,15 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"newuser\",\n  \"phone_number\": \"+989123456789\",\n  \"role\": \"user\"\n}",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirm\": \"password123\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
+            },
+            "auth": {
+              "type": "noauth"
             }
           },
           "event": [
@@ -671,18 +632,20 @@
       "name": "6. Interactions",
       "item": [
         {
-          "name": "List All Comments",
+          "name": "List Post Comments",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/interactions/comments/",
+              "raw": "{{baseUrl}}/api/posts/posts/{{postSlug}}/comments/",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
-                "interactions",
+                "posts",
+                "posts",
+                "{{postSlug}}",
                 "comments"
               ]
             }

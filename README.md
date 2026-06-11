@@ -5,17 +5,17 @@ This is a Django-based blog and user management system. It provides a robust bac
 ## Features
 
 *   **User Management:**
-    *   Registration and authentication (Login/Logout).
-    *   OTP-based authentication.
+    *   Registration and authentication (JWT-based).
     *   Google OAuth2 login support.
     *   User profile management.
     *   Role-based access control (Admin, Author, User).
 *   **Blog System:**
+    *   Modular architecture (Posts, Medias, Interactions, Pages, Navigation).
     *   Post creation with rich text editor (CKEditor 5).
     *   Post scheduling and automated publishing.
-    *   Taxonomies (Categories and Tags).
-    *   Comment system with moderation.
-    *   Revisions and reactions for posts.
+    *   Taxonomies (Categories, Tags, and Series).
+    *   Comment system with nested replies and moderation.
+    *   Revisions and reactions for posts and comments.
     *   Media management with automatic image optimization (AVIF conversion and resizing).
 *   **Technical Features:**
     *   Standardized API responses.
@@ -40,13 +40,13 @@ This is the recommended way to run the project for development and production.
 1.  **Clone the repository:**
     ```bash
     git clone <repository-url>
-    cd tournament-project
+    cd blog-backend
     ```
 
 2.  **Set up environment variables:**
     Copy the example environment file and fill in your details.
     ```bash
-    cp env.example .env
+    cp .env.example .env
     ```
     Ensure `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`, `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` are correctly set.
 
@@ -87,13 +87,14 @@ Once the server is running, you can access the API documentation at:
 
 ```
 .
-├── posts/                # Posts application (Core content)
-├── medias/               # Medias application (Media management)
+├── posts/                # Posts application (Core content, Taxonomies)
+├── medias/               # Medias application (Centralized asset management)
 ├── interactions/         # Interactions application (Comments, Reactions)
 ├── pages/                # Pages application (Static content)
-├── navigation/           # Navigation application (Menus)
+├── navigation/           # Navigation application (Dynamic Menus)
 ├── users/                # User management application (Auth, Profiles)
-├── common/               # Shared utilities, renderers, and mixins
+├── core/                 # Core logic and Base models
+├── common/               # Shared utilities, standardized renderers, and mixins
 ├── blog/                 # Project configuration and settings
 ├── templates/            # HTML templates
 ├── manage.py             # Django management script
