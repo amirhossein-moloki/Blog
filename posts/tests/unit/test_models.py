@@ -1,9 +1,11 @@
-from django.test import TestCase
 from django.contrib.auth import get_user_model
-from posts.models import Post, AuthorProfile, Category
-from posts.factories import PostFactory, AuthorProfileFactory, CategoryFactory
+from django.test import TestCase
+
+from posts.factories import AuthorProfileFactory, CategoryFactory, PostFactory
+from posts.models import AuthorProfile, Category, Post
 
 User = get_user_model()
+
 
 class PostModelTests(TestCase):
     def test_post_reading_time_calculation(self):
@@ -15,7 +17,7 @@ class PostModelTests(TestCase):
             slug="test-post",
             content=content,
             author=author,
-            excerpt="Excerpt"
+            excerpt="Excerpt",
         )
         self.assertEqual(post.reading_time_sec, 60)
 
@@ -26,7 +28,7 @@ class PostModelTests(TestCase):
             slug="test-post-empty",
             content="",
             author=author,
-            excerpt="Excerpt"
+            excerpt="Excerpt",
         )
         self.assertEqual(post.reading_time_sec, 0)
 
@@ -34,10 +36,12 @@ class PostModelTests(TestCase):
         post = PostFactory(title="Unique Title")
         self.assertEqual(str(post), "Unique Title")
 
+
 class AuthorProfileModelTests(TestCase):
     def test_author_profile_str(self):
         author = AuthorProfileFactory(display_name="John Doe")
         self.assertEqual(str(author), "John Doe")
+
 
 class CategoryModelTests(TestCase):
     def test_category_str(self):

@@ -1,37 +1,44 @@
 from django.urls import reverse
 from rest_framework import status
 
-from posts.factories import CategoryFactory, TagFactory
-from posts.models import Post, Category, Tag, AuthorProfile, Series
-from medias.models import Media
 from interactions.models import Comment, Reaction
+from medias.models import Media
 from pages.models import Page
-from posts.models import Category, Tag
 from posts.blog_tests.base import BaseAPITestCase
+from posts.factories import CategoryFactory, TagFactory
+from posts.models import AuthorProfile, Category, Post, Series, Tag
 
 
 class CategoryAPITest(BaseAPITestCase):
     def test_create_category(self):
         self._authenticate_as_staff()
-        url = reverse('posts:category-list')
-        data = {'name': 'New Category', 'slug': 'new-category'}
-        response = self.client.post(url, data, format='json')
+        url = reverse("posts:category-list")
+        data = {"name": "New Category", "slug": "new-category"}
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Category.objects.filter(slug='new-category').exists())
+        self.assertTrue(Category.objects.filter(slug="new-category").exists())
 
     def test_create_nested_category(self):
         self._authenticate_as_staff()
         parent_category = CategoryFactory()
-        url = reverse('posts:category-list')
-        data = {'name': 'Sub Category', 'slug': 'sub-category', 'parent': parent_category.id}
-        response = self.client.post(url, data, format='json')
+        url = reverse("posts:category-list")
+        data = {
+            "name": "Sub Category",
+            "slug": "sub-category",
+            "parent": parent_category.id,
+        }
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Category.objects.filter(slug='sub-category', parent=parent_category).exists())
+        self.assertTrue(
+            Category.objects.filter(
+                slug="sub-category", parent=parent_category
+            ).exists()
+        )
 
     def test_list_categories(self):
         CategoryFactory.create_batch(3)
-        url = reverse('posts:category-list')
-        response = self.client.get(url, format='json')
+        url = reverse("posts:category-list")
+        response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
@@ -39,16 +46,16 @@ class CategoryAPITest(BaseAPITestCase):
 class TagAPITest(BaseAPITestCase):
     def test_create_tag(self):
         self._authenticate_as_staff()
-        url = reverse('posts:tag-list')
-        data = {'name': 'New Tag', 'slug': 'new-tag'}
-        response = self.client.post(url, data, format='json')
+        url = reverse("posts:tag-list")
+        data = {"name": "New Tag", "slug": "new-tag"}
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Tag.objects.filter(slug='new-tag').exists())
+        self.assertTrue(Tag.objects.filter(slug="new-tag").exists())
 
     def test_list_tags(self):
         TagFactory.create_batch(5)
-        url = reverse('posts:tag-list')
-        response = self.client.get(url, format='json')
+        url = reverse("posts:tag-list")
+        response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 5)
 
@@ -58,11 +65,11 @@ class TagAPITest(BaseAPITestCase):
         """
         self._authenticate_as_staff()
         tag = TagFactory()
-        url = reverse('posts:tag-list')
+        url = reverse("posts:tag-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('id', response.data[0])
-        self.assertEqual(response.data[0]['id'], tag.id)
+        self.assertIn("id", response.data[0])
+        self.assertEqual(response.data[0]["id"], tag.id)
 
     def test_tag_detail_returns_id(self):
         """
@@ -70,8 +77,8 @@ class TagAPITest(BaseAPITestCase):
         """
         self._authenticate_as_staff()
         tag = TagFactory()
-        url = reverse('posts:tag-detail', kwargs={'pk': tag.pk})
+        url = reverse("posts:tag-detail", kwargs={"pk": tag.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('id', response.data)
-        self.assertEqual(response.data['id'], tag.id)
+        self.assertIn("id", response.data)
+        self.assertEqual(response.data["id"], tag.id)

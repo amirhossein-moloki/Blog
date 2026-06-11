@@ -3,10 +3,12 @@
 import os
 import uuid
 from io import BytesIO
+
+import pillow_avif  # noqa: F401 -> Registered plugin
 from django.core.files.base import ContentFile
 from django.utils.text import slugify
 from PIL import Image
-import pillow_avif  # noqa: F401 -> Registered plugin
+
 from .files import get_sanitized_filename
 
 
@@ -48,7 +50,7 @@ def convert_image_to_avif(image_field, max_dimension=1920, quality=50, speed=6):
     buffer.seek(0)
 
     # اسم فایل رو .avif می‌کنیم
-    original_name = getattr(image_field, 'name', 'untitled.avif')
+    original_name = getattr(image_field, "name", "untitled.avif")
     sanitized_name = get_sanitized_filename(original_name)
 
     # Ensure the final name has a .avif extension

@@ -1,10 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+
 from core.base_models import BaseModel
 
 User = get_user_model()
+
 
 class Media(BaseModel):
     storage_key = models.CharField(max_length=255)
@@ -24,18 +26,25 @@ class Media(BaseModel):
 
     def get_download_url(self):
         if self.pk:
-            return reverse('medias:download_media', kwargs={'media_id': self.pk})
+            return reverse("medias:download_media", kwargs={"media_id": self.pk})
         return ""
 
+
 class PostMedia(BaseModel):
-    post = models.ForeignKey('posts.Post', on_delete=models.CASCADE, related_name='media_attachments')
-    media = models.ForeignKey(Media, on_delete=models.CASCADE, related_name='post_attachments')
-    attachment_type = models.CharField(max_length=50, default='in-content')  # e.g., 'in-content', 'cover', 'og-image'
+    post = models.ForeignKey(
+        "posts.Post", on_delete=models.CASCADE, related_name="media_attachments"
+    )
+    media = models.ForeignKey(
+        Media, on_delete=models.CASCADE, related_name="post_attachments"
+    )
+    attachment_type = models.CharField(
+        max_length=50, default="in-content"
+    )  # e.g., 'in-content', 'cover', 'og-image'
 
     class Meta:
-        unique_together = ('post', 'media', 'attachment_type')
-        verbose_name = _('Post Media')
-        verbose_name_plural = _('Post Media')
+        unique_together = ("post", "media", "attachment_type")
+        verbose_name = _("Post Media")
+        verbose_name_plural = _("Post Media")
 
     def __str__(self):
-        return f'{self.media.title} attached to post {self.post_id} as {self.attachment_type}'
+        return f"{self.media.title} attached to post {self.post_id} as {self.attachment_type}"

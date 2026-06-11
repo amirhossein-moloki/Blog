@@ -1,10 +1,11 @@
 # blog/asgi.py
 
 import os
-from django.core.asgi import get_asgi_application
+
 # import های مربوط به Channels را هم برای خوانایی بهتر اینجا می‌آوریم
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
+from django.core.asgi import get_asgi_application
 
 # این خط باید اولین دستور مربوط به جنگو باشد
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")

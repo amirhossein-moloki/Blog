@@ -1,20 +1,24 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from jalali_date import datetime2jalali
+from rest_framework import serializers
+
 from .models import Comment, Reaction
 
 User = get_user_model()
 
+
 class JalaliDateTimeField(serializers.ReadOnlyField):
     def to_representation(self, value):
         if value:
-            return datetime2jalali(value).strftime('%Y/%m/%d %H:%M:%S')
+            return datetime2jalali(value).strftime("%Y/%m/%d %H:%M:%S")
         return None
+
 
 class CommentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'profile_picture')
+        fields = ("username", "profile_picture")
+
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -22,7 +26,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'post', 'user', 'parent', 'content', 'created_at', 'status')
+        fields = ("id", "post", "user", "parent", "content", "created_at", "status")
+
 
 class CommentListSerializer(serializers.ModelSerializer):
     user = CommentUserSerializer(read_only=True)
@@ -31,7 +36,8 @@ class CommentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'content', 'created_at', 'parent', 'likes_count')
+        fields = ("id", "user", "content", "created_at", "parent", "likes_count")
+
 
 class ReactionSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -39,18 +45,18 @@ class ReactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reaction
-        fields = ('id', 'user', 'reaction', 'content_type', 'object_id', 'created_at')
+        fields = ("id", "user", "reaction", "content_type", "object_id", "created_at")
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=Reaction.objects.all(),
-                fields=('user', 'content_type', 'object_id', 'reaction'),
-                message="You have already reacted to this object with this reaction."
+                fields=("user", "content_type", "object_id", "reaction"),
+                message="You have already reacted to this object with this reaction.",
             )
         ]
 
     def validate(self, attrs):
-        content_type = attrs['content_type']
-        object_id = attrs['object_id']
+        content_type = attrs["content_type"]
+        object_id = attrs["object_id"]
         ModelClass = content_type.model_class()
 
         if not ModelClass.objects.filter(pk=object_id).exists():
@@ -60,5 +66,5 @@ class ReactionSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['user'] = instance.user.pk
+        ret["user"] = instance.user.pk
         return ret

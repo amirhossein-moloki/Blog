@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
-IS_MANAGEMENT_COMMAND = 'manage.py' in sys.argv[0]
+IS_MANAGEMENT_COMMAND = "manage.py" in sys.argv[0]
 
 # Create logs directory if it doesn't exist
 LOGS_DIR = BASE_DIR / "logs"
@@ -52,7 +52,9 @@ SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", f"localhost,127.0.0.1,{DOMAIN}").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", f"localhost,127.0.0.1,{DOMAIN}").split(
+    ","
+)
 
 
 # Application definition
@@ -239,7 +241,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 REDIS_URL = os.environ.get("REDIS_URL")
-USE_REDIS = os.environ.get("USE_REDIS", "false").lower() in ("true", "1", "t") and REDIS_URL
+USE_REDIS = (
+    os.environ.get("USE_REDIS", "false").lower() in ("true", "1", "t") and REDIS_URL
+)
 
 if "test" in sys.argv or not USE_REDIS:
     CHANNEL_LAYERS = {
@@ -367,7 +371,7 @@ REST_FRAMEWORK = {
         "common.renderers.StandardResponseRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ),
-    'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
+    "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
@@ -411,7 +415,7 @@ FILE_UPLOAD_HANDLERS = [
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = "SAMEORIGIN"
 if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -423,7 +427,7 @@ else:
 
 # In production (when DEBUG is False), redirect all HTTP requests to HTTPS.
 # We disable this during tests as the test client makes plain HTTP requests.
-is_testing = "test" in sys.argv or 'pytest' in sys.modules
+is_testing = "test" in sys.argv or "pytest" in sys.modules
 
 SECURE_SSL_REDIRECT = not DEBUG and not is_testing
 # In production, use secure cookies.
@@ -445,7 +449,11 @@ if DEBUG:
         ]
     )
 
-CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower() in ("true", "1", "t")
+CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower() in (
+    "true",
+    "1",
+    "t",
+)
 
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
@@ -487,9 +495,9 @@ CELERY_RESULT_EXPIRES = timedelta(
 )
 
 CELERY_BEAT_SCHEDULE = {
-    'publish-scheduled-posts': {
-        'task': 'posts.tasks.publish_scheduled_posts_task',
-        'schedule': timedelta(minutes=1),
+    "publish-scheduled-posts": {
+        "task": "posts.tasks.publish_scheduled_posts_task",
+        "schedule": timedelta(minutes=1),
     },
 }
 
@@ -516,7 +524,6 @@ DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 CSRF_TRUSTED_ORIGINS = [
     origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
 ]
-
 
 
 if "test" in sys.argv or "pytest" in sys.modules or not USE_REDIS:
@@ -580,6 +587,4 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
-JALALI_DATE_DEFAULTS = {
-   'LIST_DISPLAY_AUTO_CONVERT': True
-}
+JALALI_DATE_DEFAULTS = {"LIST_DISPLAY_AUTO_CONVERT": True}

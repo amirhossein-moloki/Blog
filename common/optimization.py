@@ -1,9 +1,10 @@
 import os
+import subprocess
 from io import BytesIO
+
+from celery import shared_task
 from django.core.files.base import ContentFile
 from PIL import Image
-from celery import shared_task
-import subprocess
 
 
 def optimize_image(image_field):
@@ -15,8 +16,8 @@ def optimize_image(image_field):
         img = Image.open(image_field)
 
         # Convert RGBA to RGB if necessary
-        if img.mode == 'RGBA':
-            img = img.convert('RGB')
+        if img.mode == "RGBA":
+            img = img.convert("RGB")
 
         # Create a buffer to save the optimized image
         buffer = BytesIO()
@@ -48,11 +49,14 @@ def optimize_video(video_path):
 
         # Run ffmpeg to compress the video
         command = [
-            'ffmpeg',
-            '-i', video_path,
-            '-vcodec', 'libx264',
-            '-crf', '28',
-            new_filename
+            "ffmpeg",
+            "-i",
+            video_path,
+            "-vcodec",
+            "libx264",
+            "-crf",
+            "28",
+            new_filename,
         ]
         subprocess.run(command, check=True)
 

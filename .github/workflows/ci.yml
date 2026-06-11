@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-cache: 'pip'
+          cache: 'pip'
           python-version: '3.12'
       - name: Install dependencies
         run: |
@@ -33,8 +33,8 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_DB: blog_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
         ports:
           - 5432:5432
         options: >-
@@ -61,25 +61,37 @@ jobs:
         run: |
           python manage.py check
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/blog_db
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
           USE_REDIS: False
-          SECRET_KEY: ci-secret-key
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
       - name: Check for missing migrations
         run: |
           python manage.py makemigrations --check --dry-run
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/blog_db
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
           USE_REDIS: False
-          SECRET_KEY: ci-secret-key
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
       - name: Run Tests with Coverage
         run: |
           PYTHONPATH=. coverage run manage.py test --noinput
           coverage report
           coverage xml
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/blog_db
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
           USE_REDIS: False
-          SECRET_KEY: ci-secret-key
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:

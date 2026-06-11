@@ -1,8 +1,11 @@
-from django.test import TestCase, RequestFactory
-from rest_framework.response import Response
-from common.pagination import CustomPagination, CustomPageNumberPagination
-from common.renderers import StandardResponseRenderer
 from unittest.mock import MagicMock
+
+from django.test import RequestFactory, TestCase
+from rest_framework.response import Response
+
+from common.pagination import CustomPageNumberPagination, CustomPagination
+from common.renderers import StandardResponseRenderer
+
 
 class PaginationTests(TestCase):
     def test_custom_pagination_response_structure(self):
@@ -16,10 +19,11 @@ class PaginationTests(TestCase):
         data = [{"id": 1}, {"id": 2}]
         response = paginator.get_paginated_response(data)
 
-        self.assertEqual(response.data['data'], data)
-        self.assertEqual(response.data['pagination']['pageNo'], 1)
-        self.assertEqual(response.data['pagination']['totalCount'], 50)
-        self.assertEqual(response.data['messagesList'], [])
+        self.assertEqual(response.data["data"], data)
+        self.assertEqual(response.data["pagination"]["pageNo"], 1)
+        self.assertEqual(response.data["pagination"]["totalCount"], 50)
+        self.assertEqual(response.data["messagesList"], [])
+
 
 class RendererTests(TestCase):
     def test_standard_response_renderer(self):
@@ -28,21 +32,23 @@ class RendererTests(TestCase):
         rendered = renderer.render(data)
 
         import json
+
         decoded = json.loads(rendered)
 
-        self.assertEqual(decoded['data'], data)
-        self.assertIn('pagination', decoded)
-        self.assertIn('messagesList', decoded)
+        self.assertEqual(decoded["data"], data)
+        self.assertIn("pagination", decoded)
+        self.assertIn("messagesList", decoded)
 
     def test_standard_response_renderer_already_standardized(self):
         renderer = StandardResponseRenderer()
         data = {
             "data": {"key": "value"},
             "pagination": {"pageNo": 1},
-            "messagesList": []
+            "messagesList": [],
         }
         rendered = renderer.render(data)
 
         import json
+
         decoded = json.loads(rendered)
         self.assertEqual(decoded, data)

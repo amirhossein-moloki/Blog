@@ -1,14 +1,18 @@
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework import serializers
-from .models import User
 from django.core.files.uploadedfile import UploadedFile
 from drf_spectacular.utils import extend_schema_field
+from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from .models import User
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     pass
 
+
 class UserReadOnlySerializer(serializers.ModelSerializer):
     """Serializer for public User profiles (read-only)."""
+
     role = serializers.SerializerMethodField()
 
     @extend_schema_field(serializers.ListField(child=serializers.CharField()))
@@ -26,6 +30,7 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
             "role",
         )
         read_only_fields = fields
+
 
 class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new User."""
@@ -61,6 +66,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(password=password, **validated_data)
         return user
 
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the User model (full view for owner)."""
 
@@ -86,7 +92,9 @@ class UserSerializer(serializers.ModelSerializer):
 
         profile_picture = data.get("profile_picture")
 
-        if profile_picture is not None and not isinstance(profile_picture, UploadedFile):
+        if profile_picture is not None and not isinstance(
+            profile_picture, UploadedFile
+        ):
             data = data.copy()
             data.pop("profile_picture", None)
 
@@ -100,6 +108,7 @@ class UserSerializer(serializers.ModelSerializer):
         if "profile_picture" not in self.initial_data:
             validated_data.pop("profile_picture", None)
         return super().update(instance, validated_data)
+
 
 class GoogleLoginSerializer(serializers.Serializer):
     id_token = serializers.CharField()

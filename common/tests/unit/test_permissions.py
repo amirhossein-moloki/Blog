@@ -1,25 +1,36 @@
-from django.test import TestCase, RequestFactory
-from django.contrib.auth import get_user_model
-from common.permissions import IsAuthorOrAdminOrReadOnly, IsOwnerOrReadOnly, IsAdminUserOrReadOnly
 from unittest.mock import MagicMock
 
+from django.contrib.auth import get_user_model
+from django.test import RequestFactory, TestCase
+
+from common.permissions import (
+    IsAdminUserOrReadOnly,
+    IsAuthorOrAdminOrReadOnly,
+    IsOwnerOrReadOnly,
+)
+
 User = get_user_model()
+
 
 class PermissionTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.user = User.objects.create(username="testuser", phone_number="+989120000010")
-        self.admin = User.objects.create(username="adminuser", is_staff=True, phone_number="+989120000011")
+        self.user = User.objects.create(
+            username="testuser", phone_number="+989120000010"
+        )
+        self.admin = User.objects.create(
+            username="adminuser", is_staff=True, phone_number="+989120000011"
+        )
         self.permission_author = IsAuthorOrAdminOrReadOnly()
         self.permission_owner = IsOwnerOrReadOnly()
         self.permission_admin = IsAdminUserOrReadOnly()
 
     def test_is_admin_user_or_readonly(self):
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.user = self.user
         self.assertTrue(self.permission_admin.has_permission(request, None))
 
-        request = self.factory.post('/')
+        request = self.factory.post("/")
         request.user = self.user
         self.assertFalse(self.permission_admin.has_permission(request, None))
 
@@ -30,11 +41,11 @@ class PermissionTests(TestCase):
         obj = MagicMock()
         obj.user = self.user
 
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         request.user = self.user
         self.assertTrue(self.permission_owner.has_object_permission(request, None, obj))
 
-        request = self.factory.put('/')
+        request = self.factory.put("/")
         request.user = self.user
         self.assertTrue(self.permission_owner.has_object_permission(request, None, obj))
 
@@ -42,7 +53,7 @@ class PermissionTests(TestCase):
         obj = MagicMock()
         obj.uploaded_by = self.user
 
-        request = self.factory.put('/')
+        request = self.factory.put("/")
         request.user = self.user
         self.assertTrue(self.permission_owner.has_object_permission(request, None, obj))
 
@@ -50,17 +61,19 @@ class PermissionTests(TestCase):
         obj = MagicMock()
         obj.user = self.admin
 
-        request = self.factory.put('/')
+        request = self.factory.put("/")
         request.user = self.user
-        self.assertFalse(self.permission_owner.has_object_permission(request, None, obj))
+        self.assertFalse(
+            self.permission_owner.has_object_permission(request, None, obj)
+        )
 
     def test_is_author_or_admin_or_readonly(self):
         # This permission uses apps.get_model('posts', 'AuthorProfile')
         # We need to make sure the user has an authorprofile or is staff
-        request = self.factory.get('/')
+        request = self.factory.get("/")
         self.assertTrue(self.permission_author.has_permission(request, None))
 
-        request = self.factory.post('/')
+        request = self.factory.post("/")
         request.user = None
         self.assertFalse(self.permission_author.has_permission(request, None))
 
@@ -69,6 +82,7 @@ class PermissionTests(TestCase):
         self.assertFalse(self.permission_author.has_permission(request, None))
 
         from posts.models import AuthorProfile
+
         AuthorProfile.objects.create(user=self.user, display_name="Test Author")
         # Now has attribute 'authorprofile'
         self.assertTrue(self.permission_author.has_permission(request, None))
@@ -78,23 +92,34 @@ class PermissionTests(TestCase):
 
     def test_is_author_or_admin_or_readonly_obj(self):
         from posts.models import AuthorProfile
-        author_profile = AuthorProfile.objects.create(user=self.user, display_name="Test Author")
+
+        author_profile = AuthorProfile.objects.create(
+            user=self.user, display_name="Test Author"
+        )
         obj = MagicMock()
         obj.author = author_profile
 
-        request = self.factory.put('/')
+        request = self.factory.put("/")
         request.user = self.user
-        self.assertTrue(self.permission_author.has_object_permission(request, None, obj))
+        self.assertTrue(
+            self.permission_author.has_object_permission(request, None, obj)
+        )
 
         request.user = self.admin
-        self.assertTrue(self.permission_author.has_object_permission(request, None, obj))
+        self.assertTrue(
+            self.permission_author.has_object_permission(request, None, obj)
+        )
 
         other_user = User.objects.create(username="other", phone_number="+989120000999")
         request.user = other_user
-        self.assertFalse(self.permission_author.has_object_permission(request, None, obj))
+        self.assertFalse(
+            self.permission_author.has_object_permission(request, None, obj)
+        )
 
         request.user = self.admin
-        self.assertFalse(self.permission_owner.has_object_permission(request, None, obj))
+        self.assertFalse(
+            self.permission_owner.has_object_permission(request, None, obj)
+        )
 
     def test_is_owner_or_readonly_with_author_attr(self):
         author = MagicMock()
@@ -102,6 +127,6 @@ class PermissionTests(TestCase):
         obj = MagicMock()
         obj.author = author
 
-        request = self.factory.put('/')
+        request = self.factory.put("/")
         request.user = self.user
         self.assertTrue(self.permission_owner.has_object_permission(request, None, obj))
