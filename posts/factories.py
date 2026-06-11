@@ -1,5 +1,6 @@
 import factory
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
@@ -165,9 +166,6 @@ class RevisionFactory(factory.django.DjangoModelFactory):
     content = factory.LazyAttribute(lambda o: o.post.content)
     excerpt = factory.LazyAttribute(lambda o: o.post.excerpt)
     change_note = factory.LazyAttribute(lambda _: fake.sentence())
-
-
-from django.contrib.contenttypes.models import ContentType
 
 
 class ReactionFactory(factory.django.DjangoModelFactory):

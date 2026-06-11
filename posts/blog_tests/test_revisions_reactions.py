@@ -2,12 +2,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
 
-from interactions.models import Comment, Reaction
-from medias.models import Media
-from pages.models import Page
+from interactions.models import Comment
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import CommentFactory, PostFactory, RevisionFactory
-from posts.models import AuthorProfile, Category, Post, Series, Tag
+from posts.models import Post
 
 
 class RevisionAPITest(BaseAPITestCase):

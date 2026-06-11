@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import MenuFactory, MenuItemFactory, PageFactory
+from posts.factories import MenuFactory, PageFactory
 
 
 class PageAPITest(BaseAPITestCase):

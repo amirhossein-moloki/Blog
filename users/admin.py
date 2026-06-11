@@ -1,12 +1,12 @@
 # Django Imports
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.db import models
 from django_select2.forms import Select2Widget
 from simple_history.admin import SimpleHistoryAdmin
 
 # 3rd-party Imports
-from unfold.admin import ModelAdmin, TabularInline
+from unfold.admin import ModelAdmin
 
 # Local Imports
 from .models import (

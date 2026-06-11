@@ -1,12 +1,10 @@
 # common/utils/images.py
 
 import os
-import uuid
 from io import BytesIO
 
 import pillow_avif  # noqa: F401 -> Registered plugin
 from django.core.files.base import ContentFile
-from django.utils.text import slugify
 from PIL import Image
 
 from .files import get_sanitized_filename

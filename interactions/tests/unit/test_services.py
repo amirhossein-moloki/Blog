@@ -12,7 +12,7 @@ class InteractionServicesTest(TestCase):
     def test_create_comment_service(self, mock_notify):
         user = UserFactory()
         post = PostFactory()
-        comment = create_comment(user=user, post=post, content="Test content")
+        create_comment(user=user, post=post, content="Test content")
         self.assertEqual(Comment.objects.count(), 1)
         mock_notify.assert_called_once()
 

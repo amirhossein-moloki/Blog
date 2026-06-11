@@ -10,6 +10,10 @@ User = get_user_model()
 
 
 class Comment(BaseModel):
+
+    class Meta:
+        ordering = ["-created_at"]
+
     STATUS_CHOICES = (
         ("pending", "Pending"),
         ("approved", "Approved"),
@@ -30,9 +34,6 @@ class Comment(BaseModel):
     reactions = GenericRelation(
         "Reaction", object_id_field="object_id", content_type_field="content_type"
     )
-
-    class Meta:
-        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Comment by {self.user} on {self.post_id}"

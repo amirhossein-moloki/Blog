@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import MenuFactory, MenuItemFactory, PageFactory
+from posts.factories import MenuFactory, MenuItemFactory
 
 
 class PagesNavigationIntegrationTest(BaseAPITestCase):
@@ -35,7 +35,7 @@ class PagesNavigationIntegrationTest(BaseAPITestCase):
     def test_navigation_menu_structure(self):
         self._authenticate_as_staff()
         menu = MenuFactory(location="header", name="Main Menu")
-        item1 = MenuItemFactory(menu=menu, label="Home", url="/", order=1)
+        MenuItemFactory(menu=menu, label="Home", url="/", order=1)
 
         url = reverse("navigation:menu-detail", kwargs={"pk": menu.pk})
         response = self.client.get(url)

@@ -10,10 +10,7 @@ from django.urls import reverse
 from PIL import Image
 from rest_framework.test import APIClient
 
-from interactions.models import Comment, Reaction
 from medias.models import Media
-from pages.models import Page
-from posts.models import AuthorProfile, Category, Post, Series, Tag
 
 User = get_user_model()
 

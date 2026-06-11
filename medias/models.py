@@ -9,6 +9,7 @@ User = get_user_model()
 
 
 class Media(BaseModel):
+
     class Meta:
         ordering = ["-created_at"]
 

@@ -6,7 +6,7 @@ from rest_framework import status
 
 from interactions.models import Comment, Reaction
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, PostFactory, UserFactory
+from posts.factories import CommentFactory, PostFactory
 
 
 class EngagementFlowIntegrationTest(BaseAPITestCase):

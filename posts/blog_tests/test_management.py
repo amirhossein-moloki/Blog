@@ -5,11 +5,9 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
 
-from interactions.models import Comment, Reaction
 from medias.models import Media
-from pages.models import Page
 from posts.factories import UserFactory
-from posts.models import AuthorProfile, Category, Post, Series, Tag
+from posts.models import AuthorProfile, Post
 
 User = get_user_model()
 

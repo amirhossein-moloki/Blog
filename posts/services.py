@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from medias.models import Media
 
-from .models import AuthorProfile, Post
+from .models import Post
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,6 @@
-import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
 from django.test import TestCase
 
 from common.tasks import convert_image_to_avif_task

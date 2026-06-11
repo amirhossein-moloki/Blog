@@ -1,7 +1,6 @@
 import logging
 
 from django.conf import settings
-from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
@@ -26,7 +25,6 @@ from .serializers import (
     UserReadOnlySerializer,
     UserSerializer,
 )
-from .services import ApplicationError
 
 logger = logging.getLogger(__name__)
 
