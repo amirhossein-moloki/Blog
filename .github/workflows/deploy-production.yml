@@ -1,0 +1,78 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/blog-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/blog-backend:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/blog-backend:latest
+          cache-to: type=inline
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /app/production
+
+            # Save current version for rollback
+            CURRENT_IMAGE=$(docker inspect --format='{{index .Config.Image}}' production_web_1 2>/dev/null || echo "")
+
+            # Backup database before migrations
+            docker-compose exec -T db pg_dump -U postgres blog_db > backup_$(date +%F_%T).sql
+
+            # Pull and Update
+            docker-compose pull
+            docker-compose up -d
+
+            # Post-deployment steps
+            docker-compose exec -T web python manage.py migrate --no-input
+            docker-compose exec -T web python manage.py collectstatic --no-input
+
+            # Health check
+            RETRY=0
+            MAX_RETRIES=5
+            until [ $RETRY -ge $MAX_RETRIES ]
+            do
+               curl -f http://localhost:8000/api/health/ && break
+               RETRY=$((RETRY+1))
+               echo "Health check failed, retrying in 5 seconds... ($RETRY/$MAX_RETRIES)"
+               sleep 5
+            done
+
+            if [ $RETRY -ge $MAX_RETRIES ]; then
+              echo "Deployment failed health check! Rolling back..."
+              if [ ! -z "$CURRENT_IMAGE" ]; then
+                docker tag $CURRENT_IMAGE ${{ secrets.DOCKERHUB_USERNAME }}/blog-backend:latest
+                docker-compose up -d
+                echo "Rollback to $CURRENT_IMAGE complete."
+              else
+                echo "No previous version found to rollback to."
+              fi
+              exit 1
+            fi
+            echo "Deployment successful!"
