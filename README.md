@@ -81,7 +81,17 @@ This is the recommended way to run the project for development and production.
 ## API Documentation
 
 Once the server is running, you can access the API documentation at:
-*   Swagger UI: `http://localhost:8000/api/docs/`
+*   Swagger UI: `http://localhost:8000/api/schema/swagger-ui/`
+*   Redoc: `http://localhost:8000/api/schema/redoc/`
+*   OpenAPI Schema: `http://localhost:8000/api/schema/`
+
+## API Testing with Postman
+
+For testing the API with Postman, use the following details:
+*   **Base URL:** `http://localhost:8000/api/` (Direct access)
+*   **Base URL (with Nginx/Docker):** `http://localhost/api/`
+*   **Port:** `8000` for direct development server, `80` if using the Nginx container.
+*   **Authentication:** JWT tokens can be obtained from `/api/token/`.
 
 ## Project Structure
 

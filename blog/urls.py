@@ -64,12 +64,12 @@ urlpatterns = [
         name="redoc",
     ),
     # --- App URLs ---
-    path("api/users/", include("users.urls")),
-    path("api/posts/", include("posts.urls", namespace="posts")),
-    path("api/medias/", include("medias.urls", namespace="medias")),
-    path("api/interactions/", include("interactions.urls", namespace="interactions")),
-    path("api/pages/", include("pages.urls", namespace="pages")),
-    path("api/navigation/", include("navigation.urls", namespace="navigation")),
+    path("api/", include("users.urls")),
+    path("api/", include("posts.urls", namespace="posts")),
+    path("api/", include("medias.urls", namespace="medias")),
+    path("api/", include("interactions.urls", namespace="interactions")),
+    path("api/", include("pages.urls", namespace="pages")),
+    path("api/", include("navigation.urls", namespace="navigation")),
     path("api/editor/upload/", ckeditor_upload_view, name="ckeditor_upload"),
 ]
 
