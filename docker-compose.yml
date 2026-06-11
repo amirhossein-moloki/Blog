@@ -81,37 +81,14 @@ services:
     build:
       context: ./nginx
     volumes:
-      - ./frontend:/var/www/frontend:ro
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-      - certbot_data:/etc/letsencrypt
-      - webroot_data:/var/www/certbot
-      # Mount the scripts and templates
-      - ./nginx/entrypoint.sh:/app/entrypoint.sh
-      - ./nginx/nginx.conf.template:/app/nginx.conf.template
     ports:
       - "80:80"
-      - "443:443"
-    environment:
-      - DOMAINS=${DOMAIN} # Pass domains from .env
     depends_on:
       - web
-
-  certbot:
-    build:
-      context: ./certbot
-    volumes:
-      - certbot_data:/etc/letsencrypt
-      - webroot_data:/var/www/certbot
-      - ./certbot/entrypoint.sh:/app/entrypoint.sh
-    environment:
-      - DOMAINS=${DOMAIN} # Pass domains from .env
-      - EMAIL=${EMAIL}       # Pass email from .env
-    # No depends_on to avoid circular dependency
 
 volumes:
   postgres_data:
   static_volume:
   media_volume:
-  certbot_data:
-  webroot_data:
