@@ -1,24 +1,32 @@
-from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
-from common.validators import validate_file, validate_sheba, validate_card_number
+from django.test import TestCase
+
+from common.validators import validate_card_number, validate_file, validate_sheba
+
 
 class ValidatorTests(TestCase):
     def test_validate_file_valid(self):
-        small_file = SimpleUploadedFile("test.jpg", b"file_content", content_type="image/jpeg")
+        small_file = SimpleUploadedFile(
+            "test.jpg", b"file_content", content_type="image/jpeg"
+        )
         try:
             validate_file(small_file)
         except ValidationError:
             self.fail("validate_file raised ValidationError unexpectedly!")
 
     def test_validate_file_too_large(self):
-        large_file = SimpleUploadedFile("test.jpg", b"a" * (10 * 1024 * 1024 + 1), content_type="image/jpeg")
+        large_file = SimpleUploadedFile(
+            "test.jpg", b"a" * (10 * 1024 * 1024 + 1), content_type="image/jpeg"
+        )
         with self.assertRaises(ValidationError) as cm:
             validate_file(large_file)
         self.assertIn("حجم فایل شما بیشتر از ۱۰ مگابایت است", str(cm.exception))
 
     def test_validate_file_invalid_extension(self):
-        invalid_file = SimpleUploadedFile("test.txt", b"file_content", content_type="text/plain")
+        invalid_file = SimpleUploadedFile(
+            "test.txt", b"file_content", content_type="text/plain"
+        )
         with self.assertRaises(ValidationError) as cm:
             validate_file(invalid_file)
         # Check for the presence of the extension in the error message

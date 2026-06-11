@@ -1,20 +1,29 @@
-from unittest.mock import patch, MagicMock
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APITestCase
-from users.models import User
+from unittest.mock import MagicMock, patch
+
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 from google.auth import exceptions as google_exceptions
-from users.permissions import IsOwnerOrReadOnly, IsOwnerOrAdmin
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from users.models import User
+from users.permissions import IsOwnerOrAdmin, IsOwnerOrReadOnly
+
 
 class UserViewSetTests(APITestCase):
     def setUp(self):
-        self.admin_user = User.objects.create_superuser(username='admin', password='password', email='admin@example.com')
-        self.user1 = User.objects.create_user(username='user1', password='password', email='user1@example.com')
-        self.user2 = User.objects.create_user(username='user2', password='password', email='user2@example.com')
-        self.list_url = reverse('user-list')
-        self.me_url = reverse('user-me')
+        self.admin_user = User.objects.create_superuser(
+            username="admin", password="password", email="admin@example.com"
+        )
+        self.user1 = User.objects.create_user(
+            username="user1", password="password", email="user1@example.com"
+        )
+        self.user2 = User.objects.create_user(
+            username="user2", password="password", email="user2@example.com"
+        )
+        self.list_url = reverse("user-list")
+        self.me_url = reverse("user-me")
 
     def test_list_users_admin(self):
         self.client.force_authenticate(user=self.admin_user)
@@ -24,7 +33,7 @@ class UserViewSetTests(APITestCase):
         if isinstance(response.data, list):
             data = response.data
         else:
-            data = response.data['data']
+            data = response.data["data"]
         self.assertEqual(len(data), 3)
 
     def test_list_users_regular_user(self):
@@ -34,29 +43,29 @@ class UserViewSetTests(APITestCase):
         if isinstance(response.data, list):
             data = response.data
         else:
-            data = response.data['data']
+            data = response.data["data"]
         self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['username'], 'user1')
+        self.assertEqual(data[0]["username"], "user1")
 
     def test_retrieve_user_self(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data['data'] if 'data' in response.data else response.data
-        self.assertEqual(data['username'], 'user1')
+        data = response.data["data"] if "data" in response.data else response.data
+        self.assertEqual(data["username"], "user1")
 
     def test_retrieve_user_other_by_admin(self):
         self.client.force_authenticate(user=self.admin_user)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data['data'] if 'data' in response.data else response.data
-        self.assertEqual(data['username'], 'user1')
+        data = response.data["data"] if "data" in response.data else response.data
+        self.assertEqual(data["username"], "user1")
 
     def test_retrieve_user_other_by_regular_user(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user2.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user2.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -64,107 +73,122 @@ class UserViewSetTests(APITestCase):
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(self.me_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data['data'] if 'data' in response.data else response.data
-        self.assertEqual(data['username'], 'user1')
+        data = response.data["data"] if "data" in response.data else response.data
+        self.assertEqual(data["username"], "user1")
 
     def test_create_user_success(self):
         data = {
-            'username': 'newuser',
-            'email': 'new@example.com',
-            'password': 'Password123!',
-            'password_confirm': 'Password123!',
-            'first_name': 'New',
-            'last_name': 'User'
+            "username": "newuser",
+            "email": "new@example.com",
+            "password": "Password123!",
+            "password_confirm": "Password123!",
+            "first_name": "New",
+            "last_name": "User",
         }
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(User.objects.filter(username='newuser').exists())
+        self.assertTrue(User.objects.filter(username="newuser").exists())
 
     def test_create_user_passwords_mismatch(self):
         data = {
-            'username': 'newuser2',
-            'email': 'new2@example.com',
-            'password': 'Password123!',
-            'password_confirm': 'Different123!'
+            "username": "newuser2",
+            "email": "new2@example.com",
+            "password": "Password123!",
+            "password_confirm": "Different123!",
         }
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_custom_token_obtain_pair_view_invalid_token(self):
         from rest_framework_simplejwt.exceptions import TokenError
-        url = reverse('admin-login')
-        with patch('users.views.CustomTokenObtainPairView.get_serializer') as mock_get_serializer:
-             mock_serializer = MagicMock()
-             mock_serializer.is_valid.side_effect = TokenError("Custom token error")
-             mock_get_serializer.return_value = mock_serializer
-             response = self.client.post(url, {'username': 'admin', 'password': 'password'})
-             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        url = reverse("admin-login")
+        with patch(
+            "users.views.CustomTokenObtainPairView.get_serializer"
+        ) as mock_get_serializer:
+            mock_serializer = MagicMock()
+            mock_serializer.is_valid.side_effect = TokenError("Custom token error")
+            mock_get_serializer.return_value = mock_serializer
+            response = self.client.post(
+                url, {"username": "admin", "password": "password"}
+            )
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_update_user_self(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
-        data = {'first_name': 'Updated'}
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
+        data = {"first_name": "Updated"}
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user1.refresh_from_db()
-        self.assertEqual(self.user1.first_name, 'Updated')
+        self.assertEqual(self.user1.first_name, "Updated")
 
     def test_update_user_strip_profile_picture_if_not_file(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
         # Sending profile_picture as a string should be stripped
-        data = {'profile_picture': 'http://example.com/image.jpg', 'first_name': 'Stripped'}
+        data = {
+            "profile_picture": "http://example.com/image.jpg",
+            "first_name": "Stripped",
+        }
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user1.refresh_from_db()
-        self.assertEqual(self.user1.first_name, 'Stripped')
+        self.assertEqual(self.user1.first_name, "Stripped")
         self.assertFalse(bool(self.user1.profile_picture))
 
     def test_update_user_with_real_profile_picture(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
+
+        import io
 
         from PIL import Image
-        import io
+
         file = io.BytesIO()
-        image = Image.new('RGBA', size=(100, 100), color=(155, 0, 0))
-        image.save(file, 'png')
-        file.name = 'test.png'
+        image = Image.new("RGBA", size=(100, 100), color=(155, 0, 0))
+        image.save(file, "png")
+        file.name = "test.png"
         file.seek(0)
 
-        uploaded_image = SimpleUploadedFile(file.name, file.read(), content_type="image/png")
-        data = {'profile_picture': uploaded_image}
-        response = self.client.patch(url, data, format='multipart')
+        uploaded_image = SimpleUploadedFile(
+            file.name, file.read(), content_type="image/png"
+        )
+        data = {"profile_picture": uploaded_image}
+        response = self.client.patch(url, data, format="multipart")
         if response.status_code != status.HTTP_200_OK:
-             print(f"Update failed: {response.data}")
+            print(f"Update failed: {response.data}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user1.refresh_from_db()
         self.assertTrue(bool(self.user1.profile_picture))
 
     def test_delete_user_self(self):
         self.client.force_authenticate(user=self.user1)
-        url = reverse('user-detail', kwargs={'pk': self.user1.pk})
+        url = reverse("user-detail", kwargs={"pk": self.user1.pk})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(User.objects.filter(pk=self.user1.pk).exists())
 
+
 class GoogleLoginTests(APITestCase):
     def setUp(self):
-        self.url = reverse('google-login')
-        self.user = User.objects.create_user(username='googleuser', email='google@example.com')
-        self.original_google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
-        settings.GOOGLE_CLIENT_ID = 'test-client-id'
+        self.url = reverse("google-login")
+        self.user = User.objects.create_user(
+            username="googleuser", email="google@example.com"
+        )
+        self.original_google_client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
+        settings.GOOGLE_CLIENT_ID = "test-client-id"
 
     def tearDown(self):
         settings.GOOGLE_CLIENT_ID = self.original_google_client_id
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_success(self, mock_verify):
-        mock_verify.return_value = {'email': 'google@example.com'}
-        response = self.client.post(self.url, {'id_token': 'valid-token'})
+        mock_verify.return_value = {"email": "google@example.com"}
+        response = self.client.post(self.url, {"id_token": "valid-token"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data['data'] if 'data' in response.data else response.data
-        self.assertIn('access', data)
+        data = response.data["data"] if "data" in response.data else response.data
+        self.assertIn("access", data)
 
     def test_google_login_no_token(self):
         response = self.client.post(self.url, {})
@@ -172,70 +196,75 @@ class GoogleLoginTests(APITestCase):
 
     def test_google_login_no_config(self):
         settings.GOOGLE_CLIENT_ID = None
-        response = self.client.post(self.url, {'id_token': 'some-token'})
+        response = self.client.post(self.url, {"id_token": "some-token"})
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_invalid_token(self, mock_verify):
         mock_verify.side_effect = ValueError("Invalid token")
-        response = self.client.post(self.url, {'id_token': 'invalid-token'})
+        response = self.client.post(self.url, {"id_token": "invalid-token"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_transport_error(self, mock_verify):
         mock_verify.side_effect = google_exceptions.TransportError("Transport error")
-        response = self.client.post(self.url, {'id_token': 'valid-token'})
+        response = self.client.post(self.url, {"id_token": "valid-token"})
         self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_unexpected_error(self, mock_verify):
         mock_verify.side_effect = Exception("Unexpected")
-        response = self.client.post(self.url, {'id_token': 'valid-token'})
+        response = self.client.post(self.url, {"id_token": "valid-token"})
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_user_not_found(self, mock_verify):
-        mock_verify.return_value = {'email': 'nonexistent@example.com'}
-        response = self.client.post(self.url, {'id_token': 'valid-token'})
+        mock_verify.return_value = {"email": "nonexistent@example.com"}
+        response = self.client.post(self.url, {"id_token": "valid-token"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    @patch('google.oauth2.id_token.verify_oauth2_token')
+    @patch("google.oauth2.id_token.verify_oauth2_token")
     def test_google_login_no_email_in_token(self, mock_verify):
         mock_verify.return_value = {}
-        response = self.client.post(self.url, {'id_token': 'valid-token'})
+        response = self.client.post(self.url, {"id_token": "valid-token"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class PermissionTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='password')
-        self.other_user = User.objects.create_user(username='otheruser', password='password')
-        self.admin = User.objects.create_superuser(username='admin', password='password', email='admin@example.com')
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.other_user = User.objects.create_user(
+            username="otheruser", password="password"
+        )
+        self.admin = User.objects.create_superuser(
+            username="admin", password="password", email="admin@example.com"
+        )
 
     def test_is_owner_or_read_only(self):
         perm = IsOwnerOrReadOnly()
         view = MagicMock()
         request = MagicMock()
         request.user = self.user
-        request.method = 'PUT'
+        request.method = "PUT"
 
         # Test User model itself
         self.assertTrue(perm.has_object_permission(request, view, self.user))
         self.assertFalse(perm.has_object_permission(request, view, self.other_user))
 
-        request.method = 'GET'
+        request.method = "GET"
         self.assertTrue(perm.has_object_permission(request, view, self.other_user))
 
         # Test other attributes
-        request.method = 'PUT'
+        request.method = "PUT"
         obj1 = MagicMock()
         obj1.user = self.user
         self.assertTrue(perm.has_object_permission(request, view, obj1))
 
-        obj2 = MagicMock(spec=['author'])
+        obj2 = MagicMock(spec=["author"])
         obj2.author.user = self.user
         self.assertTrue(perm.has_object_permission(request, view, obj2))
 
-        obj3 = MagicMock(spec=['uploaded_by'])
+        obj3 = MagicMock(spec=["uploaded_by"])
         obj3.uploaded_by = self.user
         self.assertTrue(perm.has_object_permission(request, view, obj3))
 
@@ -250,6 +279,7 @@ class PermissionTests(APITestCase):
 
     def test_is_owner_or_admin(self):
         from users.permissions import IsAdminUser
+
         admin_perm = IsAdminUser()
         view = MagicMock()
         request = MagicMock()
@@ -260,7 +290,7 @@ class PermissionTests(APITestCase):
 
         perm = IsOwnerOrAdmin()
         request.user = self.user
-        request.method = 'PUT'
+        request.method = "PUT"
 
         # Admin bypass
         admin_request = MagicMock()
@@ -272,8 +302,8 @@ class PermissionTests(APITestCase):
         # User model
         user_obj = self.user
         # We need to mock the type name because of the check in permissions.py
-        with patch('users.permissions.type') as mock_type:
-            mock_type.return_value.__name__ = 'User'
+        with patch("users.permissions.type") as mock_type:
+            mock_type.return_value.__name__ = "User"
             self.assertTrue(perm.has_object_permission(request, view, user_obj))
 
         # Direct user ownership

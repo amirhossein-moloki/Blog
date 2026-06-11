@@ -1,5 +1,6 @@
-from rest_framework import permissions
 from django.apps import apps
+from rest_framework import permissions
+
 
 class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
     """
@@ -20,9 +21,9 @@ class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
         if request.user.is_staff:
             return True
 
-        AuthorProfile = apps.get_model('posts', 'AuthorProfile')
+        AuthorProfile = apps.get_model("posts", "AuthorProfile")
         try:
-            return hasattr(request.user, 'authorprofile')
+            return hasattr(request.user, "authorprofile")
         except AuthorProfile.DoesNotExist:
             return False
 
@@ -51,7 +52,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
 
         # A list of possible attribute names for the owner.
-        owner_attributes = ['user', 'author', 'uploaded_by']
+        owner_attributes = ["user", "author", "uploaded_by"]
 
         for attr in owner_attributes:
             if hasattr(obj, attr):
@@ -60,7 +61,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
                 if owner == request.user:
                     return True
                 # If the owner attribute is a related model (like AuthorProfile)
-                if hasattr(owner, 'user') and owner.user == request.user:
+                if hasattr(owner, "user") and owner.user == request.user:
                     return True
 
         return False
@@ -70,6 +71,7 @@ class IsAdminUserOrReadOnly(permissions.BasePermission):
     """
     Allows read-only access to non-admin users, and full access to admin users.
     """
+
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True

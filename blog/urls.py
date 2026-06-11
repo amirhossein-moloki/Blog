@@ -1,12 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path, re_path
 from django.contrib.sitemaps.views import sitemap
-from .sitemaps import (
-    PostSitemap,
-    StaticViewSitemap,
-)
+from django.urls import include, path, re_path
 
 # Import drf-spectacular views
 from drf_spectacular.views import (
@@ -19,8 +15,13 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .ckeditor_views import ckeditor5_upload
 from posts.ckeditor_views import ckeditor_upload_view
+
+from .ckeditor_views import ckeditor5_upload
+from .sitemaps import (
+    PostSitemap,
+    StaticViewSitemap,
+)
 from .views import page_not_found_view
 
 handler404 = page_not_found_view
@@ -48,10 +49,8 @@ urlpatterns = [
     ),
     path("ckeditor5/", include("django_ckeditor_5.urls")),
     path("admin/", admin.site.urls),
-
     # --- Third-party integrations ---
     path("api/select2/", include("django_select2.urls")),
-
     # --- API Documentation (drf-spectacular) ---
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
@@ -64,7 +63,6 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-
     # --- App URLs ---
     path("api/users/", include("users.urls")),
     path("api/posts/", include("posts.urls", namespace="posts")),
@@ -78,6 +76,4 @@ urlpatterns = [
 # --- Debug Tools & Static/Media ---
 if settings.DEBUG:
     urlpatterns += [path("api/silk/", include("silk.urls", namespace="silk"))]
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

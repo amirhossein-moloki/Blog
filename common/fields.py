@@ -1,17 +1,17 @@
-from django.db.models import ImageField, FileField
-from django.db.models.fields.files import ImageFieldFile, FieldFile
+from django.core.files.base import ContentFile
+from django.db.models import FileField, ImageField
+from django.db.models.fields.files import FieldFile, ImageFieldFile
+
 from common.optimization import optimize_image, optimize_video
 
-
-from django.core.files.base import ContentFile
 
 class OptimizedImageFieldFile(ImageFieldFile):
     def save(self, name, content, save=True):
         # Optimize the image before saving
         optimization_result = optimize_image(content)
         if optimization_result:
-            buffer = optimization_result['buffer']
-            filename = optimization_result['filename']
+            buffer = optimization_result["buffer"]
+            filename = optimization_result["filename"]
             # Save the optimized content
             super().save(filename, ContentFile(buffer.read()), save)
         else:
@@ -38,18 +38,18 @@ class OptimizedVideoField(FileField):
 class OptimizedFileFieldFile(FieldFile):
     def save(self, name, content, save=True):
         # Check the file extension
-        ext = name.split('.')[-1].lower()
-        if ext in ['jpg', 'jpeg', 'png', 'webp']:
+        ext = name.split(".")[-1].lower()
+        if ext in ["jpg", "jpeg", "png", "webp"]:
             optimization_result = optimize_image(content)
             if optimization_result:
-                buffer = optimization_result['buffer']
-                filename = optimization_result['filename']
+                buffer = optimization_result["buffer"]
+                filename = optimization_result["filename"]
                 super().save(filename, ContentFile(buffer.read()), save)
             else:
                 super().save(name, content, save)
         else:
             super().save(name, content, save)
-            if ext in ['mp4', 'mov', 'avi', 'mkv']:
+            if ext in ["mp4", "mov", "avi", "mkv"]:
                 optimize_video.delay(self.path)
 
 

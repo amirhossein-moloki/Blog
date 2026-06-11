@@ -1,10 +1,16 @@
 import logging
-from rest_framework.views import exception_handler
-from rest_framework.response import Response
-from rest_framework import status
-from django.http import Http404
-from rest_framework.exceptions import APIException, NotAuthenticated, PermissionDenied, NotFound
+
 from django.conf import settings
+from django.http import Http404
+from rest_framework import status
+from rest_framework.exceptions import (
+    APIException,
+    NotAuthenticated,
+    NotFound,
+    PermissionDenied,
+)
+from rest_framework.response import Response
+from rest_framework.views import exception_handler
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -45,10 +51,10 @@ def custom_exception_handler(exc, context):
             str(exc),
             exc_info=True,
             extra={
-                'view': context['view'].__class__.__name__,
-                'request_path': context['request'].path,
-                'request_method': context['request'].method,
-            }
+                "view": context["view"].__class__.__name__,
+                "request_path": context["request"].path,
+                "request_method": context["request"].method,
+            },
         )
 
         # در حالت DEBUG، جزئیات خطا را نمایش می‌دهیم تا به دیباگ کمک کند
@@ -81,9 +87,9 @@ def custom_exception_handler(exc, context):
             "pageSize": 1000,
             "totalPage": 0,
             "totalCount": 0,
-            "lastId": None
+            "lastId": None,
         },
-        "messagesList": messages_list
+        "messagesList": messages_list,
     }
 
     return Response(custom_response_data, status=status_code)

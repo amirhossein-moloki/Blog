@@ -1,7 +1,9 @@
 from django.core.cache import cache
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
 from users.models import User
+
 
 @receiver(post_save, sender=User)
 def user_post_save(sender, instance, created, **kwargs):
@@ -11,6 +13,7 @@ def user_post_save(sender, instance, created, **kwargs):
     """
     # Invalidate user-specific dashboard cache
     cache.delete(f"dashboard:user:{instance.id}")
+
 
 @receiver(post_delete, sender=User)
 def user_post_delete(sender, instance, **kwargs):

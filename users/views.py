@@ -1,30 +1,35 @@
 import logging
+
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
+from google.auth import exceptions as google_exceptions
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
-from google.auth import exceptions as google_exceptions
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 from .models import User
-from .permissions import (IsAdminUser, IsOwnerOrAdmin)
-from .serializers import (CustomTokenObtainPairSerializer,
-                          UserCreateSerializer,
-                          UserReadOnlySerializer, UserSerializer,
-                          GoogleLoginSerializer)
+from .permissions import IsAdminUser, IsOwnerOrAdmin
+from .serializers import (
+    CustomTokenObtainPairSerializer,
+    GoogleLoginSerializer,
+    UserCreateSerializer,
+    UserReadOnlySerializer,
+    UserSerializer,
+)
 from .services import ApplicationError
 
 logger = logging.getLogger(__name__)
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -38,10 +43,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
+
 class UserViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing users.
     """
+
     queryset = User.objects.all()
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend]
@@ -49,7 +56,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
-            if self.action == "retrieve" and self.request.user.is_authenticated and self.get_object() == self.request.user:
+            if (
+                self.action == "retrieve"
+                and self.request.user.is_authenticated
+                and self.get_object() == self.request.user
+            ):
                 return UserSerializer
             return UserReadOnlySerializer
         if self.action == "create":
@@ -85,7 +96,10 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserSerializer(user, context={"request": request})
         return Response(serializer.data)
 
-@extend_schema(request=GoogleLoginSerializer, responses={200: CustomTokenObtainPairSerializer})
+
+@extend_schema(
+    request=GoogleLoginSerializer, responses={200: CustomTokenObtainPairSerializer}
+)
 class GoogleLoginView(APIView):
     permission_classes = [AllowAny]
 

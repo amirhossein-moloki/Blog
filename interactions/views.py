@@ -1,13 +1,15 @@
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.db.models import Count, Q
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
 
 from common.pagination import CustomPageNumberPagination
 from users.permissions import IsOwnerOrAdmin
+
 from .models import Comment, Reaction
-from .serializers import CommentSerializer, CommentListSerializer, ReactionSerializer
+from .serializers import CommentListSerializer, CommentSerializer, ReactionSerializer
 from .tasks import notify_author_on_new_comment
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -22,11 +24,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         if user.is_authenticated and user.is_staff:
             return queryset
 
-        return queryset.filter(status='approved')
+        return queryset.filter(status="approved")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         notify_author_on_new_comment.delay(serializer.instance.id)
+
 
 class ReactionViewSet(viewsets.ModelViewSet):
     queryset = Reaction.objects.all()

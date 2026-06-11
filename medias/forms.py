@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.html import format_html
+
 from .models import Media
+
 
 class ImagePreviewWidget(AdminFileWidget):
     def render(self, name, value, attrs=None, renderer=None):
@@ -15,7 +17,8 @@ class ImagePreviewWidget(AdminFileWidget):
                 f'style="object-fit: cover;"/></a>'
             )
         output.append(super().render(name, value, attrs, renderer))
-        return format_html(''.join(output))
+        return format_html("".join(output))
+
 
 class MediaAdminForm(forms.ModelForm):
     file = forms.FileField(required=False)
@@ -23,7 +26,13 @@ class MediaAdminForm(forms.ModelForm):
     class Meta:
         model = Media
         fields = (
-            'file', 'alt_text', 'title',
-            'storage_key', 'url', 'type', 'mime', 'size_bytes',
-            'uploaded_by'
+            "file",
+            "alt_text",
+            "title",
+            "storage_key",
+            "url",
+            "type",
+            "mime",
+            "size_bytes",
+            "uploaded_by",
         )

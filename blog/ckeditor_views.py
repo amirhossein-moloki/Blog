@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.utils.translation import gettext_lazy as _
-
 from django_ckeditor_5.forms import UploadFileForm
 from django_ckeditor_5.views import (
     NoImageException,
@@ -21,7 +20,9 @@ def ckeditor5_upload(request):
 
     if not request.user.is_staff:
         return _error_response(
-            _("اجازه‌ی آپلود ندارید. لطفاً با یک حساب کاربری دارای دسترسی مناسب وارد شوید."),
+            _(
+                "اجازه‌ی آپلود ندارید. لطفاً با یک حساب کاربری دارای دسترسی مناسب وارد شوید."
+            ),
             status=403,
         )
 
@@ -39,7 +40,9 @@ def ckeditor5_upload(request):
             upload_file.seek(0)
         except NoImageException:
             return _error_response(
-                _("فایل انتخاب‌شده یک تصویر معتبر نیست. لطفاً یکی از فرمت‌های پشتیبانی‌شده را آپلود کنید."),
+                _(
+                    "فایل انتخاب‌شده یک تصویر معتبر نیست. لطفاً یکی از فرمت‌های پشتیبانی‌شده را آپلود کنید."
+                ),
             )
 
     if form.is_valid():

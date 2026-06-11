@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install black isort flake8
+      - name: Run Black
+        run: black --check .
+      - name: Run isort
+        run: isort --check-only .
+      - name: Run Flake8
+        run: flake8 .
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libavif-dev postgresql-client
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Django Check
+        run: |
+          python manage.py check
+        env:
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          USE_REDIS: False
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+      - name: Check for missing migrations
+        run: |
+          python manage.py makemigrations --check --dry-run
+        env:
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          USE_REDIS: False
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+      - name: Run Tests with Coverage
+        run: |
+          PYTHONPATH=. coverage run manage.py test --noinput
+          coverage report
+          coverage xml
+        env:
+          POSTGRES_DB: blog_db
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: dummy_password_for_ci
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          USE_REDIS: False
+          SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
