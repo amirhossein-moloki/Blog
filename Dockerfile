@@ -34,7 +34,9 @@ RUN pip install --no-cache-dir --default-timeout=180 -i https://pypi.tuna.tsingh
 COPY . /app/
 
 # Convert entrypoint script to Unix format and make it executable
-RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && \
+    chmod +x /app/docker-entrypoint.sh && \
+    cp /app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Expose port for daphne
 EXPOSE 8000
