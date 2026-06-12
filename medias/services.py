@@ -8,10 +8,31 @@ from .models import Media
 
 
 def create_media_from_file(uploaded_file, uploaded_by, alt_text="", title=""):
+    """
+    EN:
+    Service to handle media file creation.
+    Performs image optimization (AVIF conversion), sanitizes filenames,
+    and extracts metadata (width, height, type).
+
+    FA:
+    سرویسی برای مدیریت ایجاد فایل‌های رسانه‌ای.
+    بهینه‌سازی تصویر (تبدیل به AVIF)، پاکسازی نام فایل و استخراج متادیتا (عرض، ارتفاع، نوع) را انجام می‌دهد.
+
+    Args:
+        uploaded_file (File): The file being uploaded.
+        uploaded_by (User): The user who uploaded the file.
+        alt_text (str): Alternative text for images.
+        title (str): Title for the media file.
+
+    Returns:
+        Media: The created Media instance.
+    """
     original_content_type = uploaded_file.content_type
     is_image = "image" in original_content_type
 
     if is_image:
+        # EN: Convert images to AVIF for better performance
+        # FA: تبدیل تصاویر به AVIF برای کارایی بهتر
         processed_file = convert_image_to_avif(uploaded_file)
         mime = "image/avif"
     else:

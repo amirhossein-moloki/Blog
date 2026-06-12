@@ -12,20 +12,29 @@ from rest_framework.exceptions import (
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
-# Get an instance of a logger
+# EN: Get an instance of a logger
+# FA: دریافت یک نمونه از logger
 logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
     """
+    EN:
     Custom exception handler for DRF views.
     This function handles standard DRF errors and general Python errors,
-    returning a standard JSON response with an English message.
+    returning a standardized JSON response format.
+
+    FA:
+    مدیریت‌کننده استثنای سفارشی برای Viewهای DRF.
+    این تابع خطاهای استاندارد DRF و خطاهای عمومی پایتون را مدیریت کرده
+    و یک پاسخ JSON با ساختار استاندارد بازمی‌گرداند.
     """
-    # Call DRF's default handler to get the initial response
+    # EN: Call DRF's default handler to get the initial response
+    # FA: فراخوانی هندلر پیش‌فرض DRF برای دریافت پاسخ اولیه
     exception_handler(exc, context)
 
-    # Determine error message details based on the exception type
+    # EN: Determine error message details based on the exception type
+    # FA: تعیین جزئیات پیام خطا بر اساس نوع استثنا
     if isinstance(exc, NotAuthenticated):
         detail = "Authentication not performed. Please log in to your account first."
         status_code = status.HTTP_401_UNAUTHORIZED
@@ -36,12 +45,15 @@ def custom_exception_handler(exc, context):
         detail = "The requested entity was not found."
         status_code = status.HTTP_404_NOT_FOUND
     elif isinstance(exc, APIException):
-        # For other DRF errors, the error details themselves are used
+        # EN: For other DRF errors, the error details themselves are used
+        # FA: برای سایر خطاهای DRF، از جزئیات خود خطا استفاده می‌شود
         detail = exc.detail
         status_code = exc.status_code
     else:
-        # For unforeseen errors (internal server errors)
-        # Log the exception with traceback
+        # EN: For unforeseen errors (internal server errors)
+        # FA: برای خطاهای پیش‌بینی نشده (خطاهای داخلی سرور)
+        # EN: Log the exception with traceback
+        # FA: ثبت استثنا به همراه traceback در لاگ
         logger.error(
             "Internal Server Error: %s",
             str(exc),
@@ -53,7 +65,8 @@ def custom_exception_handler(exc, context):
             },
         )
 
-        # In DEBUG mode, display error details to aid debugging
+        # EN: In DEBUG mode, display error details to aid debugging
+        # FA: در حالت DEBUG، جزئیات خطا برای کمک به دیباگ نمایش داده می‌شود
         if settings.DEBUG:
             detail = f"Internal server error: {str(exc)}"
         else:
@@ -62,12 +75,14 @@ def custom_exception_handler(exc, context):
             )
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    # Prepare messagesList
+    # EN: Prepare messagesList by converting different detail formats to a list of strings
+    # FA: آماده‌سازی messagesList با تبدیل فرمت‌های مختلف جزئیات به لیستی از رشته‌ها
     messages_list = []
     if isinstance(detail, list):
         messages_list = detail
     elif isinstance(detail, dict):
-        # Convert dict details to a list of messages
+        # EN: Convert dict details to a list of messages
+        # FA: تبدیل جزئیات دیکشنری به لیستی از پیام‌ها
         for field, errors in detail.items():
             if isinstance(errors, list):
                 for error in errors:

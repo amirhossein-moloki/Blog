@@ -13,23 +13,43 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
+    """
+    EN:
+    Management command to generate random posts using the Faker library.
+    Useful for populating the database during development and testing.
+
+    FA:
+    دستور مدیریتی برای تولید پست‌های تصادفی با استفاده از کتابخانه Faker.
+    مفید برای پر کردن پایگاه داده در طول توسعه و تست.
+    """
+
     help = "Creates a specified number of random posts for testing and development."
 
     def add_arguments(self, parser):
+        """
+        EN: Defines the 'count' argument to specify how many posts to create.
+        FA: آرگومان 'count' را برای مشخص کردن تعداد پست‌های ایجاد شونده تعریف می‌کند.
+        """
         parser.add_argument(
             "count", type=int, help="The number of random posts to create."
         )
 
     def handle(self, *args, **options):
+        """
+        EN: Main logic to create random posts along with necessary dependencies (users, categories, tags).
+        FA: منطق اصلی برای ایجاد پست‌های تصادفی به همراه نیازمندی‌های لازم (کاربران، دسته‌بندی‌ها، برچسب‌ها).
+        """
         count = options["count"]
         fake = Faker()
 
-        # Check if any users exist, create one if not
+        # EN: Check if any users exist, create one if not
+        # FA: بررسی وجود کاربر، و ایجاد یک کاربر در صورت عدم وجود
         if not User.objects.exists():
             default_user = User.objects.create_user(
                 username="defaultuser", password="password", email=fake.email()
             )
-            # The AuthorProfile is created by a signal, so we get or create it.
+            # EN: The AuthorProfile is created by a signal, so we get or create it.
+            # FA: پروفایل نویسندگی توسط سیگنال ایجاد می‌شود، بنابراین آن را دریافت یا ایجاد می‌کنیم.
             AuthorProfile.objects.get_or_create(
                 user=default_user,
                 defaults={
@@ -41,7 +61,8 @@ class Command(BaseCommand):
                 self.style.SUCCESS("No users found. Created a default user.")
             )
 
-        # Get authors, categories, and tags
+        # EN: Get authors, categories, and tags
+        # FA: دریافت نویسندگان، دسته‌بندی‌ها و برچسب‌ها
         authors = list(AuthorProfile.objects.all())
         if not authors:
             self.stderr.write(
@@ -68,7 +89,8 @@ class Command(BaseCommand):
             )
 
         for i in range(count):
-            # Create Media instances for cover and OG image
+            # EN: Create Media instances for cover and OG image
+            # FA: ایجاد نمونه‌های رسانه برای کاور و تصویر OG
             cover_media = self._create_dummy_media(fake)
             og_image = self._create_dummy_media(fake)
 
@@ -90,7 +112,10 @@ class Command(BaseCommand):
         )
 
     def _create_dummy_media(self, fake):
-        """Downloads a placeholder image and creates a Media object."""
+        """
+        EN: Downloads a placeholder image and creates a Media object.
+        FA: یک تصویر جایگزین را دانلود کرده و یک شیء رسانه ایجاد می‌کند.
+        """
         try:
             response = requests.get(
                 "https://via.placeholder.com/800x600.png/007bff/FFFFFF?text=Image"

@@ -4,7 +4,11 @@ from django.utils.translation import gettext_lazy as _
 
 class CoreConfig(AppConfig):
     """
-    Core application configuration.
+    EN:
+    Core application configuration for shared project components.
+
+    FA:
+    تنظیمات اپلیکیشن Core برای اجزای مشترک پروژه.
     """
 
     default_auto_field = "django.db.models.BigAutoField"

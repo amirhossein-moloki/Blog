@@ -8,19 +8,38 @@ User = get_user_model()
 
 
 class JalaliDateTimeField(serializers.ReadOnlyField):
+    """
+    EN: Custom field to represent datetime in Jalali (Persian) format.
+    FA: فیلد سفارشی برای نمایش تاریخ و زمان در قالب جلالی (شمسی).
+    """
+
     def to_representation(self, value):
+        """
+        EN: Converts the datetime object to a Jalali date string.
+        FA: تبدیل شیء datetime به رشته تاریخ جلالی.
+        """
         if value:
             return datetime2jalali(value).strftime("%Y/%m/%d %H:%M:%S")
         return None
 
 
 class CommentUserSerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for minimal User information within comments.
+    FA: سریالایزر برای اطلاعات حداقلی کاربر در نظرات.
+    """
+
     class Meta:
         model = User
         fields = ("username", "profile_picture")
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for creating and managing individual Comments.
+    FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
+    """
+
     user = serializers.PrimaryKeyRelatedField(read_only=True)
     created_at = JalaliDateTimeField()
 
@@ -30,6 +49,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CommentListSerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for listing Comments with user details and like counts.
+    FA: سریالایزر برای لیست کردن نظرات به همراه جزئیات کاربر و تعداد لایک‌ها.
+    """
+
     user = CommentUserSerializer(read_only=True)
     created_at = JalaliDateTimeField()
     likes_count = serializers.IntegerField(read_only=True)
@@ -40,6 +64,11 @@ class CommentListSerializer(serializers.ModelSerializer):
 
 
 class ReactionSerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for creating and managing Reactions (likes, emojis) on various objects.
+    FA: سریالایزر برای ایجاد و مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها) روی اشیاء مختلف.
+    """
+
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     created_at = JalaliDateTimeField()
 
@@ -55,6 +84,10 @@ class ReactionSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, attrs):
+        """
+        EN: Validates that the target object for the reaction exists.
+        FA: بررسی می‌کند که شیء هدف برای واکنش وجود داشته باشد.
+        """
         content_type = attrs["content_type"]
         object_id = attrs["object_id"]
         ModelClass = content_type.model_class()
@@ -65,6 +98,10 @@ class ReactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def to_representation(self, instance):
+        """
+        EN: Customizes the representation to include the user's primary key.
+        FA: نمایش سریالایزر را برای شامل شدن کلید اصلی کاربر سفارشی می‌کند.
+        """
         ret = super().to_representation(instance)
         ret["user"] = instance.user.pk
         return ret

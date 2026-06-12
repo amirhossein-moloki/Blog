@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
-# Import drf-spectacular views
+# EN: Import drf-spectacular views for API documentation.
+# FA: وارد کردن نماهای drf-spectacular برای مستندات API.
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -24,6 +25,8 @@ from .sitemaps import (
 )
 from .views import page_not_found_view
 
+# EN: Custom 404 handler for the project.
+# FA: مدیریت‌کننده سفارشی خطای ۴۰۴ برای پروژه.
 handler404 = page_not_found_view
 
 sitemaps = {
@@ -32,6 +35,8 @@ sitemaps = {
 }
 
 urlpatterns = [
+    # EN: Sitemap XML endpoint.
+    # FA: اندپوینت XML نقشه سایت.
     path(
         "sitemap.xml",
         sitemap,
@@ -75,5 +80,7 @@ urlpatterns = [
 
 # --- Debug Tools & Static/Media ---
 if settings.DEBUG:
+    # EN: Include Silk profiling tool and serve media files directly in development.
+    # FA: شامل کردن ابزار پروفایلینگ Silk و ارائه مستقیم فایل‌های رسانه در محیط توسعه.
     urlpatterns += [path("api/silk/", include("silk.urls", namespace="silk"))]
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

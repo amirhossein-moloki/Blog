@@ -6,7 +6,16 @@ from .models import Media
 
 
 class ImagePreviewWidget(AdminFileWidget):
+    """
+    EN: Custom Admin widget to display an image preview for file fields in the Django admin.
+    FA: ویجت سفارشی ادمین برای نمایش پیش‌نمایش تصویر برای فیلدهای فایل در پنل ادمین جنگو.
+    """
+
     def render(self, name, value, attrs=None, renderer=None):
+        """
+        EN: Renders the file input with an image thumbnail if available.
+        FA: ورودی فایل را همراه با یک تصویر بندانگشتی (در صورت موجود بودن) نمایش می‌دهد.
+        """
         output = []
         if value and getattr(value, "url", None):
             image_url = value.url
@@ -21,6 +30,11 @@ class ImagePreviewWidget(AdminFileWidget):
 
 
 class MediaAdminForm(forms.ModelForm):
+    """
+    EN: Form for managing Media objects in the Django admin interface.
+    FA: فرم برای مدیریت اشیاء رسانه در رابط کاربری ادمین جنگو.
+    """
+
     file = forms.FileField(required=False)
 
     class Meta:

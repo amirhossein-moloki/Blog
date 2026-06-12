@@ -4,24 +4,41 @@ from rest_framework import serializers
 
 
 class StandardizedAutoSchema(AutoSchema):
+    """
+    EN:
+    Custom OpenAPI schema generator for drf-spectacular.
+    It automatically wraps all 2xx response serializers in the project's standardized structure.
+
+    FA:
+    تولیدکننده شمای سفارشی OpenAPI برای drf-spectacular.
+    این کلاس به طور خودکار تمامی سریالایزرهای پاسخ 2xx را در ساختار استاندارد پروژه بسته‌بندی می‌کند.
+    """
+
     def get_response_serializers(self):
+        """
+        EN: Overrides the default response serializer discovery to apply wrapping.
+        FA: شناسایی سریالایزر پاسخ پیش‌فرض را برای اعمال بسته‌بندی بازنویسی می‌کند.
+        """
         serializers_dict = super().get_response_serializers()
 
-        # Check if we're already inside a wrapped serializer to prevent recursion
+        # EN: Check if we're already inside a wrapped serializer to prevent recursion
+        # FA: بررسی اینکه آیا در حال حاضر داخل یک سریالایزر بسته‌بندی شده هستیم تا از بازگشت چرخه‌ای جلوگیری شود
         if getattr(self, "_is_wrapping", False):
             return serializers_dict
 
         self._is_wrapping = True
         try:
             if isinstance(serializers_dict, dict):
-                # Wrap each response serializer in the standardized format
+                # EN: Wrap each response serializer in the standardized format
+                # FA: بسته‌بندی هر سریالایزر پاسخ در قالب استاندارد
                 for status_code, serializer in serializers_dict.items():
                     if status_code.startswith("2"):  # Only wrap successful responses
                         serializers_dict[status_code] = self._wrap_in_standard_format(
                             serializer, status_code
                         )
             else:
-                # It's a single serializer (typical for 200 OK)
+                # EN: It's a single serializer (typical for 200 OK)
+                # FA: این یک سریالایزر واحد است (معمولاً برای 200 OK)
                 serializers_dict = self._wrap_in_standard_format(
                     serializers_dict, "200"
                 )
@@ -31,7 +48,12 @@ class StandardizedAutoSchema(AutoSchema):
         return serializers_dict
 
     def _wrap_in_standard_format(self, serializer, status_code):
-        # Determine a unique name for the wrapped serializer
+        """
+        EN: Wraps a given serializer in an inline serializer that matches the standard response format.
+        FA: یک سریالایزر داده شده را در یک سریالایزر داخلی که با قالب پاسخ استاندارد مطابقت دارد، بسته‌بندی می‌کند.
+        """
+        # EN: Determine a unique name for the wrapped serializer
+        # FA: تعیین یک نام منحصر به فرد برای سریالایزر بسته‌بندی شده
         if hasattr(serializer, "__name__"):
             serializer_name = serializer.__name__
         elif hasattr(serializer, "__class__"):
@@ -39,20 +61,24 @@ class StandardizedAutoSchema(AutoSchema):
         else:
             serializer_name = "Data"
 
-        # Use view name and method to make it unique and avoid collisions
+        # EN: Use view name and method to make it unique and avoid collisions
+        # FA: استفاده از نام view و متد برای منحصر به فرد کردن آن و جلوگیری از تداخل
         view_name = self.view.__class__.__name__
         if view_name.endswith("ViewSet"):
             view_name = view_name[:-7]
 
         method_name = self.method.capitalize()
 
-        # Add action if available (for ViewSets)
+        # EN: Add action if available (for ViewSets)
+        # FA: اضافه کردن action در صورت موجود بودن (برای ViewSetها)
         action_name = getattr(self.view, "action", "").capitalize()
 
-        # Ensure name starts with a letter and is alphanumeric
+        # EN: Ensure name starts with a letter and is alphanumeric
+        # FA: اطمینان از اینکه نام با حرف شروع شده و الفبایی-عددی باشد
         name = f"Std{view_name}{action_name}{method_name}{serializer_name}{status_code}"
 
-        # pagination fields should only be present if the view is paginated
+        # EN: pagination fields should only be present if the view is paginated
+        # FA: فیلدهای صفحه‌بندی فقط باید در صورتی وجود داشته باشند که view صفحه‌بندی شده باشد
         pagination_fields = {
             "pageNo": serializers.IntegerField(default=1),
             "pageSize": serializers.IntegerField(default=10),

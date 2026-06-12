@@ -4,7 +4,11 @@ from django.utils.translation import gettext_lazy as _
 
 class BaseModel(models.Model):
     """
-    Abstract base model providing common fields for all models.
+    EN:
+    Abstract base model providing common fields for all models in the project.
+
+    FA:
+    مدل پایه انتزاعی که فیلدهای مشترک برای تمامی مدل‌های پروژه را فراهم می‌کند.
     """
 
     is_active = models.BooleanField(

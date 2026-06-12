@@ -11,6 +11,16 @@ HOT_POST_MIN_VIEWS = 1000
 
 
 class PostFilter(filters.FilterSet):
+    """
+    EN:
+    Custom filter set for the Post model.
+    Allows filtering by publication date range, category, tags, and a custom 'hot' post logic.
+
+    FA:
+    فیلتر ست سفارشی برای مدل پست.
+    امکان فیلتر بر اساس بازه تاریخ انتشار، دسته‌بندی، برچسب‌ها و منطق سفارشی پست‌های 'داغ' (hot) را فراهم می‌کند.
+    """
+
     published_after = filters.DateTimeFilter(
         field_name="published_at", lookup_expr="gte"
     )
@@ -27,6 +37,10 @@ class PostFilter(filters.FilterSet):
     is_hot = filters.BooleanFilter(method="filter_is_hot")
 
     def filter_is_hot(self, queryset, name, value):
+        """
+        EN: Filters posts based on 'hot' criteria: published recently and has high view count.
+        FA: پست‌ها را بر اساس معیارهای 'داغ' بودن فیلتر می‌کند: اخیراً منتشر شده و تعداد بازدید بالایی دارد.
+        """
         hot_post_criteria = Q(
             published_at__gte=timezone.now() - timedelta(days=HOT_POST_MAX_AGE_DAYS),
             views_count__gt=HOT_POST_MIN_VIEWS,

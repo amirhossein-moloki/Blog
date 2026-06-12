@@ -11,10 +11,23 @@ from django_ckeditor_5.views import (
 
 
 def _error_response(message, status=400):
+    """
+    EN: Helper function to return a standardized JSON error response.
+    FA: تابع کمکی برای بازگرداندن یک پاسخ خطای JSON استاندارد.
+    """
     return JsonResponse({"error": {"message": message}}, status=status)
 
 
 def ckeditor5_upload(request):
+    """
+    EN:
+    Custom upload view for CKEditor 5 that adds extra permission checks and error handling.
+    Restricts uploads to staff members.
+
+    FA:
+    نمای آپلود سفارشی برای CKEditor 5 که بررسی‌های دسترسی و مدیریت خطای اضافی را اضافه می‌کند.
+    آپلود را به اعضای کارکنان (staff) محدود می‌کند.
+    """
     if request.method != "POST":
         raise Http404(_("Page not found."))
 

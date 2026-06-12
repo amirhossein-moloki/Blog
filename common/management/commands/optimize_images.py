@@ -10,9 +10,23 @@ from users.models import User
 
 
 class Command(BaseCommand):
+    """
+    EN:
+    Management command to optimize existing images in the database by converting them to AVIF format.
+    It processes both user profile pictures and media library files.
+
+    FA:
+    دستور مدیریتی برای بهینه‌سازی تصاویر موجود در پایگاه داده با تبدیل آن‌ها به فرمت AVIF.
+    این دستور هم تصاویر پروفایل کاربران و هم فایل‌های کتابخانه رسانه را پردازش می‌کند.
+    """
+
     help = "Optimizes existing images in the database to AVIF format."
 
     def add_arguments(self, parser):
+        """
+        EN: Defines command line arguments for quality and speed.
+        FA: تعریف آرگومان‌های خط فرمان برای کیفیت و سرعت.
+        """
         parser.add_argument(
             "--quality", type=int, default=50, help="AVIF quality (0-100)"
         )
@@ -21,6 +35,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        """
+        EN: Main execution logic for the optimize_images command.
+        FA: منطق اصلی اجرای دستور optimize_images.
+        """
         quality = options["quality"]
         speed = options["speed"]
 
@@ -38,6 +56,10 @@ class Command(BaseCommand):
         )
 
     def optimize_user_profiles(self, quality, speed):
+        """
+        EN: Iterates through users and optimizes their profile pictures.
+        FA: پیمایش کاربران و بهینه‌سازی تصاویر پروفایل آن‌ها.
+        """
         self.stdout.write("Optimizing user profile pictures...")
         from django.core.files.storage import default_storage
 
@@ -68,12 +90,14 @@ class Command(BaseCommand):
                         f, quality=quality, speed=speed
                     )
 
-                # Save the new file
+                # EN: Save the new file
+                # FA: ذخیره فایل جدید
                 user.profile_picture.save(
                     optimized_image_content.name, optimized_image_content, save=True
                 )
 
-                # Delete the old file
+                # EN: Delete the old file
+                # FA: حذف فایل قدیمی
                 if default_storage.exists(original_name):
                     default_storage.delete(original_name)
 
@@ -93,6 +117,10 @@ class Command(BaseCommand):
         )
 
     def optimize_media_files(self, quality, speed):
+        """
+        EN: Iterates through media objects and optimizes image files.
+        FA: پیمایش اشیاء رسانه و بهینه‌سازی فایل‌های تصویر.
+        """
         self.stdout.write("Optimizing media files...")
         from django.core.files.storage import default_storage
 
@@ -124,25 +152,30 @@ class Command(BaseCommand):
                         f, quality=quality, speed=speed
                     )
 
-                # Get a sanitized name for the new file
+                # EN: Get a sanitized name for the new file
+                # FA: دریافت یک نام پاکسازی شده برای فایل جدید
                 sanitized_name = get_sanitized_filename(optimized_image_content.name)
 
-                # Ensure the final name has a .avif extension
+                # EN: Ensure the final name has a .avif extension
+                # FA: اطمینان از اینکه نام نهایی دارای پسوند .avif باشد
                 base_name, _ = os.path.splitext(sanitized_name)
                 new_storage_key = f"{base_name}.avif"
 
-                # Save the new file
+                # EN: Save the new file
+                # FA: ذخیره فایل جدید
                 saved_path = default_storage.save(
                     new_storage_key, optimized_image_content
                 )
 
-                # Update media object
+                # EN: Update media object
+                # FA: به‌روزرسانی شیء رسانه
                 media.storage_key = saved_path
                 media.url = default_storage.url(saved_path)
                 media.mime = "image/avif"
                 media.save()
 
-                # Remove old file
+                # EN: Remove old file
+                # FA: حذف فایل قدیمی
                 if default_storage.exists(original_storage_key):
                     default_storage.delete(original_storage_key)
 

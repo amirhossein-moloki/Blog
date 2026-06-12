@@ -8,13 +8,27 @@ from common.tasks import convert_image_to_avif_task
 
 
 class Command(BaseCommand):
+    """
+    EN:
+    Management command to queue all existing images in the project for conversion to AVIF.
+    It automatically detects all models with ImageField and triggers a Celery task for each.
+
+    FA:
+    دستور مدیریتی برای صف‌بندی تمامی تصاویر موجود در پروژه جهت تبدیل به AVIF.
+    این دستور به طور خودکار تمامی مدل‌های دارای ImageField را شناسایی کرده و برای هر کدام یک تسک Celery اجرا می‌کند.
+    """
+
     help = "Queues all existing images in the system for conversion to AVIF format."
 
     def handle(self, *args, **options):
+        """
+        EN: Main execution logic for the queue_avif_conversion command.
+        FA: منطق اصلی اجرای دستور queue_avif_conversion.
+        """
         self.stdout.write("Starting to scan models for image fields...")
 
-        # List of models to be scanned
-        # You can edit this list to restrict the scan
+        # EN: List of models to be scanned
+        # FA: لیستی از مدل‌ها برای اسکن شدن
         models_to_scan = apps.get_models()
 
         total_tasks_queued = 0
@@ -35,7 +49,8 @@ class Command(BaseCommand):
                     try:
                         image_field = getattr(instance, field_name)
 
-                        # If the image field has a value and is not yet AVIF
+                        # EN: If the image field has a value and is not yet AVIF
+                        # FA: اگر فیلد تصویر دارای مقدار است و هنوز AVIF نیست
                         if (
                             image_field
                             and hasattr(image_field, "name")
