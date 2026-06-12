@@ -11,9 +11,343 @@ info:
   license:
     name: MIT License
 paths:
-  /api/interactions/comments/:
+  /api/auth/admin-login/:
+    post:
+      operationId: auth_admin_login_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
+          description: ''
+  /api/auth/google/login/:
+    post:
+      operationId: auth_google_login_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/authors/:
     get:
-      operationId: interactions_comments_list
+      operationId: authors_list
+      tags:
+      - authors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdAuthorProfileListGetAuthorProfileSerializer200'
+          description: ''
+    post:
+      operationId: authors_create
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileCreatePostAuthorProfileSerializer200'
+          description: ''
+  /api/authors/{user}/:
+    get:
+      operationId: authors_retrieve
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        required: true
+      tags:
+      - authors
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileRetrieveGetAuthorProfileSerializer200'
+          description: ''
+    put:
+      operationId: authors_update
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        required: true
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileUpdatePutAuthorProfileSerializer200'
+          description: ''
+    patch:
+      operationId: authors_partial_update
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        required: true
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfilePartial_updatePatchAuthorProfileSerializer200'
+          description: ''
+    delete:
+      operationId: authors_destroy
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        required: true
+      tags:
+      - authors
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/categories/:
+    get:
+      operationId: categories_list
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdCategoryListGetCategorySerializer200'
+          description: ''
+    post:
+      operationId: categories_create
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryCreatePostCategorySerializer200'
+          description: ''
+  /api/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        required: true
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryRetrieveGetCategorySerializer200'
+          description: ''
+    put:
+      operationId: categories_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryUpdatePutCategorySerializer200'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryPartial_updatePatchCategorySerializer200'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        required: true
+      tags:
+      - categories
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/comments/:
+    get:
+      operationId: comments_list
       parameters:
       - name: page
         required: false
@@ -28,7 +362,7 @@ paths:
         schema:
           type: integer
       tags:
-      - interactions
+      - comments
       security:
       - jwtAuth: []
       - {}
@@ -40,9 +374,9 @@ paths:
                 $ref: '#/components/schemas/PaginatedStdCommentListGetCommentSerializer200List'
           description: ''
     post:
-      operationId: interactions_comments_create
+      operationId: comments_create
       tags:
-      - interactions
+      - comments
       requestBody:
         content:
           application/json:
@@ -64,9 +398,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdCommentCreatePostCommentSerializer200'
           description: ''
-  /api/interactions/comments/{id}/:
+  /api/comments/{id}/:
     get:
-      operationId: interactions_comments_retrieve
+      operationId: comments_retrieve
       parameters:
       - in: path
         name: id
@@ -75,7 +409,7 @@ paths:
         description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
         required: true
       tags:
-      - interactions
+      - comments
       security:
       - jwtAuth: []
       - {}
@@ -87,7 +421,7 @@ paths:
                 $ref: '#/components/schemas/StdCommentRetrieveGetCommentSerializer200'
           description: ''
     put:
-      operationId: interactions_comments_update
+      operationId: comments_update
       parameters:
       - in: path
         name: id
@@ -96,7 +430,7 @@ paths:
         description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
         required: true
       tags:
-      - interactions
+      - comments
       requestBody:
         content:
           application/json:
@@ -119,7 +453,7 @@ paths:
                 $ref: '#/components/schemas/StdCommentUpdatePutCommentSerializer200'
           description: ''
     patch:
-      operationId: interactions_comments_partial_update
+      operationId: comments_partial_update
       parameters:
       - in: path
         name: id
@@ -128,7 +462,7 @@ paths:
         description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
         required: true
       tags:
-      - interactions
+      - comments
       requestBody:
         content:
           application/json:
@@ -150,7 +484,7 @@ paths:
                 $ref: '#/components/schemas/StdCommentPartial_updatePatchCommentSerializer200'
           description: ''
     delete:
-      operationId: interactions_comments_destroy
+      operationId: comments_destroy
       parameters:
       - in: path
         name: id
@@ -159,156 +493,15 @@ paths:
         description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
         required: true
       tags:
-      - interactions
+      - comments
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/interactions/reactions/:
+  /api/media/:
     get:
-      operationId: interactions_reactions_list
-      tags:
-      - interactions
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdReactionListGetReactionSerializer200'
-          description: ''
-    post:
-      operationId: interactions_reactions_create
-      tags:
-      - interactions
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdReactionCreatePostReactionSerializer200'
-          description: ''
-  /api/interactions/reactions/{id}/:
-    get:
-      operationId: interactions_reactions_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
-        required: true
-      tags:
-      - interactions
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdReactionRetrieveGetReactionSerializer200'
-          description: ''
-    put:
-      operationId: interactions_reactions_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
-        required: true
-      tags:
-      - interactions
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ReactionRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdReactionUpdatePutReactionSerializer200'
-          description: ''
-    patch:
-      operationId: interactions_reactions_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
-        required: true
-      tags:
-      - interactions
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedReactionRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedReactionRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedReactionRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdReactionPartial_updatePatchReactionSerializer200'
-          description: ''
-    delete:
-      operationId: interactions_reactions_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
-        required: true
-      tags:
-      - interactions
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/medias/media/:
-    get:
-      operationId: medias_media_list
+      operationId: media_list
       parameters:
       - name: page
         required: false
@@ -323,7 +516,7 @@ paths:
         schema:
           type: integer
       tags:
-      - medias
+      - media
       security:
       - jwtAuth: []
       - {}
@@ -335,9 +528,9 @@ paths:
                 $ref: '#/components/schemas/PaginatedStdMediaListGetMediaDetailSerializer200List'
           description: ''
     post:
-      operationId: medias_media_create
+      operationId: media_create
       tags:
-      - medias
+      - media
       requestBody:
         content:
           application/json:
@@ -359,9 +552,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMediaCreatePostMediaCreateSerializer200'
           description: ''
-  /api/medias/media/{id}/:
+  /api/media/{id}/:
     get:
-      operationId: medias_media_retrieve
+      operationId: media_retrieve
       parameters:
       - in: path
         name: id
@@ -370,7 +563,7 @@ paths:
         description: یک مقداد عدد یکتا که این media را شناسایی میکند.
         required: true
       tags:
-      - medias
+      - media
       security:
       - jwtAuth: []
       - {}
@@ -382,7 +575,7 @@ paths:
                 $ref: '#/components/schemas/StdMediaRetrieveGetMediaDetailSerializer200'
           description: ''
     put:
-      operationId: medias_media_update
+      operationId: media_update
       parameters:
       - in: path
         name: id
@@ -391,7 +584,7 @@ paths:
         description: یک مقداد عدد یکتا که این media را شناسایی میکند.
         required: true
       tags:
-      - medias
+      - media
       requestBody:
         content:
           application/json:
@@ -414,7 +607,7 @@ paths:
                 $ref: '#/components/schemas/StdMediaUpdatePutMediaDetailSerializer200'
           description: ''
     patch:
-      operationId: medias_media_partial_update
+      operationId: media_partial_update
       parameters:
       - in: path
         name: id
@@ -423,7 +616,7 @@ paths:
         description: یک مقداد عدد یکتا که این media را شناسایی میکند.
         required: true
       tags:
-      - medias
+      - media
       requestBody:
         content:
           application/json:
@@ -445,7 +638,7 @@ paths:
                 $ref: '#/components/schemas/StdMediaPartial_updatePatchMediaDetailSerializer200'
           description: ''
     delete:
-      operationId: medias_media_destroy
+      operationId: media_destroy
       parameters:
       - in: path
         name: id
@@ -454,17 +647,17 @@ paths:
         description: یک مقداد عدد یکتا که این media را شناسایی میکند.
         required: true
       tags:
-      - medias
+      - media
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/navigation/menu-items/:
+  /api/menu-items/:
     get:
-      operationId: navigation_menu_items_list
+      operationId: menu_items_list
       tags:
-      - navigation
+      - menu-items
       security:
       - jwtAuth: []
       responses:
@@ -477,9 +670,9 @@ paths:
                   $ref: '#/components/schemas/StdMenuItemListGetMenuItemSerializer200'
           description: ''
     post:
-      operationId: navigation_menu_items_create
+      operationId: menu_items_create
       tags:
-      - navigation
+      - menu-items
       requestBody:
         content:
           application/json:
@@ -501,9 +694,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMenuItemCreatePostMenuItemSerializer200'
           description: ''
-  /api/navigation/menu-items/{id}/:
+  /api/menu-items/{id}/:
     get:
-      operationId: navigation_menu_items_retrieve
+      operationId: menu_items_retrieve
       parameters:
       - in: path
         name: id
@@ -512,7 +705,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menu-items
       security:
       - jwtAuth: []
       responses:
@@ -523,7 +716,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuItemRetrieveGetMenuItemSerializer200'
           description: ''
     put:
-      operationId: navigation_menu_items_update
+      operationId: menu_items_update
       parameters:
       - in: path
         name: id
@@ -532,7 +725,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menu-items
       requestBody:
         content:
           application/json:
@@ -555,7 +748,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuItemUpdatePutMenuItemSerializer200'
           description: ''
     patch:
-      operationId: navigation_menu_items_partial_update
+      operationId: menu_items_partial_update
       parameters:
       - in: path
         name: id
@@ -564,7 +757,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menu-items
       requestBody:
         content:
           application/json:
@@ -586,7 +779,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuItemPartial_updatePatchMenuItemSerializer200'
           description: ''
     delete:
-      operationId: navigation_menu_items_destroy
+      operationId: menu_items_destroy
       parameters:
       - in: path
         name: id
@@ -595,17 +788,17 @@ paths:
         description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menu-items
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/navigation/menus/:
+  /api/menus/:
     get:
-      operationId: navigation_menus_list
+      operationId: menus_list
       tags:
-      - navigation
+      - menus
       security:
       - jwtAuth: []
       responses:
@@ -618,9 +811,9 @@ paths:
                   $ref: '#/components/schemas/StdMenuListGetMenuSerializer200'
           description: ''
     post:
-      operationId: navigation_menus_create
+      operationId: menus_create
       tags:
-      - navigation
+      - menus
       requestBody:
         content:
           application/json:
@@ -642,9 +835,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMenuCreatePostMenuSerializer200'
           description: ''
-  /api/navigation/menus/{id}/:
+  /api/menus/{id}/:
     get:
-      operationId: navigation_menus_retrieve
+      operationId: menus_retrieve
       parameters:
       - in: path
         name: id
@@ -653,7 +846,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menus
       security:
       - jwtAuth: []
       responses:
@@ -664,7 +857,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuRetrieveGetMenuSerializer200'
           description: ''
     put:
-      operationId: navigation_menus_update
+      operationId: menus_update
       parameters:
       - in: path
         name: id
@@ -673,7 +866,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menus
       requestBody:
         content:
           application/json:
@@ -696,7 +889,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuUpdatePutMenuSerializer200'
           description: ''
     patch:
-      operationId: navigation_menus_partial_update
+      operationId: menus_partial_update
       parameters:
       - in: path
         name: id
@@ -705,7 +898,7 @@ paths:
         description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menus
       requestBody:
         content:
           application/json:
@@ -727,7 +920,7 @@ paths:
                 $ref: '#/components/schemas/StdMenuPartial_updatePatchMenuSerializer200'
           description: ''
     delete:
-      operationId: navigation_menus_destroy
+      operationId: menus_destroy
       parameters:
       - in: path
         name: id
@@ -736,15 +929,15 @@ paths:
         description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
         required: true
       tags:
-      - navigation
+      - menus
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/pages/pages/:
+  /api/pages/:
     get:
-      operationId: pages_pages_list
+      operationId: pages_list
       tags:
       - pages
       security:
@@ -759,7 +952,7 @@ paths:
                   $ref: '#/components/schemas/StdPageListGetPageSerializer200'
           description: ''
     post:
-      operationId: pages_pages_create
+      operationId: pages_create
       tags:
       - pages
       requestBody:
@@ -783,9 +976,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPageCreatePostPageSerializer200'
           description: ''
-  /api/pages/pages/{id}/:
+  /api/pages/{id}/:
     get:
-      operationId: pages_pages_retrieve
+      operationId: pages_retrieve
       parameters:
       - in: path
         name: id
@@ -805,7 +998,7 @@ paths:
                 $ref: '#/components/schemas/StdPageRetrieveGetPageSerializer200'
           description: ''
     put:
-      operationId: pages_pages_update
+      operationId: pages_update
       parameters:
       - in: path
         name: id
@@ -837,7 +1030,7 @@ paths:
                 $ref: '#/components/schemas/StdPageUpdatePutPageSerializer200'
           description: ''
     patch:
-      operationId: pages_pages_partial_update
+      operationId: pages_partial_update
       parameters:
       - in: path
         name: id
@@ -868,7 +1061,7 @@ paths:
                 $ref: '#/components/schemas/StdPagePartial_updatePatchPageSerializer200'
           description: ''
     delete:
-      operationId: pages_pages_destroy
+      operationId: pages_destroy
       parameters:
       - in: path
         name: id
@@ -883,293 +1076,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/authors/:
+  /api/posts/:
     get:
-      operationId: posts_authors_list
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdAuthorProfileListGetAuthorProfileSerializer200'
-          description: ''
-    post:
-      operationId: posts_authors_create
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileCreatePostAuthorProfileSerializer200'
-          description: ''
-  /api/posts/authors/{user}/:
-    get:
-      operationId: posts_authors_retrieve
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileRetrieveGetAuthorProfileSerializer200'
-          description: ''
-    put:
-      operationId: posts_authors_update
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileUpdatePutAuthorProfileSerializer200'
-          description: ''
-    patch:
-      operationId: posts_authors_partial_update
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfilePartial_updatePatchAuthorProfileSerializer200'
-          description: ''
-    delete:
-      operationId: posts_authors_destroy
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/posts/categories/:
-    get:
-      operationId: posts_categories_list
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdCategoryListGetCategorySerializer200'
-          description: ''
-    post:
-      operationId: posts_categories_create
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryCreatePostCategorySerializer200'
-          description: ''
-  /api/posts/categories/{id}/:
-    get:
-      operationId: posts_categories_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryRetrieveGetCategorySerializer200'
-          description: ''
-    put:
-      operationId: posts_categories_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryUpdatePutCategorySerializer200'
-          description: ''
-    patch:
-      operationId: posts_categories_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryPartial_updatePatchCategorySerializer200'
-          description: ''
-    delete:
-      operationId: posts_categories_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
-        required: true
-      tags:
-      - posts
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/posts/posts/:
-    get:
-      operationId: posts_posts_list
+      operationId: posts_list
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1253,7 +1162,7 @@ paths:
                 $ref: '#/components/schemas/PaginatedStdPostListGetPostListSerializer200List'
           description: ''
     post:
-      operationId: posts_posts_create
+      operationId: posts_create
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1280,9 +1189,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostCreatePostPostCreateUpdateSerializer200'
           description: ''
-  /api/posts/posts/{post_slug}/comments/:
+  /api/posts/{post_slug}/comments/:
     get:
-      operationId: posts_posts_comments_list
+      operationId: posts_comments_list
       parameters:
       - name: ordering
         required: false
@@ -1320,9 +1229,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedStdPostCommentListGetCommentListSerializer200List'
           description: ''
-  /api/posts/posts/{post_slug}/comments/{id}/:
+  /api/posts/{post_slug}/comments/{id}/:
     get:
-      operationId: posts_posts_comments_retrieve
+      operationId: posts_comments_retrieve
       parameters:
       - in: path
         name: id
@@ -1348,9 +1257,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostCommentRetrieveGetCommentListSerializer200'
           description: ''
-  /api/posts/posts/{slug}/:
+  /api/posts/{slug}/:
     get:
-      operationId: posts_posts_retrieve
+      operationId: posts_retrieve
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1373,7 +1282,7 @@ paths:
                 $ref: '#/components/schemas/StdPostRetrieveGetPostDetailSerializer200'
           description: ''
     put:
-      operationId: posts_posts_update
+      operationId: posts_update
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1407,7 +1316,7 @@ paths:
                 $ref: '#/components/schemas/StdPostUpdatePutPostCreateUpdateSerializer200'
           description: ''
     patch:
-      operationId: posts_posts_partial_update
+      operationId: posts_partial_update
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1440,7 +1349,7 @@ paths:
                 $ref: '#/components/schemas/StdPostPartial_updatePatchPostCreateUpdateSerializer200'
           description: ''
     delete:
-      operationId: posts_posts_destroy
+      operationId: posts_destroy
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1457,9 +1366,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/posts/{slug}/publish/:
+  /api/posts/{slug}/publish/:
     post:
-      operationId: posts_posts_publish_create
+      operationId: posts_publish_create
       description: Publish a draft or scheduled post.
       parameters:
       - in: path
@@ -1478,9 +1387,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/PostDetail'
           description: ''
-  /api/posts/posts/{slug}/related/:
+  /api/posts/{slug}/related/:
     get:
-      operationId: posts_posts_related_list
+      operationId: posts_related_list
       description: Get related posts based on tags.
       parameters:
       - in: path
@@ -1502,9 +1411,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/PostList'
           description: ''
-  /api/posts/posts/{slug}/same-category/:
+  /api/posts/{slug}/same-category/:
     get:
-      operationId: posts_posts_same_category_retrieve
+      operationId: posts_same_category_retrieve
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1526,9 +1435,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostSame_categoryGetPostListSerializer200'
           description: ''
-  /api/posts/posts/{slug}/similar/:
+  /api/posts/{slug}/similar/:
     get:
-      operationId: posts_posts_similar_retrieve
+      operationId: posts_similar_retrieve
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1550,9 +1459,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostSimilarGetPostListSerializer200'
           description: ''
-  /api/posts/posts/slug/{slug}/:
+  /api/posts/slug/{slug}/:
     get:
-      operationId: posts_posts_slug_retrieve
+      operationId: posts_slug_retrieve
       description: |-
         A view mixin that takes an additional `fields` argument that controls
         which fields should be displayed.
@@ -1574,11 +1483,152 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostBy_slugGetPostListSerializer200'
           description: ''
-  /api/posts/revisions/:
+  /api/reactions/:
     get:
-      operationId: posts_revisions_list
+      operationId: reactions_list
       tags:
-      - posts
+      - reactions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdReactionListGetReactionSerializer200'
+          description: ''
+    post:
+      operationId: reactions_create
+      tags:
+      - reactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdReactionCreatePostReactionSerializer200'
+          description: ''
+  /api/reactions/{id}/:
+    get:
+      operationId: reactions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        required: true
+      tags:
+      - reactions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdReactionRetrieveGetReactionSerializer200'
+          description: ''
+    put:
+      operationId: reactions_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        required: true
+      tags:
+      - reactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReactionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdReactionUpdatePutReactionSerializer200'
+          description: ''
+    patch:
+      operationId: reactions_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        required: true
+      tags:
+      - reactions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReactionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReactionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReactionRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdReactionPartial_updatePatchReactionSerializer200'
+          description: ''
+    delete:
+      operationId: reactions_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        required: true
+      tags:
+      - reactions
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/revisions/:
+    get:
+      operationId: revisions_list
+      tags:
+      - revisions
       security:
       - jwtAuth: []
       - {}
@@ -1592,9 +1642,9 @@ paths:
                   $ref: '#/components/schemas/StdRevisionListGetRevisionSerializer200'
           description: ''
     post:
-      operationId: posts_revisions_create
+      operationId: revisions_create
       tags:
-      - posts
+      - revisions
       requestBody:
         content:
           application/json:
@@ -1616,9 +1666,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdRevisionCreatePostRevisionSerializer200'
           description: ''
-  /api/posts/revisions/{id}/:
+  /api/revisions/{id}/:
     get:
-      operationId: posts_revisions_retrieve
+      operationId: revisions_retrieve
       parameters:
       - in: path
         name: id
@@ -1627,7 +1677,7 @@ paths:
         description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - revisions
       security:
       - jwtAuth: []
       - {}
@@ -1639,7 +1689,7 @@ paths:
                 $ref: '#/components/schemas/StdRevisionRetrieveGetRevisionSerializer200'
           description: ''
     put:
-      operationId: posts_revisions_update
+      operationId: revisions_update
       parameters:
       - in: path
         name: id
@@ -1648,7 +1698,7 @@ paths:
         description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - revisions
       requestBody:
         content:
           application/json:
@@ -1671,7 +1721,7 @@ paths:
                 $ref: '#/components/schemas/StdRevisionUpdatePutRevisionSerializer200'
           description: ''
     patch:
-      operationId: posts_revisions_partial_update
+      operationId: revisions_partial_update
       parameters:
       - in: path
         name: id
@@ -1680,7 +1730,7 @@ paths:
         description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - revisions
       requestBody:
         content:
           application/json:
@@ -1702,7 +1752,7 @@ paths:
                 $ref: '#/components/schemas/StdRevisionPartial_updatePatchRevisionSerializer200'
           description: ''
     delete:
-      operationId: posts_revisions_destroy
+      operationId: revisions_destroy
       parameters:
       - in: path
         name: id
@@ -1711,17 +1761,17 @@ paths:
         description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - revisions
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/posts/series/:
+  /api/series/:
     get:
-      operationId: posts_series_list
+      operationId: series_list
       tags:
-      - posts
+      - series
       security:
       - jwtAuth: []
       responses:
@@ -1734,9 +1784,9 @@ paths:
                   $ref: '#/components/schemas/StdSeriesListGetSeriesSerializer200'
           description: ''
     post:
-      operationId: posts_series_create
+      operationId: series_create
       tags:
-      - posts
+      - series
       requestBody:
         content:
           application/json:
@@ -1758,9 +1808,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdSeriesCreatePostSeriesSerializer200'
           description: ''
-  /api/posts/series/{id}/:
+  /api/series/{id}/:
     get:
-      operationId: posts_series_retrieve
+      operationId: series_retrieve
       parameters:
       - in: path
         name: id
@@ -1769,7 +1819,7 @@ paths:
         description: یک مقداد عدد یکتا که این series را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - series
       security:
       - jwtAuth: []
       responses:
@@ -1780,7 +1830,7 @@ paths:
                 $ref: '#/components/schemas/StdSeriesRetrieveGetSeriesSerializer200'
           description: ''
     put:
-      operationId: posts_series_update
+      operationId: series_update
       parameters:
       - in: path
         name: id
@@ -1789,7 +1839,7 @@ paths:
         description: یک مقداد عدد یکتا که این series را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - series
       requestBody:
         content:
           application/json:
@@ -1812,7 +1862,7 @@ paths:
                 $ref: '#/components/schemas/StdSeriesUpdatePutSeriesSerializer200'
           description: ''
     patch:
-      operationId: posts_series_partial_update
+      operationId: series_partial_update
       parameters:
       - in: path
         name: id
@@ -1821,7 +1871,7 @@ paths:
         description: یک مقداد عدد یکتا که این series را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - series
       requestBody:
         content:
           application/json:
@@ -1843,7 +1893,7 @@ paths:
                 $ref: '#/components/schemas/StdSeriesPartial_updatePatchSeriesSerializer200'
           description: ''
     delete:
-      operationId: posts_series_destroy
+      operationId: series_destroy
       parameters:
       - in: path
         name: id
@@ -1852,17 +1902,17 @@ paths:
         description: یک مقداد عدد یکتا که این series را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - series
       security:
       - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/posts/tags/:
+  /api/tags/:
     get:
-      operationId: posts_tags_list
+      operationId: tags_list
       tags:
-      - posts
+      - tags
       security:
       - jwtAuth: []
       responses:
@@ -1875,9 +1925,9 @@ paths:
                   $ref: '#/components/schemas/StdTagListGetTagSerializer200'
           description: ''
     post:
-      operationId: posts_tags_create
+      operationId: tags_create
       tags:
-      - posts
+      - tags
       requestBody:
         content:
           application/json:
@@ -1899,9 +1949,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdTagCreatePostTagSerializer200'
           description: ''
-  /api/posts/tags/{id}/:
+  /api/tags/{id}/:
     get:
-      operationId: posts_tags_retrieve
+      operationId: tags_retrieve
       parameters:
       - in: path
         name: id
@@ -1910,7 +1960,7 @@ paths:
         description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - tags
       security:
       - jwtAuth: []
       responses:
@@ -1921,7 +1971,7 @@ paths:
                 $ref: '#/components/schemas/StdTagRetrieveGetTagSerializer200'
           description: ''
     put:
-      operationId: posts_tags_update
+      operationId: tags_update
       parameters:
       - in: path
         name: id
@@ -1930,7 +1980,7 @@ paths:
         description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - tags
       requestBody:
         content:
           application/json:
@@ -1953,7 +2003,7 @@ paths:
                 $ref: '#/components/schemas/StdTagUpdatePutTagSerializer200'
           description: ''
     patch:
-      operationId: posts_tags_partial_update
+      operationId: tags_partial_update
       parameters:
       - in: path
         name: id
@@ -1962,7 +2012,7 @@ paths:
         description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - tags
       requestBody:
         content:
           application/json:
@@ -1984,7 +2034,7 @@ paths:
                 $ref: '#/components/schemas/StdTagPartial_updatePatchTagSerializer200'
           description: ''
     delete:
-      operationId: posts_tags_destroy
+      operationId: tags_destroy
       parameters:
       - in: path
         name: id
@@ -1993,7 +2043,7 @@ paths:
         description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
         required: true
       tags:
-      - posts
+      - tags
       security:
       - jwtAuth: []
       responses:
@@ -2053,59 +2103,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdTokenRefreshViewPostTokenRefreshSerializer200'
           description: ''
-  /api/users/auth/admin-login/:
-    post:
-      operationId: users_auth_admin_login_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
-          description: ''
-  /api/users/auth/google/login/:
-    post:
-      operationId: users_auth_google_login_create
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GoogleLoginRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GoogleLoginRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GoogleLoginRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/users/users/:
+  /api/users/:
     get:
-      operationId: users_users_list
+      operationId: users_list
       description: ViewSet for managing users.
       parameters:
       - in: query
@@ -2130,7 +2130,7 @@ paths:
                   $ref: '#/components/schemas/StdUserListGetUserReadOnlySerializer200'
           description: ''
     post:
-      operationId: users_users_create
+      operationId: users_create
       description: ViewSet for managing users.
       tags:
       - users
@@ -2156,9 +2156,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdUserCreatePostUserCreateSerializer200'
           description: ''
-  /api/users/users/{id}/:
+  /api/users/{id}/:
     get:
-      operationId: users_users_retrieve
+      operationId: users_retrieve
       description: ViewSet for managing users.
       parameters:
       - in: path
@@ -2179,7 +2179,7 @@ paths:
                 $ref: '#/components/schemas/StdUserRetrieveGetUserReadOnlySerializer200'
           description: ''
     put:
-      operationId: users_users_update
+      operationId: users_update
       description: ViewSet for managing users.
       parameters:
       - in: path
@@ -2212,7 +2212,7 @@ paths:
                 $ref: '#/components/schemas/StdUserUpdatePutUserSerializer200'
           description: ''
     patch:
-      operationId: users_users_partial_update
+      operationId: users_partial_update
       description: ViewSet for managing users.
       parameters:
       - in: path
@@ -2244,7 +2244,7 @@ paths:
                 $ref: '#/components/schemas/StdUserPartial_updatePatchUserSerializer200'
           description: ''
     delete:
-      operationId: users_users_destroy
+      operationId: users_destroy
       description: ViewSet for managing users.
       parameters:
       - in: path
@@ -2260,9 +2260,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/users/users/me/:
+  /api/users/me/:
     get:
-      operationId: users_users_me_retrieve
+      operationId: users_me_retrieve
       description: ViewSet for managing users.
       tags:
       - users
@@ -4133,7 +4133,7 @@ components:
         content:
           type: string
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         published_at:
           type: string
           format: date-time
@@ -4169,7 +4169,7 @@ components:
           type: string
           minLength: 1
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         published_at:
           type: string
           format: date-time
@@ -4426,7 +4426,7 @@ components:
           type: string
           minLength: 1
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         published_at:
           type: string
           format: date-time
@@ -4450,7 +4450,7 @@ components:
           type: string
           minLength: 1
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         visibility:
           $ref: '#/components/schemas/VisibilityEnum'
         is_hot:
@@ -4589,10 +4589,6 @@ components:
           format: email
           title: آدرس ایمیل
           maxLength: 254
-        phone_number:
-          type: string
-          nullable: true
-          maxLength: 128
         profile_picture:
           type: string
           format: binary
@@ -4608,7 +4604,7 @@ components:
         content:
           type: string
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         visibility:
           $ref: '#/components/schemas/VisibilityEnum'
         is_hot:
@@ -4689,7 +4685,7 @@ components:
           type: string
           minLength: 1
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         visibility:
           $ref: '#/components/schemas/VisibilityEnum'
         is_hot:
@@ -4762,7 +4758,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         is_hot:
           type: boolean
         published_at:
@@ -4862,7 +4858,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/Status224Enum'
+          $ref: '#/components/schemas/PostStatusEnum'
         is_hot:
           type: boolean
         published_at:
@@ -4921,6 +4917,20 @@ components:
           maxLength: 50
       required:
       - media
+    PostStatusEnum:
+      enum:
+      - draft
+      - review
+      - scheduled
+      - published
+      - archived
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `review` - Review
+        * `scheduled` - Scheduled
+        * `published` - Published
+        * `archived` - Archived
     Reaction:
       type: object
       properties:
@@ -5095,20 +5105,6 @@ components:
       required:
       - slug
       - title
-    Status224Enum:
-      enum:
-      - draft
-      - review
-      - scheduled
-      - published
-      - archived
-      type: string
-      description: |-
-        * `draft` - Draft
-        * `review` - Review
-        * `scheduled` - Scheduled
-        * `published` - Published
-        * `archived` - Archived
     StdAuthorProfileCreatePostAuthorProfileSerializer200:
       type: object
       properties:
@@ -6318,10 +6314,6 @@ components:
           format: email
           title: آدرس ایمیل
           maxLength: 254
-        phone_number:
-          type: string
-          nullable: true
-          maxLength: 128
         profile_picture:
           type: string
           format: uri
@@ -6349,10 +6341,6 @@ components:
         email:
           type: string
           format: email
-        phone_number:
-          type: string
-          nullable: true
-          maxLength: 128
         first_name:
           type: string
           title: نام
@@ -6380,10 +6368,6 @@ components:
           type: string
           format: email
           minLength: 1
-        phone_number:
-          type: string
-          nullable: true
-          maxLength: 128
         first_name:
           type: string
           title: نام
@@ -6468,10 +6452,6 @@ components:
           format: email
           title: آدرس ایمیل
           maxLength: 254
-        phone_number:
-          type: string
-          nullable: true
-          maxLength: 128
         profile_picture:
           type: string
           format: binary

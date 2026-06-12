@@ -20,7 +20,8 @@
               ],
               "path": [
                 "api",
-                "token"
+                "token",
+                ""
               ]
             },
             "body": {
@@ -67,7 +68,8 @@
               ],
               "path": [
                 "api",
-                "token"
+                "token",
+                ""
               ]
             },
             "body": {
@@ -108,7 +110,8 @@
               "path": [
                 "api",
                 "token",
-                "refresh"
+                "refresh",
+                ""
               ]
             },
             "body": {
@@ -153,8 +156,8 @@
               "path": [
                 "api",
                 "users",
-                "users",
-                "me"
+                "me",
+                ""
               ]
             }
           },
@@ -190,7 +193,7 @@
               "path": [
                 "api",
                 "users",
-                "users"
+                ""
               ]
             }
           },
@@ -219,7 +222,7 @@
               "path": [
                 "api",
                 "users",
-                "users"
+                ""
               ]
             },
             "body": {
@@ -265,7 +268,7 @@
               "path": [
                 "api",
                 "posts",
-                "posts"
+                ""
               ]
             }
           },
@@ -299,8 +302,8 @@
               "path": [
                 "api",
                 "posts",
-                "posts",
-                "{{postSlug}}"
+                "{{postSlug}}",
+                ""
               ]
             }
           },
@@ -335,7 +338,7 @@
               "path": [
                 "api",
                 "posts",
-                "posts"
+                ""
               ]
             },
             "body": {
@@ -373,8 +376,8 @@
               "path": [
                 "api",
                 "posts",
-                "posts",
-                "{{postSlug}}"
+                "{{postSlug}}",
+                ""
               ]
             },
             "body": {
@@ -412,9 +415,9 @@
               "path": [
                 "api",
                 "posts",
-                "posts",
                 "{{postSlug}}",
-                "publish"
+                "publish",
+                ""
               ]
             }
           },
@@ -443,8 +446,8 @@
               "path": [
                 "api",
                 "posts",
-                "posts",
-                "invalid-slug"
+                "invalid-slug",
+                ""
               ]
             }
           },
@@ -477,8 +480,8 @@
               ],
               "path": [
                 "api",
-                "posts",
-                "categories"
+                "categories",
+                ""
               ]
             }
           },
@@ -506,8 +509,8 @@
               ],
               "path": [
                 "api",
-                "posts",
-                "categories"
+                "categories",
+                ""
               ]
             },
             "body": {
@@ -544,8 +547,8 @@
               ],
               "path": [
                 "api",
-                "posts",
-                "tags"
+                "tags",
+                ""
               ]
             }
           },
@@ -573,8 +576,8 @@
               ],
               "path": [
                 "api",
-                "posts",
-                "series"
+                "series",
+                ""
               ]
             }
           },
@@ -607,8 +610,8 @@
               ],
               "path": [
                 "api",
-                "medias",
-                "media"
+                "media",
+                ""
               ]
             }
           },
@@ -644,9 +647,9 @@
               "path": [
                 "api",
                 "posts",
-                "posts",
                 "{{postSlug}}",
-                "comments"
+                "comments",
+                ""
               ]
             }
           },
@@ -674,8 +677,8 @@
               ],
               "path": [
                 "api",
-                "interactions",
-                "comments"
+                "comments",
+                ""
               ]
             },
             "body": {
@@ -712,8 +715,8 @@
               ],
               "path": [
                 "api",
-                "interactions",
-                "reactions"
+                "reactions",
+                ""
               ]
             }
           },
@@ -747,7 +750,7 @@
               "path": [
                 "api",
                 "pages",
-                "pages"
+                ""
               ]
             }
           },
@@ -775,8 +778,8 @@
               ],
               "path": [
                 "api",
-                "navigation",
-                "menus"
+                "menus",
+                ""
               ]
             }
           },
@@ -804,8 +807,8 @@
               ],
               "path": [
                 "api",
-                "navigation",
-                "menu-items"
+                "menu-items",
+                ""
               ]
             }
           },
