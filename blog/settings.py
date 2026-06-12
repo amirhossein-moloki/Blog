@@ -19,25 +19,27 @@ import dj_database_url
 from dotenv import load_dotenv
 from kombu import Exchange, Queue
 
-# if sys.platform.startswith("win32"):
-#     locale.setlocale(locale.LC_ALL, "Persian_Iran.UTF-8")
-# else:
-#     locale.setlocale(locale.LC_ALL, "fa_IR.UTF-8")
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# EN: Build paths inside the project like this: BASE_DIR / 'subdir'.
+# FA: ساخت مسیرها در داخل پروژه به این صورت: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# EN: Load environment variables from .env file.
+# FA: بارگذاری متغیرهای محیطی از فایل .env.
 load_dotenv(BASE_DIR / ".env")
 
+# EN: Flag to detect if the current process is a management command.
+# FA: پرچمی برای تشخیص اینکه آیا فرآیند فعلی یک دستور مدیریتی است یا خیر.
 IS_MANAGEMENT_COMMAND = "manage.py" in sys.argv[0]
 
-# Create logs directory if it doesn't exist
+# EN: Create logs directory for centralized application logging.
+# FA: ایجاد دایرکتوری لاگ‌ها برای ثبت متمرکز لاگ‌های اپلیکیشن.
 LOGS_DIR = BASE_DIR / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# EN: Quick-start development settings - unsuitable for production
+# EN: See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+# FA: تنظیمات سریع برای محیط توسعه - نامناسب برای محیط تولید.
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-with-a-very-secret-key")
@@ -45,7 +47,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "replace-this-with-a-very-secret-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 
-# Site configuration
+# EN: Site identity and connectivity configuration.
+# FA: تنظیمات هویت سایت و پیکربندی اتصال.
 DOMAIN = os.environ.get("DOMAIN", "localhost")
 SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -56,7 +59,8 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", f"localhost,127.0.0.1,{DOMAIN}")
 )
 
 
-# Application definition
+# EN: Application definition - core, third-party, and project-specific apps.
+# FA: تعریف اپلیکیشن - اپلیکیشن‌های اصلی، شخص ثالث و اختصاصی پروژه.
 
 INSTALLED_APPS = [
     "django_ckeditor_5",
@@ -97,6 +101,8 @@ INSTALLED_APPS = [
     "navigation",
 ]
 
+# EN: Authentication backends including support for object permissions (guardian) and lockout protection (axes).
+# FA: بک‌اندهای احراز هویت شامل پشتیبانی از دسترسی‌های سطح شیء (guardian) و محافظت در برابر مسدود شدن (axes).
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
@@ -140,9 +146,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "blog.wsgi.application"
 ASGI_APPLICATION = "blog.asgi.application"
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
+# EN: Database configuration with support for environment-driven URLs and SQLite fallback for tests.
+# FA: تنظیمات پایگاه داده با پشتیبانی از آدرس‌های مبتنی بر محیط و جایگزین SQLite برای تست‌ها.
 is_testing_db = "test" in sys.argv or "pytest" in sys.modules
 
 if is_testing_db:
@@ -187,9 +192,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i1n/
-
+# EN: Internationalization settings. Timezone is UTC for global consistency.
+# FA: تنظیمات بین‌المللی‌سازی. منطقه زمانی برای یکپارچگی جهانی روی UTC تنظیم شده است.
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -201,9 +205,8 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
+# EN: Static and Media files configuration. Uses WhiteNoise for static files and local/S3 for media.
+# FA: تنظیمات فایل‌های ایستا و رسانه‌ای. استفاده از WhiteNoise برای فایل‌های ایستا و فضای محلی/S3 برای رسانه‌ها.
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
@@ -235,8 +238,12 @@ else:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# EN: Custom user model to allow for future profile extensions.
+# FA: مدل کاربر سفارشی برای اجازه دادن به گسترش‌های پروفایل در آینده.
 AUTH_USER_MODEL = "users.User"
 
+# EN: Redis and Channels configuration for real-time features and caching.
+# FA: تنظیمات Redis و Channels برای ویژگی‌های بلادرنگ و کشینگ.
 REDIS_URL = os.environ.get("REDIS_URL")
 USE_REDIS = (
     os.environ.get("USE_REDIS", "false").lower() in ("true", "1", "t") and REDIS_URL
@@ -258,7 +265,8 @@ else:
         },
     }
 
-# Logging Configuration
+# EN: Logging Configuration for detailed error tracking and performance monitoring.
+# FA: تنظیمات لاگ برای ردیابی دقیق خطاها و نظارت بر کارایی.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -335,7 +343,8 @@ LOGGING = {
     },
 }
 
-# Use console logging in development and file/email logging in production
+# EN: Use console logging in development and file/email logging in production.
+# FA: استفاده از لاگ کنسول در توسعه و لاگ فایل/ایمیل در تولید.
 if DEBUG or "test" in sys.argv or "pytest" in sys.modules:
     LOGGING["loggers"]["django"]["handlers"] = ["console"]
     LOGGING["loggers"]["root"]["handlers"] = ["console"]
@@ -345,6 +354,8 @@ else:
     LOGGING["loggers"]["root"]["handlers"] = ["file_info", "file_error", "mail_admins"]
 
 
+# EN: Unfold Admin Theme configuration.
+# FA: تنظیمات قالب Unfold برای پنل ادمین.
 UNFOLD = {
     "SITE_HEADER": "Blog Platform",
     "SITE_TITLE": "Blog Platform Admin",
@@ -356,7 +367,8 @@ UNFOLD = {
     },
 }
 
-# Django REST Framework Settings
+# EN: Django REST Framework Settings with standardized response and schema generation.
+# FA: تنظیمات Django REST Framework با تولید پاسخ و شمای استاندارد.
 REST_FRAMEWORK = {
     # This line is required for drf-spectacular
     "DEFAULT_SCHEMA_CLASS": "common.schema.StandardizedAutoSchema",
@@ -371,6 +383,8 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.exceptions.custom_exception_handler",
 }
 
+# EN: Spectacular settings for OpenAPI documentation generation.
+# FA: تنظیمات Spectacular برای تولید مستندات OpenAPI.
 SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
     "DESCRIPTION": "API for managing posts, medias, interactions, pages, navigation and users.",
@@ -393,6 +407,8 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
+# EN: Djoser configuration for authentication and account management.
+# FA: تنظیمات Djoser برای احراز هویت و مدیریت حساب کاربری.
 DJOSER = {
     "PASSWORD_RESET_CONFIRM_URL": f"{FRONTEND_URL}/#/password/reset/confirm/{{uid}}/{{token}}",
     "USERNAME_RESET_CONFIRM_URL": f"{FRONTEND_URL}/#/username/reset/confirm/{{uid}}/{{token}}",
@@ -414,6 +430,8 @@ FILE_UPLOAD_HANDLERS = [
     "django.core.files.uploadhandler.TemporaryFileUploadHandler",
 ]
 
+# EN: Security headers and cookie protection.
+# FA: هدرهای امنیتی و محافظت از کوکی‌ها.
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -426,8 +444,8 @@ else:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = False
     SECURE_HSTS_PRELOAD = False
 
-# In production (when DEBUG is False), redirect all HTTP requests to HTTPS.
-# We disable this during tests as the test client makes plain HTTP requests.
+# EN: Force HTTPS in production environments.
+# FA: اجبار استفاده از HTTPS در محیط‌های تولید.
 is_testing = "test" in sys.argv or "pytest" in sys.modules
 
 SECURE_SSL_REDIRECT = not DEBUG and not is_testing
@@ -456,12 +474,15 @@ CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower
     "t",
 )
 
+# EN: Axes configuration for brute-force protection.
+# FA: تنظیمات Axes برای محافظت در برابر حملات brute-force.
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
-# Celery Configuration
+# EN: Celery configuration for background tasks and scheduled events.
+# FA: تنظیمات Celery برای تسک‌های پس‌زمینه و رویدادهای زمان‌بندی شده.
 if USE_REDIS:
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
@@ -507,7 +528,8 @@ if "test" in sys.argv or "pytest" in sys.modules:
     # Disable guardian's anonymous user during tests to prevent test failures
     ANONYMOUS_USER_NAME = None
 
-# Email Configuration
+# EN: Email Configuration for outgoing system messages.
+# FA: تنظیمات ایمیل برای پیام‌های خروجی سیستم.
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
@@ -541,6 +563,8 @@ else:
         },
     }
 
+# EN: CKEditor 5 configuration for rich text editing.
+# FA: تنظیمات CKEditor 5 برای ویرایش متن غنی (Rich Text).
 CKEDITOR_5_UPLOAD_PATH = "uploads/"
 CKEDITOR_5_CONFIGS = {
     "default": {
@@ -584,4 +608,6 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
+# EN: Enable automatic Jalali conversion for admin list displays.
+# FA: فعال‌سازی تبدیل خودکار جلالی برای نمایش‌های لیست در پنل ادمین.
 JALALI_DATE_DEFAULTS = {"LIST_DISPLAY_AUTO_CONVERT": True}

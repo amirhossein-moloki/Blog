@@ -31,6 +31,18 @@ from .serializers import (
 
 
 class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
+    """
+    EN:
+    ViewSet for managing blog posts.
+    Provides advanced filtering, searching, and dynamic field selection.
+    Handles complex queryset optimizations and access control for drafts/scheduled posts.
+
+    FA:
+    ViewSet برای مدیریت پست‌های بلاگ.
+    فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+    بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+    """
+
     queryset = Post.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrAdminOrReadOnly]
     pagination_class = CustomPageNumberPagination
@@ -42,6 +54,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     lookup_field = "slug"
 
     def get_serializer_class(self):
+        """
+        EN: Returns the serializer class based on the action.
+        FA: کلاس سریالایزر را بر اساس اکشن بازمی‌گرداند.
+        """
         if self.action in ["create", "update", "partial_update"]:
             return PostCreateUpdateSerializer
         elif self.action == "retrieve":
@@ -49,6 +65,15 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         return PostListSerializer
 
     def get_queryset(self):
+        """
+        EN:
+        Optimizes the queryset using select_related and prefetch_related based on requested fields.
+        Also handles visibility rules: regular users only see published posts, authors see their drafts.
+
+        FA:
+        QuerySet را با استفاده از select_related و prefetch_related بر اساس فیلدهای درخواستی بهینه می‌کند.
+        همچنین قوانین مشاهده‌پذیری را مدیریت می‌کند: کاربران عادی فقط پست‌های منتشر شده را می‌بینند، نویسندگان پیش‌نویس‌های خود را می‌بینند.
+        """
         if self.action == "list":
             queryset = Post.objects.all()
             fields_query = self.request.query_params.get("fields")
@@ -136,6 +161,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             return queryset
 
     def perform_create(self, serializer):
+        """
+        EN: Associates the post with the author profile of the current user.
+        FA: پست را به پروفایل نویسندگی کاربر فعلی مرتبط می‌کند.
+        """
         try:
             author_profile = AuthorProfile.objects.get(user=self.request.user)
         except AuthorProfile.DoesNotExist:
@@ -143,6 +172,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         serializer.save(author=author_profile)
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        EN: Increments the view count and returns post details.
+        FA: تعداد بازدیدها را افزایش داده و جزئیات پست را بازمی‌گرداند.
+        """
         obj = self.get_object()
         obj.views_count += 1
         obj.save(update_fields=["views_count"])
@@ -151,6 +184,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
+        """
+        EN: Returns similar posts based on the category.
+        FA: پست‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
+        """
         try:
             current_post = self.get_object()
         except Post.DoesNotExist:
@@ -170,6 +207,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=["get"], url_path="same-category")
     def same_category(self, request, slug=None):
+        """
+        EN: Returns paginated posts from the same category.
+        FA: پست‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
+        """
         current_post = self.get_object()
 
         if not current_post.category:
@@ -209,6 +250,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")
     def by_slug(self, request, slug=None):
+        """
+        EN: Endpoint to retrieve a single post by its slug.
+        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ آن.
+        """
         try:
             post = self.get_queryset().get(slug=slug)
         except Post.DoesNotExist:
@@ -229,6 +274,11 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     ]
 )
 class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    EN: ViewSet to list approved comments for a specific post.
+    FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
+    """
+
     serializer_class = CommentListSerializer
     pagination_class = CustomPageNumberPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -237,6 +287,10 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
+        """
+        EN: Returns approved comments for the specified post, annotated with likes.
+        FA: نظرات تایید شده برای پست مشخص شده را به همراه تعداد لایک‌ها بازمی‌گرداند.
+        """
         post_slug = self.kwargs.get("post_slug")
         return (
             Comment.objects.filter(post__slug=post_slug, status="approved")
@@ -255,6 +309,10 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
 def publish_post(request, slug):
+    """
+    EN: API view to manually publish a draft or scheduled post.
+    FA: نمای API برای انتشار دستی یک پست پیش‌نویس یا زمان‌بندی شده.
+    """
     try:
         post = Post.objects.get(slug=slug)
     except Post.DoesNotExist:
@@ -283,6 +341,10 @@ def publish_post(request, slug):
 )
 @api_view(["GET"])
 def related_posts(request, slug):
+    """
+    EN: Returns related posts sharing common tags with the specified post.
+    FA: پست‌های مرتبط که دارای برچسب‌های مشترک با پست مشخص شده هستند را بازمی‌گرداند.
+    """
     try:
         current_post = Post.objects.get(slug=slug)
     except Post.DoesNotExist:
@@ -311,30 +373,55 @@ def related_posts(request, slug):
 
 
 class AuthorProfileViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing author profiles.
+    FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+    """
+
     queryset = AuthorProfile.objects.all()
     serializer_class = AuthorProfileSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing post categories.
+    FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
+    """
+
     queryset = Category.objects.select_related("parent").all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
 
 class TagViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing post tags.
+    FA: ViewSet برای مدیریت برچسب‌های پست.
+    """
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
 
 class SeriesViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing post series.
+    FA: ViewSet برای مدیریت مجموعه‌های پست.
+    """
+
     queryset = Series.objects.all()
     serializer_class = SeriesSerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
 
 class RevisionViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for viewing post revisions.
+    FA: ViewSet برای مشاهده بازنگری‌های پست.
+    """
+
     queryset = Revision.objects.all()
     serializer_class = RevisionSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]

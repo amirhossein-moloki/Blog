@@ -5,8 +5,13 @@ User = get_user_model()
 
 def should_never_lockout_staff(request):
     """
-    A callable for django-axes that returns True if the user is a staff member,
-    preventing them from being locked out.
+    EN:
+    A callable for django-axes to prevent locking out staff members.
+    Returns True if the username in the request belongs to a staff user.
+
+    FA:
+    یک تابع قابل فراخوانی برای django-axes جهت جلوگیری از مسدود شدن (lockout) اعضای کارکنان.
+    اگر نام کاربری موجود در درخواست متعلق به یکی از کارکنان باشد، مقدار True برمی‌گرداند.
     """
     username = request.POST.get("username")
     if not username:

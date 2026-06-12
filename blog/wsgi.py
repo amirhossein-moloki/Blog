@@ -11,6 +11,10 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+# EN: Set the default settings module for the WSGI application.
+# FA: تنظیم ماژول تنظیمات پیش‌فرض برای اپلیکیشن WSGI.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")
 
+# EN: Main application entry point for WSGI-compatible web servers.
+# FA: نقطه ورود اصلی اپلیکیشن برای وب‌سرورهای سازگار با WSGI.
 application = get_wsgi_application()

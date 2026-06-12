@@ -18,6 +18,16 @@ from .models import (
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin, SimpleHistoryAdmin, ModelAdmin):
+    """
+    EN:
+    Admin interface for the User model, enhanced with Unfold and SimpleHistory.
+    Provides advanced filtering, searching, and tabbed fieldsets.
+
+    FA:
+    رابط کاربری ادمین برای مدل کاربر، تقویت شده با Unfold و SimpleHistory.
+    قابلیت‌های فیلترینگ پیشرفته، جستجو و مجموعه‌فیلدهای تب‌بندی شده را فراهم می‌کند.
+    """
+
     list_display = (
         "username",
         "email",

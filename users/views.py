@@ -30,9 +30,18 @@ logger = logging.getLogger(__name__)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    EN: Custom JWT token obtain view using the custom serializer.
+    FA: View سفارشی دریافت توکن JWT با استفاده از سریالایزر سفارشی.
+    """
+
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
+        """
+        EN: Handles JWT token generation for a user.
+        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
+        """
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
@@ -44,7 +53,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 class UserViewSet(viewsets.ModelViewSet):
     """
-    ViewSet for managing users.
+    EN:
+    ViewSet for managing users, providing CRUD operations with tailored serializers.
+    Restricts access based on administrative roles or account ownership.
+
+    FA:
+    ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+    دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
     """
 
     queryset = User.objects.all()
@@ -53,6 +68,10 @@ class UserViewSet(viewsets.ModelViewSet):
     filterset_fields = ["username", "email"]
 
     def get_serializer_class(self):
+        """
+        EN: Determines which serializer to use based on the action and user context.
+        FA: بر اساس اکشن و شرایط کاربر، سریالایزر مناسب را تعیین می‌کند.
+        """
         if self.action in ("list", "retrieve"):
             if (
                 self.action == "retrieve"
@@ -66,6 +85,10 @@ class UserViewSet(viewsets.ModelViewSet):
         return UserSerializer
 
     def get_permissions(self):
+        """
+        EN: Returns the appropriate permissions for each action.
+        FA: مجوزهای مناسب برای هر اکشن را بازمی‌گرداند.
+        """
         if self.action == "create":
             return [AllowAny()]
         if self.action in ["list", "retrieve"]:
@@ -75,6 +98,10 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
+        """
+        EN: Returns a filtered queryset where regular users can only see their own profile.
+        FA: یک QuerySet فیلتر شده بازمی‌گرداند که کاربران عادی فقط پروفایل خودشان را ببینند.
+        """
         queryset = super().get_queryset()
         user = self.request.user
         if user.is_authenticated and user.is_staff:
@@ -90,6 +117,10 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path="me",
     )
     def me(self, request):
+        """
+        EN: Endpoint to retrieve the currently authenticated user's profile.
+        FA: اندپوینت برای دریافت پروفایل کاربر فعلی که احراز هویت شده است.
+        """
         user = self.get_queryset().get(pk=request.user.pk)
         serializer = UserSerializer(user, context={"request": request})
         return Response(serializer.data)
@@ -99,9 +130,23 @@ class UserViewSet(viewsets.ModelViewSet):
     request=GoogleLoginSerializer, responses={200: CustomTokenObtainPairSerializer}
 )
 class GoogleLoginView(APIView):
+    """
+    EN:
+    Handles authentication via Google OAuth2.
+    Validates the ID token and returns JWT access/refresh tokens.
+
+    FA:
+    مدیریت احراز هویت از طریق گوگل OAuth2.
+    اعتبار ID token را بررسی کرده و توکن‌های JWT بازمی‌گرداند.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        EN: Processes the Google ID token and generates project-specific JWT tokens.
+        FA: توکن ID گوگل را پردازش کرده و توکن‌های JWT مخصوص پروژه را تولید می‌کند.
+        """
         token = request.data.get("id_token")
         if not token:
             return Response(

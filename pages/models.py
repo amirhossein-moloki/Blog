@@ -5,6 +5,16 @@ from core.base_models import BaseModel
 
 
 class Page(BaseModel):
+    """
+    EN:
+    Represents a static content page (e.g., About Us, Contact).
+    Supports status management and SEO fields.
+
+    FA:
+    نشان‌دهنده یک صفحه محتوای استاتیک (مانند درباره ما، تماس با ما).
+    از مدیریت وضعیت و فیلدهای SEO پشتیبانی می‌کند.
+    """
+
     STATUS_CHOICES = (
         ("draft", "Draft"),
         ("review", "Review"),
@@ -21,4 +31,8 @@ class Page(BaseModel):
     seo_description = models.TextField(blank=True)
 
     def __str__(self):
+        """
+        EN: Returns the title of the page.
+        FA: عنوان صفحه را بازمی‌گرداند.
+        """
         return self.title

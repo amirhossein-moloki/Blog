@@ -3,19 +3,37 @@ from rest_framework import permissions
 
 class IsAdminUser(permissions.BasePermission):
     """
-    Custom permission to only allow admin users to access a view.
+    EN:
+    Custom permission to only allow admin users (staff) to access a view.
+
+    FA:
+    سطح دسترسی سفارشی برای اینکه فقط کاربران ادمین (staff) اجازه دسترسی داشته باشند.
     """
 
     def has_permission(self, request, view):
+        """
+        EN: Returns True if the user is staff.
+        FA: اگر کاربر ادمین باشد، مقدار True را برمی‌گرداند.
+        """
         return bool(request.user and request.user.is_staff)
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
+    EN:
     Custom permission to only allow owners of an object to edit it.
+    Checks for various potential owner attributes like 'user', 'author', or 'uploaded_by'.
+
+    FA:
+    سطح دسترسی سفارشی برای اینکه فقط صاحبان یک شیء بتوانند آن را ویرایش کنند.
+    ویژگی‌های مختلف صاحب شیء مانند 'user'، 'author' یا 'uploaded_by' را بررسی می‌کند.
     """
 
     def has_object_permission(self, request, view, obj):
+        """
+        EN: Grants access for safe methods or if the user is the owner.
+        FA: اجازه دسترسی برای متدهای ایمن یا در صورتی که کاربر صاحب شیء باشد را صادر می‌کند.
+        """
         if request.method in permissions.SAFE_METHODS:
             return True
         if hasattr(obj, "user"):
@@ -24,7 +42,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return obj.author.user == request.user
         if hasattr(obj, "uploaded_by"):
             return obj.uploaded_by == request.user
-        # For User model itself
+        # EN: For User model itself
+        # FA: برای خود مدل کاربر (User)
         if hasattr(obj, "id"):
             return obj.id == request.user.id
         return False
@@ -32,22 +51,33 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
-    Custom permission to allow owners of an object or admins to edit it.
-    Handles various ownership attributes.
+    EN:
+    Custom permission to allow owners of an object or admin users to edit it.
+    Handles multiple ownership scenarios across different apps.
+
+    FA:
+    سطح دسترسی سفارشی برای اجازه دادن به صاحبان یک شیء یا کاربران ادمین جهت ویرایش آن.
+    سناریوهای مختلف مالکیت را در اپلیکیشن‌های مختلف مدیریت می‌کند.
     """
 
     def has_object_permission(self, request, view, obj):
+        """
+        EN: Grants access for safe methods, for staff, or for the owner.
+        FA: اجازه دسترسی برای متدهای ایمن، برای ادمین‌ها یا برای صاحب شیء را صادر می‌کند.
+        """
         if request.method in permissions.SAFE_METHODS:
             return True
 
         if request.user and request.user.is_staff:
             return True
 
-        # Direct user ownership
+        # EN: Direct user ownership
+        # FA: مالکیت مستقیم کاربر
         if hasattr(obj, "user") and obj.user == request.user:
             return True
 
-        # Ownership via author profile
+        # EN: Ownership via author profile
+        # FA: مالکیت از طریق پروفایل نویسندگی
         if (
             hasattr(obj, "author")
             and hasattr(obj.author, "user")
@@ -55,11 +85,13 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         ):
             return True
 
-        # Ownership for uploaded files
+        # EN: Ownership for uploaded files
+        # FA: مالکیت برای فایل‌های آپلود شده
         if hasattr(obj, "uploaded_by") and obj.uploaded_by == request.user:
             return True
 
-        # Ownership for the User model itself
+        # EN: Ownership for the User model itself
+        # FA: مالکیت برای خود مدل کاربر (User)
         if (
             hasattr(obj, "id")
             and type(obj).__name__ == "User"
@@ -67,7 +99,8 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         ):
             return True
 
-        # Nested ownership for Support Tickets (TicketMessage -> ticket -> user)
+        # EN: Nested ownership for Support Tickets (TicketMessage -> ticket -> user)
+        # FA: مالکیت تو در تو برای تیکت‌های پشتیبانی (پیام تیکت -> تیکت -> کاربر)
         if (
             hasattr(obj, "ticket")
             and hasattr(obj.ticket, "user")
@@ -75,11 +108,13 @@ class IsOwnerOrAdmin(permissions.BasePermission):
         ):
             return True
 
-        # Ownership for Tournament Reports (Report -> reporter)
+        # EN: Ownership for Tournament Reports (Report -> reporter)
+        # FA: مالکیت برای گزارش‌های تورنمنت (گزارش -> گزارش‌دهنده)
         if hasattr(obj, "reporter") and obj.reporter == request.user:
             return True
 
-        # Ownership for Winner Submissions (WinnerSubmission -> winner)
+        # EN: Ownership for Winner Submissions (WinnerSubmission -> winner)
+        # FA: مالکیت برای موارد ارسالی برندگان (ارسال برنده -> برنده)
         if hasattr(obj, "winner") and obj.winner == request.user:
             return True
 

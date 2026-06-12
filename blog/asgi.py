@@ -2,29 +2,29 @@
 
 import os
 
-# Channels-related imports are grouped here for better readability
+# EN: Channels-related imports for handling asynchronous protocols like WebSockets.
+# FA: وارد کردن موارد مرتبط با Channels برای مدیریت پروتکل‌های نامتقارن مانند WebSocket.
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-# This line should be the first Django-related command
+# EN: This line sets the default settings module for the ASGI application.
+# FA: این خط ماژول تنظیمات پیش‌فرض را برای اپلیکیشن ASGI تنظیم می‌کند.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")
 
-# !! Important: Call this function first so Django is configured
+# EN: !! Important: Call this function first so Django is properly configured before routing.
+# FA: !! مهم: این تابع را ابتدا فراخوانی کنید تا جنگو قبل از مسیریابی به درستی پیکربندی شود.
 django_asgi_app = get_asgi_application()
 
-# Now that Django is ready, we can import our routing
-# import chat.routing
-# import notifications.routing
-
-# Finally, define the application using the variable we created
+# EN: Standard protocol router for handling HTTP and WebSocket connections.
+# FA: روتر استاندارد پروتکل برای مدیریت اتصالات HTTP و WebSocket.
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
         "websocket": AuthMiddlewareStack(
             URLRouter(
-                # chat.routing.websocket_urlpatterns
-                # + notifications.routing.websocket_urlpatterns
+                # EN: Placeholder for future WebSocket routing.
+                # FA: جایگزین برای مسیریابی WebSocket در آینده.
                 []
             )
         ),

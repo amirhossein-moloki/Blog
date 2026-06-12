@@ -10,6 +10,15 @@ User = get_user_model()
 
 
 class Comment(BaseModel):
+    """
+    EN:
+    Represents a user comment on a post.
+    Supports nested replies and moderation statuses.
+
+    FA:
+    نشان‌دهنده نظر یک کاربر روی یک پست.
+    از پاسخ‌های تو در تو و وضعیت‌های نظارت (Moderation) پشتیبانی می‌کند.
+    """
 
     class Meta:
         ordering = ["-created_at"]
@@ -36,14 +45,31 @@ class Comment(BaseModel):
     )
 
     def __str__(self):
+        """
+        EN: Returns a string representation of the comment creator and the post ID.
+        FA: نمایشی رشته‌ای از ایجادکننده نظر و شناسه پست را بازمی‌گرداند.
+        """
         return f"Comment by {self.user} on {self.post_id}"
 
 
 class Reaction(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reaction = models.CharField(max_length=50)  # like|emoji_code
+    """
+    EN:
+    Represents a user reaction (e.g., like, emoji) to any content type.
+    Uses Generic Foreign Key to relate to Posts, Comments, or other models.
 
-    # Generic Foreign Key setup
+    FA:
+    نشان‌دهنده واکنش کاربر (مانند لایک، اموجی) به هر نوع محتوایی.
+    از Generic Foreign Key برای ارتباط با پست‌ها، نظرات یا مدل‌های دیگر استفاده می‌کند.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    reaction = models.CharField(
+        max_length=50
+    )  # EN: like|emoji_code | FA: لایک یا کد اموجی
+
+    # EN: Generic Foreign Key setup
+    # FA: تنظیمات Generic Foreign Key
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
@@ -52,4 +78,8 @@ class Reaction(BaseModel):
         unique_together = ("user", "content_type", "object_id", "reaction")
 
     def __str__(self):
+        """
+        EN: Returns a string representation of the user reaction and target object.
+        FA: نمایشی رشته‌ای از واکنش کاربر و شیء هدف را بازمی‌گرداند.
+        """
         return f"{self.user}'s {self.reaction} on {self.content_object}"

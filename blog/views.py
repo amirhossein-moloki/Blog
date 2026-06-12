@@ -7,7 +7,13 @@ from django.shortcuts import redirect
 
 def health_check(request):
     """
+    EN:
     Enhanced health check endpoint that verifies database and Redis connectivity.
+    Returns 200 if both are healthy, 503 otherwise.
+
+    FA:
+    اندپوینت ارتقا یافته بررسی سلامت که اتصال پایگاه داده و Redis را تایید می‌کند.
+    اگر هر دو سالم باشند کد ۲۰۰ و در غیر این صورت کد ۵۰۳ برمی‌گرداند.
     """
     health_status = {
         "status": "healthy",
@@ -18,7 +24,8 @@ def health_check(request):
     }
     is_healthy = True
 
-    # Check Database
+    # EN: Check Database connectivity
+    # FA: بررسی اتصال پایگاه داده
     try:
         db_conn = connections["default"]
         db_conn.cursor()
@@ -30,7 +37,8 @@ def health_check(request):
         health_status["services"]["database"] = f"error: {str(e)}"
         is_healthy = False
 
-    # Check Redis (Cache)
+    # EN: Check Redis (Cache) connectivity
+    # FA: بررسی اتصال Redis (کش)
     try:
         cache.set("health_check", "ok", timeout=1)
         if cache.get("health_check") == "ok":
@@ -51,6 +59,7 @@ def health_check(request):
 
 def page_not_found_view(request, exception):
     """
-    Redirects all 404 errors to the specified static 404 page.
+    EN: Custom view to handle 404 Not Found errors by redirecting to an external error page.
+    FA: نمای سفارشی برای مدیریت خطاهای ۴۰۴ با تغییر مسیر به یک صفحه خطای خارجی.
     """
     return redirect("https://atom-game.ir/404.html")
