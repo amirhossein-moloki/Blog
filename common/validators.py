@@ -10,7 +10,7 @@ def validate_file(value):
     filesize = value.size
     if filesize > 10 * 1024 * 1024:
         raise ValidationError(
-            "حجم فایل شما بیشتر از ۱۰ مگابایت است. لطفا یک فایل کوچکتر آپلود کنید."
+            "Your file size is greater than 10 MB. Please upload a smaller file."
         )
 
     allowed_extensions = [
@@ -27,7 +27,7 @@ def validate_file(value):
     ext = str(value).split(".")[-1].lower()
     if f".{ext}" not in allowed_extensions:
         raise ValidationError(
-            f"فرمت فایل ‘.{ext}’ پشتیبانی نمی‌شود. لطفا یکی از فرمت‌های مجاز را امتحان کنید: {', '.join(allowed_extensions)}"
+            f"The file format '.{ext}' is not supported. Please try one of the allowed formats: {', '.join(allowed_extensions)}"
         )
 
 
@@ -38,7 +38,7 @@ def validate_sheba(value):
     """
     if not re.match(r"^IR\d{24}$", value):
         raise ValidationError(
-            "شماره شبا نامعتبر است. باید با IR شروع شده و شامل ۲۴ عدد باشد."
+            "Invalid SHEBA number. It must start with IR and contain 24 digits."
         )
 
 
@@ -49,4 +49,4 @@ def validate_card_number(value):
     This is a basic check and does not perform checksum validation.
     """
     if not re.match(r"^\d{16}$", value):
-        raise ValidationError("شماره کارت نامعتبر است. باید ۱۶ رقم باشد.")
+        raise ValidationError("Invalid card number. It must be 16 digits.")

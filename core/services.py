@@ -3,7 +3,6 @@ from typing import Any
 
 class BaseService:
     """
-    کلاس پایه برای تمام سرویس‌های پروژه.
     Base class for all project services.
     """
 

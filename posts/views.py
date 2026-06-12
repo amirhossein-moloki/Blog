@@ -154,7 +154,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         try:
             current_post = self.get_object()
         except Post.DoesNotExist:
-            raise NotFound("پست مورد نظر برای یافتن پست‌های مشابه پیدا نشد.")
+            raise NotFound("The requested post to find similar posts was not found.")
 
         if not current_post.category:
             return Response([])
@@ -212,7 +212,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         try:
             post = self.get_queryset().get(slug=slug)
         except Post.DoesNotExist:
-            raise NotFound("پستی با این اسلاگ یافت نشد.")
+            raise NotFound("No post was found with this slug.")
 
         serializer = PostDetailSerializer(post, context=self.get_serializer_context())
         return Response(serializer.data)
@@ -258,14 +258,14 @@ def publish_post(request, slug):
     try:
         post = Post.objects.get(slug=slug)
     except Post.DoesNotExist:
-        raise NotFound("پستی با این مشخصات یافت نشد.")
+        raise NotFound("No post was found with these specifications.")
 
     if post.author.user != request.user and not request.user.is_staff:
-        raise PermissionDenied("شما اجازه‌ی انتشار این پست را ندارید.")
+        raise PermissionDenied("You do not have permission to publish this post.")
 
     if post.status not in ["draft", "scheduled"]:
         return Response(
-            {"detail": "تنها پست‌های پیش‌نویس یا زمان‌بندی شده را می‌توان منتشر کرد."},
+            {"detail": "Only draft or scheduled posts can be published."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -286,7 +286,7 @@ def related_posts(request, slug):
     try:
         current_post = Post.objects.get(slug=slug)
     except Post.DoesNotExist:
-        raise NotFound("پست مورد نظر برای یافتن پست‌های مرتبط پیدا نشد.")
+        raise NotFound("The requested post to find related posts was not found.")
 
     paginator = CustomPageNumberPagination()
     tag_ids = current_post.tags.values_list("id", flat=True)

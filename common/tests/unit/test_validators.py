@@ -21,7 +21,7 @@ class ValidatorTests(TestCase):
         )
         with self.assertRaises(ValidationError) as cm:
             validate_file(large_file)
-        self.assertIn("حجم فایل شما بیشتر از ۱۰ مگابایت است", str(cm.exception))
+        self.assertIn("greater than 10 MB", str(cm.exception))
 
     def test_validate_file_invalid_extension(self):
         invalid_file = SimpleUploadedFile(

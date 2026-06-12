@@ -11,16 +11,16 @@ def convert_image_to_avif_task(
     self, app_label, model_name, instance_pk, field_name, quality=50, speed=6
 ):
     """
-    یک وظیفه Celery برای تبدیل ناهمگام یک فیلد تصویر به فرمت AVIF.
+    A Celery task for asynchronously converting an image field to AVIF format.
     """
     try:
-        # پیدا کردن مدل و آبجکت مورد نظر از دیتابیس
+        # Find the model and object from the database
         Model = apps.get_model(app_label, model_name)
         instance = Model.objects.get(pk=instance_pk)
 
         image_field = getattr(instance, field_name)
 
-        # اگر فایلی وجود نداشت یا از قبل AVIF بود، کاری انجام نده
+        # If no file exists or it's already AVIF, do nothing
         if (
             not image_field
             or not image_field.name
@@ -39,19 +39,19 @@ def convert_image_to_avif_task(
         sanitized_name = get_sanitized_filename(avif_content_file.name)
         saved_name = default_storage.save(sanitized_name, avif_content_file)
 
-        # 4. مدل را آپدیت کن
+        # 4. Update the model
         setattr(instance, field_name, saved_name)
         instance.save(update_fields=[field_name])
 
-        # 5. فایل اصلی را (در صورت متفاوت بودن) حذف کن
+        # 5. Delete the original file (if different)
         if saved_name != original_name and default_storage.exists(original_name):
             default_storage.delete(original_name)
 
         return f"Successfully converted image for {model_name} {instance_pk}."
 
     except Model.DoesNotExist:
-        # اگر آبجکت قبل از اجرای تسک حذف شده بود، مشکلی نیست
+        # If the object was deleted before the task executed, it's fine
         return f"{model_name} with pk {instance_pk} not found. Skipping."
     except Exception as exc:
-        # در صورت بروز خطا، Celery تسک را دوباره تلاش می‌کند (تا 3 بار)
-        raise self.retry(exc=exc, countdown=60)  # 60 ثانیه بعد دوباره تلاش کن
+        # If an error occurs, Celery retries the task (up to 3 times)
+        raise self.retry(exc=exc, countdown=60)  # Retry after 60 seconds

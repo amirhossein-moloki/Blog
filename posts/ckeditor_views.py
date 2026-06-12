@@ -14,20 +14,20 @@ def ckeditor_upload_view(request):
     # Permission check: User must be staff or an author
     is_author = hasattr(request.user, "author_profile")
     if not (request.user.is_staff or is_author):
-        return HttpResponseForbidden("شما اجازه‌ی آپلود فایل را ندارید.")
+        return HttpResponseForbidden("You do not have permission to upload files.")
 
     if request.method == "POST" and request.FILES.get("upload"):
         uploaded_file = request.FILES["upload"]
 
         # Check if the uploaded file is an image
         if "image" not in uploaded_file.content_type:
-            return JsonResponse({"error": "فایل آپلود شده تصویر نیست."}, status=400)
+            return JsonResponse({"error": "The uploaded file is not an image."}, status=400)
 
         # Convert the image to AVIF
         try:
             avif_file = convert_image_to_avif(uploaded_file, quality=60, speed=4)
         except Exception as e:
-            return JsonResponse({"error": f"خطا در پردازش تصویر: {e}"}, status=500)
+            return JsonResponse({"error": f"Error processing image: {e}"}, status=500)
 
         # Save the converted file using default storage
         sanitized_name = get_sanitized_filename(avif_file.name)
@@ -50,4 +50,4 @@ def ckeditor_upload_view(request):
 
         return JsonResponse({"url": file_url})
 
-    return JsonResponse({"error": "درخواست نامعتبر است."}, status=400)
+    return JsonResponse({"error": "Invalid request."}, status=400)
