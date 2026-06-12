@@ -4,13 +4,22 @@ This guide explains how to set up and use the provided Postman Collection for au
 
 ## 1. Postman Environment Setup
 
-To use this collection, you should create a Postman Environment and define the following variables:
+### Method A: Importing the Environment File (Recommended)
+We provide a pre-configured environment file to make setup easier.
+
+1.  Open Postman and click on the **Import** button.
+2.  Select the `postman_environment.json` file from the repository root.
+3.  Once imported, select the **Blog Platform - Local** environment from the environment dropdown in the top-right corner.
+4.  (Optional) Edit the environment to change `baseUrl`, `username`, or `password` if your local setup differs from the defaults.
+
+### Method B: Manual Setup
+If you prefer to create the environment manually, define the following variables:
 
 | Variable | Description | Example Value |
 | :--- | :--- | :--- |
 | `baseUrl` | The root URL of the API | `http://localhost:8000` |
 | `username` | Test user's username | `admin` |
-| `password` | Test user's password | `your_secure_password` |
+| `password` | Test user's password | `password` |
 | `accessToken` | JWT Access Token | *(Set automatically by Login request)* |
 | `refreshToken`| JWT Refresh Token | *(Set automatically by Login request)* |
 | `postSlug` | Slug of a blog post | *(Set automatically by List Posts)* |
