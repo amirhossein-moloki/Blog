@@ -1,10 +1,8 @@
 # [HISTORICAL REFERENCE] Phase 1: Project Structure + Core App + BaseModel
-# [مرجع تاریخی] فاز ۱: ایجاد ساختار پروژه + اپلیکیشن هسته + BaseModel
 
 > **Note:** This document describes the initial phase of the project and is kept for historical reference. The project has since undergone significant refactoring into a modular architecture.
 
-## دستورات مهاجرت (Migration Commands)
-در این فاز مهاجرت خاصی برای دیتابیس وجود ندارد زیرا `BaseModel` یک مدل انتزاعی (abstract) است.
+## Migration Commands
 There are no specific migrations for this phase as `BaseModel` is an abstract model.
 
 ```bash
@@ -12,23 +10,18 @@ python manage.py makemigrations core
 python manage.py migrate core
 ```
 
-## منطق انتقال داده (Data Migration Logic)
-در این مرحله داده‌ای منتقل نمی‌شود.
+## Data Migration Logic
 No data migration is required in this phase.
 
-## تست (Testing)
-برای اجرای تست‌های این فاز:
+## Testing
 To run tests for this phase:
 
 ```bash
 python manage.py test core
 ```
 
-## طرح بازگشت (Rollback Plan)
-برای بازگشت به حالت قبل از این فاز:
+## Rollback Plan
 To rollback the changes from this phase:
 
-1. حذف اپلیکیشن `core` از `INSTALLED_APPS` در `blog/settings.py`.
-   Remove `core` from `INSTALLED_APPS` in `blog/settings.py`.
-2. حذف پوشه `core`.
-   Delete the `core` directory.
+1. Remove `core` from `INSTALLED_APPS` in `blog/settings.py`.
+2. Delete the `core` directory.

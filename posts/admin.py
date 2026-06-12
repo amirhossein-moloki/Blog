@@ -98,7 +98,9 @@ class PostAdmin(admin.ModelAdmin):
         except Exception as e:
             messages.set_level(request, messages.ERROR)
             self.message_user(
-                request, f"خطایی در هنگام ذخیره پست رخ داد: {e}", level=messages.ERROR
+                request,
+                f"An error occurred while saving the post: {e}",
+                level=messages.ERROR,
             )
 
 

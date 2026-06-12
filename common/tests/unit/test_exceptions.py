@@ -21,7 +21,7 @@ class ExceptionHandlerTests(TestCase):
         response = custom_exception_handler(exc, context)
 
         self.assertEqual(response.status_code, 401)
-        self.assertIn("احراز هویت", response.data["messagesList"][0])
+        self.assertIn("Authentication not performed", response.data["messagesList"][0])
 
     def test_permission_denied_handler(self):
         exc = PermissionDenied()
@@ -30,7 +30,7 @@ class ExceptionHandlerTests(TestCase):
         response = custom_exception_handler(exc, context)
 
         self.assertEqual(response.status_code, 403)
-        self.assertIn("دسترسی", response.data["messagesList"][0])
+        self.assertIn("required permissions", response.data["messagesList"][0])
 
     def test_not_found_handler(self):
         exc = Http404()
@@ -39,7 +39,7 @@ class ExceptionHandlerTests(TestCase):
         response = custom_exception_handler(exc, context)
 
         self.assertEqual(response.status_code, 404)
-        self.assertIn("یافت نشد", response.data["messagesList"][0])
+        self.assertIn("not found", response.data["messagesList"][0])
 
     def test_generic_api_exception(self):
         exc = APIException("Some error")
@@ -58,7 +58,7 @@ class ExceptionHandlerTests(TestCase):
         with self.settings(DEBUG=False):
             response = custom_exception_handler(exc, context)
             self.assertEqual(response.status_code, 500)
-            self.assertIn("یک خطای پیش‌بینی نشده", response.data["messagesList"][0])
+            self.assertIn("unexpected error occurred", response.data["messagesList"][0])
 
         with self.settings(DEBUG=True):
             response = custom_exception_handler(exc, context)

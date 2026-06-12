@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 
 class CoreConfig(AppConfig):
     """
-    تنظیمات اپلیکیشن هسته
     Core application configuration.
     """
 

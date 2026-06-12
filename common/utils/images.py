@@ -12,28 +12,28 @@ from .files import get_sanitized_filename
 
 def convert_image_to_avif(image_field, max_dimension=1920, quality=50, speed=6):
     """
-    ورودی: یک ImageField/File
-    خروجی: یک ContentFile که فرمتش AVIF هست و آماده‌ی ذخیره تو ImageField
+    Input: An ImageField/File
+    Output: A ContentFile in AVIF format, ready to be saved in an ImageField
     """
     # Move the file pointer to the beginning of the file
     image_field.seek(0)
 
-    # فایل رو با Pillow باز می‌کنیم
+    # Open the file with Pillow
     img = Image.open(image_field)
 
-    # پروفایل رنگی رو استخراج می‌کنیم تا بعدا به عکس جدید اضافه بشه
+    # Extract the color profile to add to the new image later
     icc_profile = img.info.get("icc_profile")
 
-    # برای حفظ شفافیت، عکس‌هایی با مُد RGBA را تبدیل نمی‌کنیم.
-    # سایر مُدها مثل CMYK یا P به RGBA تبدیل می‌شوند تا شفافیت احتمالی حفظ شود.
+    # To preserve transparency, we do not convert images with RGBA mode.
+    # Other modes like CMYK or P are converted to RGBA to preserve potential transparency.
     if img.mode not in ("RGB", "L", "RGBA"):
         img = img.convert("RGBA")
 
-    # اگر عرض یا ارتفاع عکس خیلی بزرگ بود، کوچیکش کن
+    # If the width or height of the image is too large, resize it
     if img.width > max_dimension or img.height > max_dimension:
         img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
 
-    # توی buffer به فرمت AVIF ذخیره می‌کنیم
+    # Save in AVIF format in the buffer
     buffer = BytesIO()
     save_kwargs = {
         "format": "AVIF",
@@ -47,7 +47,7 @@ def convert_image_to_avif(image_field, max_dimension=1920, quality=50, speed=6):
     img.save(buffer, **save_kwargs)
     buffer.seek(0)
 
-    # اسم فایل رو .avif می‌کنیم
+    # Change the file extension to .avif
     original_name = getattr(image_field, "name", "untitled.avif")
     sanitized_name = get_sanitized_filename(original_name)
 

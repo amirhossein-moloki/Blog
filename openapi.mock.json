@@ -22,7 +22,7 @@
             "name": "page",
             "required": false,
             "in": "query",
-            "description": "یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.",
+            "description": "A page number within the paginated result set.",
             "schema": {
               "type": "integer"
             }
@@ -31,7 +31,7 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "تعداد نتایج برای نمایش در هر صفحه.",
+            "description": "Number of results to return per page.",
             "schema": {
               "type": "integer"
             }
@@ -113,7 +113,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این comment را شناسایی میکند.",
+            "description": "A unique value that identifies this comment.",
             "required": true
           }
         ],
@@ -148,7 +148,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این comment را شناسایی میکند.",
+            "description": "A unique value that identifies this comment.",
             "required": true
           }
         ],
@@ -202,7 +202,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این comment را شناسایی میکند.",
+            "description": "A unique value that identifies this comment.",
             "required": true
           }
         ],
@@ -255,7 +255,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این comment را شناسایی میکند.",
+            "description": "A unique value that identifies this comment.",
             "required": true
           }
         ],
@@ -355,7 +355,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این reaction را شناسایی میکند.",
+            "description": "A unique value that identifies this reaction.",
             "required": true
           }
         ],
@@ -389,7 +389,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این reaction را شناسایی میکند.",
+            "description": "A unique value that identifies this reaction.",
             "required": true
           }
         ],
@@ -443,7 +443,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این reaction را شناسایی میکند.",
+            "description": "A unique value that identifies this reaction.",
             "required": true
           }
         ],
@@ -496,7 +496,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این reaction را شناسایی میکند.",
+            "description": "A unique value that identifies this reaction.",
             "required": true
           }
         ],
@@ -523,7 +523,7 @@
             "name": "page",
             "required": false,
             "in": "query",
-            "description": "یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.",
+            "description": "A page number within the paginated result set.",
             "schema": {
               "type": "integer"
             }
@@ -532,7 +532,7 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "تعداد نتایج برای نمایش در هر صفحه.",
+            "description": "Number of results to return per page.",
             "schema": {
               "type": "integer"
             }
@@ -614,7 +614,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این media را شناسایی میکند.",
+            "description": "A unique value that identifies this media.",
             "required": true
           }
         ],
@@ -649,7 +649,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این media را شناسایی میکند.",
+            "description": "A unique value that identifies this media.",
             "required": true
           }
         ],
@@ -703,7 +703,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این media را شناسایی میکند.",
+            "description": "A unique value that identifies this media.",
             "required": true
           }
         ],
@@ -756,7 +756,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این media را شناسایی میکند.",
+            "description": "A unique value that identifies this media.",
             "required": true
           }
         ],
@@ -856,7 +856,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu item را شناسایی میکند.",
+            "description": "A unique value that identifies this menu item.",
             "required": true
           }
         ],
@@ -890,7 +890,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu item را شناسایی میکند.",
+            "description": "A unique value that identifies this menu item.",
             "required": true
           }
         ],
@@ -944,7 +944,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu item را شناسایی میکند.",
+            "description": "A unique value that identifies this menu item.",
             "required": true
           }
         ],
@@ -997,7 +997,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu item را شناسایی میکند.",
+            "description": "A unique value that identifies this menu item.",
             "required": true
           }
         ],
@@ -1097,7 +1097,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu را شناسایی میکند.",
+            "description": "A unique value that identifies this menu.",
             "required": true
           }
         ],
@@ -1131,7 +1131,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu را شناسایی میکند.",
+            "description": "A unique value that identifies this menu.",
             "required": true
           }
         ],
@@ -1185,7 +1185,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu را شناسایی میکند.",
+            "description": "A unique value that identifies this menu.",
             "required": true
           }
         ],
@@ -1238,7 +1238,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این menu را شناسایی میکند.",
+            "description": "A unique value that identifies this menu.",
             "required": true
           }
         ],
@@ -1338,7 +1338,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این page را شناسایی میکند.",
+            "description": "A unique value that identifies this page.",
             "required": true
           }
         ],
@@ -1372,7 +1372,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این page را شناسایی میکند.",
+            "description": "A unique value that identifies this page.",
             "required": true
           }
         ],
@@ -1426,7 +1426,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این page را شناسایی میکند.",
+            "description": "A unique value that identifies this page.",
             "required": true
           }
         ],
@@ -1479,7 +1479,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این page را شناسایی میکند.",
+            "description": "A unique value that identifies this page.",
             "required": true
           }
         ],
@@ -1580,7 +1580,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقدار یکتا که این author profile را شناسایی میکند.",
+            "description": "A unique value that identifies this author profile.",
             "required": true
           }
         ],
@@ -1615,7 +1615,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقدار یکتا که این author profile را شناسایی میکند.",
+            "description": "A unique value that identifies this author profile.",
             "required": true
           }
         ],
@@ -1669,7 +1669,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقدار یکتا که این author profile را شناسایی میکند.",
+            "description": "A unique value that identifies this author profile.",
             "required": true
           }
         ],
@@ -1722,7 +1722,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقدار یکتا که این author profile را شناسایی میکند.",
+            "description": "A unique value that identifies this author profile.",
             "required": true
           }
         ],
@@ -1822,7 +1822,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این category را شناسایی میکند.",
+            "description": "A unique value that identifies this category.",
             "required": true
           }
         ],
@@ -1856,7 +1856,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این category را شناسایی میکند.",
+            "description": "A unique value that identifies this category.",
             "required": true
           }
         ],
@@ -1910,7 +1910,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این category را شناسایی میکند.",
+            "description": "A unique value that identifies this category.",
             "required": true
           }
         ],
@@ -1963,7 +1963,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این category را شناسایی میکند.",
+            "description": "A unique value that identifies this category.",
             "required": true
           }
         ],
@@ -2005,7 +2005,7 @@
             "name": "ordering",
             "required": false,
             "in": "query",
-            "description": "کدام فیلد باید هنگام مرتب‌سازی نتایج استفاده شود.",
+            "description": "Which field to use when ordering the results.",
             "schema": {
               "type": "string"
             }
@@ -2014,7 +2014,7 @@
             "name": "page",
             "required": false,
             "in": "query",
-            "description": "یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.",
+            "description": "A page number within the paginated result set.",
             "schema": {
               "type": "integer"
             }
@@ -2023,7 +2023,7 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "تعداد نتایج برای نمایش در هر صفحه.",
+            "description": "Number of results to return per page.",
             "schema": {
               "type": "integer"
             }
@@ -2048,7 +2048,7 @@
             "name": "search",
             "required": false,
             "in": "query",
-            "description": "یک عبارت جستجو.",
+            "description": "A search term.",
             "schema": {
               "type": "string"
             }
@@ -2161,7 +2161,7 @@
             "name": "ordering",
             "required": false,
             "in": "query",
-            "description": "کدام فیلد باید هنگام مرتب‌سازی نتایج استفاده شود.",
+            "description": "Which field to use when ordering the results.",
             "schema": {
               "type": "string"
             }
@@ -2170,7 +2170,7 @@
             "name": "page",
             "required": false,
             "in": "query",
-            "description": "یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.",
+            "description": "A page number within the paginated result set.",
             "schema": {
               "type": "integer"
             }
@@ -2179,7 +2179,7 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "تعداد نتایج برای نمایش در هر صفحه.",
+            "description": "Number of results to return per page.",
             "schema": {
               "type": "integer"
             }
@@ -2227,7 +2227,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این comment را شناسایی میکند.",
+            "description": "A unique value that identifies this comment.",
             "required": true
           },
           {
@@ -2703,7 +2703,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این revision را شناسایی میکند.",
+            "description": "A unique value that identifies this revision.",
             "required": true
           }
         ],
@@ -2738,7 +2738,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این revision را شناسایی میکند.",
+            "description": "A unique value that identifies this revision.",
             "required": true
           }
         ],
@@ -2792,7 +2792,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این revision را شناسایی میکند.",
+            "description": "A unique value that identifies this revision.",
             "required": true
           }
         ],
@@ -2845,7 +2845,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این revision را شناسایی میکند.",
+            "description": "A unique value that identifies this revision.",
             "required": true
           }
         ],
@@ -2945,7 +2945,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این series را شناسایی میکند.",
+            "description": "A unique value that identifies this series.",
             "required": true
           }
         ],
@@ -2979,7 +2979,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این series را شناسایی میکند.",
+            "description": "A unique value that identifies this series.",
             "required": true
           }
         ],
@@ -3033,7 +3033,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این series را شناسایی میکند.",
+            "description": "A unique value that identifies this series.",
             "required": true
           }
         ],
@@ -3086,7 +3086,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این series را شناسایی میکند.",
+            "description": "A unique value that identifies this series.",
             "required": true
           }
         ],
@@ -3186,7 +3186,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این tag را شناسایی میکند.",
+            "description": "A unique value that identifies this tag.",
             "required": true
           }
         ],
@@ -3220,7 +3220,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این tag را شناسایی میکند.",
+            "description": "A unique value that identifies this tag.",
             "required": true
           }
         ],
@@ -3274,7 +3274,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این tag را شناسایی میکند.",
+            "description": "A unique value that identifies this tag.",
             "required": true
           }
         ],
@@ -3327,7 +3327,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این tag را شناسایی میکند.",
+            "description": "A unique value that identifies this tag.",
             "required": true
           }
         ],
@@ -3609,7 +3609,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این کاربر را شناسایی میکند.",
+            "description": "A unique value that identifies this user.",
             "required": true
           }
         ],
@@ -3644,7 +3644,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این کاربر را شناسایی میکند.",
+            "description": "A unique value that identifies this user.",
             "required": true
           }
         ],
@@ -3699,7 +3699,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این کاربر را شناسایی میکند.",
+            "description": "A unique value that identifies this user.",
             "required": true
           }
         ],
@@ -3753,7 +3753,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "یک مقداد عدد یکتا که این کاربر را شناسایی میکند.",
+            "description": "A unique value that identifies this user.",
             "required": true
           }
         ],
@@ -3957,7 +3957,7 @@
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "status": {
             "$ref": "#/components/schemas/CommentStatusEnum"
@@ -4002,7 +4002,7 @@
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "parent": {
             "type": "integer",
@@ -4086,8 +4086,8 @@
         "properties": {
           "username": {
             "type": "string",
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
@@ -4258,7 +4258,7 @@
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           }
         },
         "required": [
@@ -4357,19 +4357,19 @@
           },
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان آخرین بروزرسانی رکورد."
+            "description": "The time of the last update to the record."
           },
           "name": {
             "type": "string",
@@ -4397,19 +4397,19 @@
           },
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان آخرین بروزرسانی رکورد."
+            "description": "The time of the last update to the record."
           },
           "label": {
             "type": "string",
@@ -4450,7 +4450,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "label": {
             "type": "string",
@@ -4490,7 +4490,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "name": {
             "type": "string",
@@ -6711,19 +6711,19 @@
           },
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان آخرین بروزرسانی رکورد."
+            "description": "The time of the last update to the record."
           },
           "slug": {
             "type": "string",
@@ -6767,7 +6767,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "slug": {
             "type": "string",
@@ -7127,7 +7127,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "label": {
             "type": "string",
@@ -7162,7 +7162,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "name": {
             "type": "string",
@@ -7179,7 +7179,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "slug": {
             "type": "string",
@@ -7315,7 +7315,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "content": {
             "type": "string",
@@ -7348,7 +7348,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "slug": {
             "type": "string",
@@ -7397,25 +7397,25 @@
           "username": {
             "type": "string",
             "minLength": 1,
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
           "first_name": {
             "type": "string",
-            "title": "نام",
+            "title": "First Name",
             "maxLength": 150
           },
           "last_name": {
             "type": "string",
-            "title": "نام خانوادگی",
+            "title": "Last Name",
             "maxLength": 150
           },
           "email": {
             "type": "string",
             "format": "email",
-            "title": "آدرس ایمیل",
+            "title": "Email Address",
             "maxLength": 254
           },
           "phone_number": {
@@ -7956,7 +7956,7 @@
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           }
         },
         "required": [
@@ -8000,19 +8000,19 @@
           },
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان آخرین بروزرسانی رکورد."
+            "description": "The time of the last update to the record."
           },
           "content": {
             "type": "string"
@@ -8051,7 +8051,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "content": {
             "type": "string",
@@ -8094,19 +8094,19 @@
           },
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "created_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان ایجاد رکورد."
+            "description": "The time the record was created."
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
             "readOnly": true,
-            "description": "زمان آخرین بروزرسانی رکورد."
+            "description": "The time of the last update to the record."
           },
           "slug": {
             "type": "string",
@@ -8137,7 +8137,7 @@
         "properties": {
           "is_active": {
             "type": "boolean",
-            "description": "مشخص می‌کند که آیا این رکورد فعال است یا خیر."
+            "description": "Specifies whether this record is active or not."
           },
           "slug": {
             "type": "string",
@@ -10256,25 +10256,25 @@
           },
           "username": {
             "type": "string",
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
           "first_name": {
             "type": "string",
-            "title": "نام",
+            "title": "First Name",
             "maxLength": 150
           },
           "last_name": {
             "type": "string",
-            "title": "نام خانوادگی",
+            "title": "Last Name",
             "maxLength": 150
           },
           "email": {
             "type": "string",
             "format": "email",
-            "title": "آدرس ایمیل",
+            "title": "Email Address",
             "maxLength": 254
           },
           "phone_number": {
@@ -10319,8 +10319,8 @@
         "properties": {
           "username": {
             "type": "string",
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
@@ -10335,12 +10335,12 @@
           },
           "first_name": {
             "type": "string",
-            "title": "نام",
+            "title": "First Name",
             "maxLength": 150
           },
           "last_name": {
             "type": "string",
-            "title": "نام خانوادگی",
+            "title": "Last Name",
             "maxLength": 150
           }
         },
@@ -10368,8 +10368,8 @@
           "username": {
             "type": "string",
             "minLength": 1,
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
@@ -10385,12 +10385,12 @@
           },
           "first_name": {
             "type": "string",
-            "title": "نام",
+            "title": "First Name",
             "maxLength": 150
           },
           "last_name": {
             "type": "string",
-            "title": "نام خانوادگی",
+            "title": "Last Name",
             "maxLength": 150
           },
           "password": {
@@ -10434,18 +10434,18 @@
           "username": {
             "type": "string",
             "readOnly": true,
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_"
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
           },
           "first_name": {
             "type": "string",
             "readOnly": true,
-            "title": "نام"
+            "title": "First Name"
           },
           "last_name": {
             "type": "string",
             "readOnly": true,
-            "title": "نام خانوادگی"
+            "title": "Last Name"
           },
           "profile_picture": {
             "type": "string",
@@ -10489,25 +10489,25 @@
           "username": {
             "type": "string",
             "minLength": 1,
-            "title": "نام کاربری",
-            "description": "الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات @/./+/-/_",
+            "title": "Username",
+            "description": "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
             "pattern": "^[\\w.@+-]+$",
             "maxLength": 150
           },
           "first_name": {
             "type": "string",
-            "title": "نام",
+            "title": "First Name",
             "maxLength": 150
           },
           "last_name": {
             "type": "string",
-            "title": "نام خانوادگی",
+            "title": "Last Name",
             "maxLength": 150
           },
           "email": {
             "type": "string",
             "format": "email",
-            "title": "آدرس ایمیل",
+            "title": "Email Address",
             "maxLength": 254
           },
           "phone_number": {

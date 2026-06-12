@@ -14,9 +14,10 @@ paths:
   /api/auth/admin-login/:
     post:
       operationId: auth_admin_login_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: 'Takes a set of user credentials and returns an access and refresh
+        JSON web
+
+        token pair to prove the authentication of those credentials.'
       tags:
       - auth
       requestBody:
@@ -111,7 +112,7 @@ paths:
         name: user
         schema:
           type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        description: A unique value that identifies this author profile.
         required: true
       tags:
       - authors
@@ -132,7 +133,7 @@ paths:
         name: user
         schema:
           type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        description: A unique value that identifies this author profile.
         required: true
       tags:
       - authors
@@ -164,7 +165,7 @@ paths:
         name: user
         schema:
           type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        description: A unique value that identifies this author profile.
         required: true
       tags:
       - authors
@@ -195,7 +196,7 @@ paths:
         name: user
         schema:
           type: integer
-        description: یک مقدار یکتا که این author profile را شناسایی میکند.
+        description: A unique value that identifies this author profile.
         required: true
       tags:
       - authors
@@ -253,7 +254,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        description: A unique value that identifies this category.
         required: true
       tags:
       - categories
@@ -273,7 +274,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        description: A unique value that identifies this category.
         required: true
       tags:
       - categories
@@ -305,7 +306,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        description: A unique value that identifies this category.
         required: true
       tags:
       - categories
@@ -336,7 +337,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این category را شناسایی میکند.
+        description: A unique value that identifies this category.
         required: true
       tags:
       - categories
@@ -352,13 +353,13 @@ paths:
       - name: page
         required: false
         in: query
-        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        description: A page number within the paginated result set.
         schema:
           type: integer
       - name: page_size
         required: false
         in: query
-        description: تعداد نتایج برای نمایش در هر صفحه.
+        description: Number of results to return per page.
         schema:
           type: integer
       tags:
@@ -406,7 +407,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
+        description: A unique value that identifies this comment.
         required: true
       tags:
       - comments
@@ -427,7 +428,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
+        description: A unique value that identifies this comment.
         required: true
       tags:
       - comments
@@ -459,7 +460,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
+        description: A unique value that identifies this comment.
         required: true
       tags:
       - comments
@@ -490,7 +491,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
+        description: A unique value that identifies this comment.
         required: true
       tags:
       - comments
@@ -506,13 +507,13 @@ paths:
       - name: page
         required: false
         in: query
-        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        description: A page number within the paginated result set.
         schema:
           type: integer
       - name: page_size
         required: false
         in: query
-        description: تعداد نتایج برای نمایش در هر صفحه.
+        description: Number of results to return per page.
         schema:
           type: integer
       tags:
@@ -560,7 +561,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این media را شناسایی میکند.
+        description: A unique value that identifies this media.
         required: true
       tags:
       - media
@@ -581,7 +582,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این media را شناسایی میکند.
+        description: A unique value that identifies this media.
         required: true
       tags:
       - media
@@ -613,7 +614,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این media را شناسایی میکند.
+        description: A unique value that identifies this media.
         required: true
       tags:
       - media
@@ -644,7 +645,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این media را شناسایی میکند.
+        description: A unique value that identifies this media.
         required: true
       tags:
       - media
@@ -702,7 +703,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
+        description: A unique value that identifies this menu item.
         required: true
       tags:
       - menu-items
@@ -722,7 +723,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
+        description: A unique value that identifies this menu item.
         required: true
       tags:
       - menu-items
@@ -754,7 +755,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
+        description: A unique value that identifies this menu item.
         required: true
       tags:
       - menu-items
@@ -785,7 +786,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu item را شناسایی میکند.
+        description: A unique value that identifies this menu item.
         required: true
       tags:
       - menu-items
@@ -843,7 +844,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
+        description: A unique value that identifies this menu.
         required: true
       tags:
       - menus
@@ -863,7 +864,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
+        description: A unique value that identifies this menu.
         required: true
       tags:
       - menus
@@ -895,7 +896,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
+        description: A unique value that identifies this menu.
         required: true
       tags:
       - menus
@@ -926,7 +927,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این menu را شناسایی میکند.
+        description: A unique value that identifies this menu.
         required: true
       tags:
       - menus
@@ -984,7 +985,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این page را شناسایی میکند.
+        description: A unique value that identifies this page.
         required: true
       tags:
       - pages
@@ -1004,7 +1005,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این page را شناسایی میکند.
+        description: A unique value that identifies this page.
         required: true
       tags:
       - pages
@@ -1036,7 +1037,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این page را شناسایی میکند.
+        description: A unique value that identifies this page.
         required: true
       tags:
       - pages
@@ -1067,7 +1068,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این page را شناسایی میکند.
+        description: A unique value that identifies this page.
         required: true
       tags:
       - pages
@@ -1079,9 +1080,9 @@ paths:
   /api/posts/:
     get:
       operationId: posts_list
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: query
         name: category
@@ -1094,19 +1095,19 @@ paths:
       - name: ordering
         required: false
         in: query
-        description: کدام فیلد باید هنگام مرتب‌سازی نتایج استفاده شود.
+        description: Which field to use when ordering the results.
         schema:
           type: string
       - name: page
         required: false
         in: query
-        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        description: A page number within the paginated result set.
         schema:
           type: integer
       - name: page_size
         required: false
         in: query
-        description: تعداد نتایج برای نمایش در هر صفحه.
+        description: Number of results to return per page.
         schema:
           type: integer
       - in: query
@@ -1122,7 +1123,7 @@ paths:
       - name: search
         required: false
         in: query
-        description: یک عبارت جستجو.
+        description: A search term.
         schema:
           type: string
       - in: query
@@ -1145,10 +1146,11 @@ paths:
           - private
           - public
           - unlisted
-        description: |-
-          * `public` - Public
+        description: '* `public` - Public
+
           * `private` - Private
-          * `unlisted` - Unlisted
+
+          * `unlisted` - Unlisted'
       tags:
       - posts
       security:
@@ -1163,9 +1165,9 @@ paths:
           description: ''
     post:
       operationId: posts_create
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       tags:
       - posts
       requestBody:
@@ -1196,19 +1198,19 @@ paths:
       - name: ordering
         required: false
         in: query
-        description: کدام فیلد باید هنگام مرتب‌سازی نتایج استفاده شود.
+        description: Which field to use when ordering the results.
         schema:
           type: string
       - name: page
         required: false
         in: query
-        description: یک شماره صفحه‌ در مجموعه نتایج صفحه‌بندی شده.
+        description: A page number within the paginated result set.
         schema:
           type: integer
       - name: page_size
         required: false
         in: query
-        description: تعداد نتایج برای نمایش در هر صفحه.
+        description: Number of results to return per page.
         schema:
           type: integer
       - in: path
@@ -1237,7 +1239,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این comment را شناسایی میکند.
+        description: A unique value that identifies this comment.
         required: true
       - in: path
         name: post_slug
@@ -1260,9 +1262,9 @@ paths:
   /api/posts/{slug}/:
     get:
       operationId: posts_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1283,9 +1285,9 @@ paths:
           description: ''
     put:
       operationId: posts_update
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1317,9 +1319,9 @@ paths:
           description: ''
     patch:
       operationId: posts_partial_update
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1350,9 +1352,9 @@ paths:
           description: ''
     delete:
       operationId: posts_destroy
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1414,9 +1416,9 @@ paths:
   /api/posts/{slug}/same-category/:
     get:
       operationId: posts_same_category_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1438,9 +1440,9 @@ paths:
   /api/posts/{slug}/similar/:
     get:
       operationId: posts_similar_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1462,9 +1464,9 @@ paths:
   /api/posts/slug/{slug}/:
     get:
       operationId: posts_slug_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1532,7 +1534,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        description: A unique value that identifies this reaction.
         required: true
       tags:
       - reactions
@@ -1552,7 +1554,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        description: A unique value that identifies this reaction.
         required: true
       tags:
       - reactions
@@ -1584,7 +1586,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        description: A unique value that identifies this reaction.
         required: true
       tags:
       - reactions
@@ -1615,7 +1617,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این reaction را شناسایی میکند.
+        description: A unique value that identifies this reaction.
         required: true
       tags:
       - reactions
@@ -1674,7 +1676,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
+        description: A unique value that identifies this revision.
         required: true
       tags:
       - revisions
@@ -1695,7 +1697,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
+        description: A unique value that identifies this revision.
         required: true
       tags:
       - revisions
@@ -1727,7 +1729,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
+        description: A unique value that identifies this revision.
         required: true
       tags:
       - revisions
@@ -1758,7 +1760,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این revision را شناسایی میکند.
+        description: A unique value that identifies this revision.
         required: true
       tags:
       - revisions
@@ -1816,7 +1818,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این series را شناسایی میکند.
+        description: A unique value that identifies this series.
         required: true
       tags:
       - series
@@ -1836,7 +1838,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این series را شناسایی میکند.
+        description: A unique value that identifies this series.
         required: true
       tags:
       - series
@@ -1868,7 +1870,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این series را شناسایی میکند.
+        description: A unique value that identifies this series.
         required: true
       tags:
       - series
@@ -1899,7 +1901,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این series را شناسایی میکند.
+        description: A unique value that identifies this series.
         required: true
       tags:
       - series
@@ -1957,7 +1959,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
+        description: A unique value that identifies this tag.
         required: true
       tags:
       - tags
@@ -1977,7 +1979,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
+        description: A unique value that identifies this tag.
         required: true
       tags:
       - tags
@@ -2009,7 +2011,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
+        description: A unique value that identifies this tag.
         required: true
       tags:
       - tags
@@ -2040,7 +2042,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این tag را شناسایی میکند.
+        description: A unique value that identifies this tag.
         required: true
       tags:
       - tags
@@ -2052,9 +2054,10 @@ paths:
   /api/token/:
     post:
       operationId: token_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: 'Takes a set of user credentials and returns an access and refresh
+        JSON web
+
+        token pair to prove the authentication of those credentials.'
       tags:
       - token
       requestBody:
@@ -2079,9 +2082,10 @@ paths:
   /api/token/refresh/:
     post:
       operationId: token_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      description: 'Takes a refresh type JSON web token and returns an access type
+        JSON web
+
+        token if the refresh token is valid.'
       tags:
       - token
       requestBody:
@@ -2165,7 +2169,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این کاربر را شناسایی میکند.
+        description: A unique value that identifies this user.
         required: true
       tags:
       - users
@@ -2186,7 +2190,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این کاربر را شناسایی میکند.
+        description: A unique value that identifies this user.
         required: true
       tags:
       - users
@@ -2219,7 +2223,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این کاربر را شناسایی میکند.
+        description: A unique value that identifies this user.
         required: true
       tags:
       - users
@@ -2251,7 +2255,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: یک مقداد عدد یکتا که این کاربر را شناسایی میکند.
+        description: A unique value that identifies this user.
         required: true
       tags:
       - users
@@ -2381,7 +2385,7 @@ components:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         status:
           $ref: '#/components/schemas/CommentStatusEnum'
       required:
@@ -2406,7 +2410,7 @@ components:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         parent:
           type: integer
           nullable: true
@@ -2442,19 +2446,21 @@ components:
       - spam
       - removed
       type: string
-      description: |-
-        * `pending` - Pending
+      description: '* `pending` - Pending
+
         * `approved` - Approved
+
         * `spam` - Spam
-        * `removed` - Removed
+
+        * `removed` - Removed'
     CommentUser:
       type: object
       properties:
         username:
           type: string
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         profile_picture:
@@ -2491,10 +2497,11 @@ components:
       - footer
       - sidebar
       type: string
-      description: |-
-        * `header` - Header
+      description: '* `header` - Header
+
         * `footer` - Footer
-        * `sidebar` - Sidebar
+
+        * `sidebar` - Sidebar'
     MediaCreate:
       type: object
       properties:
@@ -2574,7 +2581,7 @@ components:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
       required:
       - created_at
       - id
@@ -2652,17 +2659,17 @@ components:
           readOnly: true
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         updated_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان آخرین بروزرسانی رکورد.
+          description: The time of the last update to the record.
         name:
           type: string
           maxLength: 255
@@ -2683,17 +2690,17 @@ components:
           readOnly: true
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         updated_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان آخرین بروزرسانی رکورد.
+          description: The time of the last update to the record.
         label:
           type: string
           maxLength: 255
@@ -2724,7 +2731,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         label:
           type: string
           minLength: 1
@@ -2754,7 +2761,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         name:
           type: string
           minLength: 1
@@ -2769,9 +2776,9 @@ components:
       - manual
       - by_date
       type: string
-      description: |-
-        * `manual` - Manual
-        * `by_date` - By Date
+      description: '* `manual` - Manual
+
+        * `by_date` - By Date'
     PagStdAuthorProfileCreatePostAuthorProfileSerializer200:
       type: object
       properties:
@@ -4112,17 +4119,17 @@ components:
           readOnly: true
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         updated_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان آخرین بروزرسانی رکورد.
+          description: The time of the last update to the record.
         slug:
           type: string
           maxLength: 50
@@ -4155,7 +4162,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         slug:
           type: string
           minLength: 1
@@ -4374,7 +4381,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         label:
           type: string
           minLength: 1
@@ -4400,7 +4407,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         name:
           type: string
           minLength: 1
@@ -4412,7 +4419,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         slug:
           type: string
           minLength: 1
@@ -4514,7 +4521,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         content:
           type: string
           minLength: 1
@@ -4538,7 +4545,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         slug:
           type: string
           minLength: 1
@@ -4571,23 +4578,23 @@ components:
         username:
           type: string
           minLength: 1
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: نام
+          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: نام خانوادگی
+          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: آدرس ایمیل
+          title: Email Address
           maxLength: 254
         profile_picture:
           type: string
@@ -4736,9 +4743,10 @@ components:
       - title
     PostDetail:
       type: object
-      description: |-
-        A serializer mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A serializer mixin that takes an additional `fields` argument
+        that controls
+
+        which fields should be displayed.'
       properties:
         id:
           type: integer
@@ -4836,9 +4844,10 @@ components:
       - title
     PostList:
       type: object
-      description: |-
-        A serializer mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A serializer mixin that takes an additional `fields` argument
+        that controls
+
+        which fields should be displayed.'
       properties:
         id:
           type: integer
@@ -4925,12 +4934,15 @@ components:
       - published
       - archived
       type: string
-      description: |-
-        * `draft` - Draft
+      description: '* `draft` - Draft
+
         * `review` - Review
+
         * `scheduled` - Scheduled
+
         * `published` - Published
-        * `archived` - Archived
+
+        * `archived` - Archived'
     Reaction:
       type: object
       properties:
@@ -4951,7 +4963,7 @@ components:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
       required:
       - content_type
       - created_at
@@ -4984,17 +4996,17 @@ components:
           readOnly: true
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         updated_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان آخرین بروزرسانی رکورد.
+          description: The time of the last update to the record.
         content:
           type: string
         title:
@@ -5023,7 +5035,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         content:
           type: string
           minLength: 1
@@ -5055,17 +5067,17 @@ components:
           readOnly: true
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان ایجاد رکورد.
+          description: The time the record was created.
         updated_at:
           type: string
           format: date-time
           readOnly: true
-          description: زمان آخرین بروزرسانی رکورد.
+          description: The time of the last update to the record.
         slug:
           type: string
           maxLength: 50
@@ -5088,7 +5100,7 @@ components:
       properties:
         is_active:
           type: boolean
-          description: مشخص می‌کند که آیا این رکورد فعال است یا خیر.
+          description: Specifies whether this record is active or not.
         slug:
           type: string
           minLength: 1
@@ -6296,23 +6308,23 @@ components:
           readOnly: true
         username:
           type: string
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: نام
+          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: نام خانوادگی
+          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: آدرس ایمیل
+          title: Email Address
           maxLength: 254
         profile_picture:
           type: string
@@ -6333,9 +6345,9 @@ components:
       properties:
         username:
           type: string
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
@@ -6343,11 +6355,11 @@ components:
           format: email
         first_name:
           type: string
-          title: نام
+          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: نام خانوادگی
+          title: Last Name
           maxLength: 150
       required:
       - email
@@ -6359,9 +6371,9 @@ components:
         username:
           type: string
           minLength: 1
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         email:
@@ -6370,11 +6382,11 @@ components:
           minLength: 1
         first_name:
           type: string
-          title: نام
+          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: نام خانوادگی
+          title: Last Name
           maxLength: 150
         password:
           type: string
@@ -6399,17 +6411,17 @@ components:
         username:
           type: string
           readOnly: true
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
         first_name:
           type: string
           readOnly: true
-          title: نام
+          title: First Name
         last_name:
           type: string
           readOnly: true
-          title: نام خانوادگی
+          title: Last Name
         profile_picture:
           type: string
           format: uri
@@ -6434,23 +6446,23 @@ components:
         username:
           type: string
           minLength: 1
-          title: نام کاربری
-          description: الزامی. 150 کاراکتر یا کمتر. فقط شامل حروف، اعداد، و علامات
-            @/./+/-/_
+          title: Username
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: نام
+          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: نام خانوادگی
+          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: آدرس ایمیل
+          title: Email Address
           maxLength: 254
         profile_picture:
           type: string
@@ -6464,10 +6476,11 @@ components:
       - private
       - unlisted
       type: string
-      description: |-
-        * `public` - Public
+      description: '* `public` - Public
+
         * `private` - Private
-        * `unlisted` - Unlisted
+
+        * `unlisted` - Unlisted'
   securitySchemes:
     jwtAuth:
       type: http

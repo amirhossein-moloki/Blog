@@ -8,13 +8,13 @@ from common.tasks import convert_image_to_avif_task
 
 
 class Command(BaseCommand):
-    help = "تمام تصاویر موجود در سیستم را برای تبدیل به فرمت AVIF در صف قرار می‌دهد."
+    help = "Queues all existing images in the system for conversion to AVIF format."
 
     def handle(self, *args, **options):
-        self.stdout.write("شروع اسکن مدل‌ها برای یافتن فیلدهای تصویر...")
+        self.stdout.write("Starting to scan models for image fields...")
 
-        # لیستی از مدل‌هایی که می‌خواهیم اسکن شوند
-        # می‌توانید این لیست را برای محدود کردن اسکن ویرایش کنید
+        # List of models to be scanned
+        # You can edit this list to restrict the scan
         models_to_scan = apps.get_models()
 
         total_tasks_queued = 0
@@ -27,7 +27,7 @@ class Command(BaseCommand):
             if not image_fields:
                 continue
 
-            self.stdout.write(f"  اسکن مدل: {model.__name__}")
+            self.stdout.write(f"  Scanning model: {model.__name__}")
 
             for instance in model.objects.all():
                 for field in image_fields:
@@ -35,7 +35,7 @@ class Command(BaseCommand):
                     try:
                         image_field = getattr(instance, field_name)
 
-                        # اگر فیلد تصویر مقدار داشت و هنوز AVIF نشده بود
+                        # If the image field has a value and is not yet AVIF
                         if (
                             image_field
                             and hasattr(image_field, "name")
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                             and not image_field.name.lower().endswith(".avif")
                         ):
                             self.stdout.write(
-                                f"    -> در صف قرار دادن تسک برای {model.__name__} ID: {instance.pk}, فیلد: {field_name}"
+                                f"    -> Queuing task for {model.__name__} ID: {instance.pk}, field: {field_name}"
                             )
                             convert_image_to_avif_task.delay(
                                 app_label=model._meta.app_label,
@@ -56,12 +56,12 @@ class Command(BaseCommand):
                     except Exception as e:
                         self.stderr.write(
                             self.style.ERROR(
-                                f"خطا در پردازش {model.__name__} ID: {instance.pk}, فیلد: {field_name}: {e}"
+                                f"Error processing {model.__name__} ID: {instance.pk}, field: {field_name}: {e}"
                             )
                         )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"عملیات با موفقیت انجام شد. تعداد کل تسک‌های در صف قرار گرفته: {total_tasks_queued}"
+                f"Operation completed successfully. Total tasks queued: {total_tasks_queued}"
             )
         )

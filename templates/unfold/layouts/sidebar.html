@@ -9,13 +9,13 @@
                 <div class="text-sm alert alert-{{ message.tags }} text-{{ message.tags }}-800 bg-{{ message.tags }}-100 border-{{ message.tags }}-200 dark:text-{{ message.tags }}-200 dark:bg-{{ message.tags }}-900 dark:border-{{ message.tags }}-800">
                     <span class="font-bold">
                         {% if message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
-                            هشدار:
+                            Warning:
                         {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-                            خطا:
+                            Error:
                         {% elif message.level == DEFAULT_MESSAGE_LEVELS.INFO %}
-                            توجه:
+                            Notice:
                         {% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
-                            موفقیت:
+                            Success:
                         {% endif %}
                     </span>
                     {{ message }}

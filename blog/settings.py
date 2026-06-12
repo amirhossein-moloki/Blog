@@ -190,9 +190,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i1n/
 
-LANGUAGE_CODE = "fa"
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "Asia/Tehran"
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -472,7 +472,7 @@ else:
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "Asia/Tehran"
+CELERY_TIMEZONE = "UTC"
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_QUEUES = (
     Queue("high_priority", Exchange("high_priority"), routing_key="high_priority"),

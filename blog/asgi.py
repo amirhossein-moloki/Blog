@@ -2,22 +2,22 @@
 
 import os
 
-# import های مربوط به Channels را هم برای خوانایی بهتر اینجا می‌آوریم
+# Channels-related imports are grouped here for better readability
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-# این خط باید اولین دستور مربوط به جنگو باشد
+# This line should be the first Django-related command
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blog.settings")
 
-# !! مهم: ابتدا این تابع را فراخوانی می‌کنیم تا جنگو پیکربندی شود
+# !! Important: Call this function first so Django is configured
 django_asgi_app = get_asgi_application()
 
-# حالا که جنگو آماده است، می‌توانیم routing های خود را import کنیم
+# Now that Django is ready, we can import our routing
 # import chat.routing
 # import notifications.routing
 
-# در نهایت، application را با استفاده از متغیری که ساختیم تعریف می‌کنیم
+# Finally, define the application using the variable we created
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
