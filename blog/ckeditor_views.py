@@ -20,7 +20,9 @@ def ckeditor5_upload(request):
 
     if not request.user.is_staff:
         return _error_response(
-            _("You do not have permission to upload. Please log in with an account that has appropriate access."),
+            _(
+                "You do not have permission to upload. Please log in with an account that has appropriate access."
+            ),
             status=403,
         )
 
@@ -38,7 +40,9 @@ def ckeditor5_upload(request):
             upload_file.seek(0)
         except NoImageException:
             return _error_response(
-                _("The selected file is not a valid image. Please upload one of the supported formats."),
+                _(
+                    "The selected file is not a valid image. Please upload one of the supported formats."
+                ),
             )
 
     if form.is_valid():

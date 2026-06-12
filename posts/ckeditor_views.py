@@ -21,7 +21,9 @@ def ckeditor_upload_view(request):
 
         # Check if the uploaded file is an image
         if "image" not in uploaded_file.content_type:
-            return JsonResponse({"error": "The uploaded file is not an image."}, status=400)
+            return JsonResponse(
+                {"error": "The uploaded file is not an image."}, status=400
+            )
 
         # Convert the image to AVIF
         try:

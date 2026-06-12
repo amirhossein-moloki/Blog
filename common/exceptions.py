@@ -57,7 +57,9 @@ def custom_exception_handler(exc, context):
         if settings.DEBUG:
             detail = f"Internal server error: {str(exc)}"
         else:
-            detail = "An unexpected error occurred on the server. Please try again later."
+            detail = (
+                "An unexpected error occurred on the server. Please try again later."
+            )
         status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # Prepare messagesList
