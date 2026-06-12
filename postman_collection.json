@@ -279,9 +279,9 @@
                 "exec": [
                   "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
                   "var data = pm.response.json().data;",
-                  "if(data.results && data.results.length > 0) {",
-                  "  pm.environment.set('postSlug', data.results[0].slug);",
-                  "  pm.environment.set('postId', data.results[0].id);",
+                  "if(data && data.length > 0) {",
+                  "  pm.environment.set('postSlug', data[0].slug);",
+                  "  pm.environment.set('postId', data[0].id);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -622,7 +622,7 @@
                 "exec": [
                   "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
                   "var data = pm.response.json().data;",
-                  "if(data.results && data.results.length > 0) pm.environment.set('mediaId', data.results[0].id);"
+                  "if(data && data.length > 0) pm.environment.set('mediaId', data[0].id);"
                 ],
                 "type": "text/javascript"
               }
