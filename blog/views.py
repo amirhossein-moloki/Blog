@@ -59,7 +59,29 @@ def health_check(request):
 
 def page_not_found_view(request, exception):
     """
-    EN: Custom view to handle 404 Not Found errors by redirecting to an external error page.
-    FA: نمای سفارشی برای مدیریت خطاهای ۴۰۴ با تغییر مسیر به یک صفحه خطای خارجی.
+    EN:
+    Custom view to handle 404 Not Found errors.
+    Redirects to an external error page for general requests,
+    but returns a standardized JSON response for API requests.
+
+    FA:
+    نمای سفارشی برای مدیریت خطاهای ۴۰۴.
+    تغییر مسیر به یک صفحه خطای خارجی برای درخواست‌های عمومی،
+    اما بازگرداندن یک پاسخ JSON استاندارد برای درخواست‌های API.
     """
+    if request.path.startswith("/api/"):
+        return JsonResponse(
+            {
+                "data": None,
+                "pagination": {
+                    "pageNo": 1,
+                    "pageSize": 1000,
+                    "totalPage": 0,
+                    "totalCount": 0,
+                    "lastId": None,
+                },
+                "messagesList": ["The requested API endpoint was not found."],
+            },
+            status=404,
+        )
     return redirect("https://atom-game.ir/404.html")
