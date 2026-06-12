@@ -24,11 +24,15 @@ class Media(BaseModel):
 
     storage_key = models.CharField(max_length=255)
     url = models.URLField()
-    type = models.CharField(max_length=50)  # EN: image/video/audio/file | FA: تصویر/ویدیو/صوتی/فایل
+    type = models.CharField(
+        max_length=50
+    )  # EN: image/video/audio/file | FA: تصویر/ویدیو/صوتی/فایل
     mime = models.CharField(max_length=100)
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
-    duration = models.PositiveIntegerField(null=True, blank=True)  # EN: in seconds | FA: به ثانیه
+    duration = models.PositiveIntegerField(
+        null=True, blank=True
+    )  # EN: in seconds | FA: به ثانیه
     size_bytes = models.PositiveIntegerField(default=0)
     alt_text = models.CharField(max_length=255, blank=True)
     title = models.CharField(max_length=255, blank=True)

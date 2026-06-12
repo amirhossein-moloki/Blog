@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
 from django.db.models import Q
 
-from medias.models import Media
 from common.tasks import convert_image_to_avif_task
+from medias.models import Media
 
 
 class Command(BaseCommand):
@@ -44,7 +44,7 @@ class Command(BaseCommand):
                 app_label="medias",
                 model_name="media",
                 instance_pk=media.id,
-                field_name="storage_key" # Note: storage_key is used as the file field in Media
+                field_name="storage_key",  # Note: storage_key is used as the file field in Media
             )
             self.stdout.write(f"Queued task for Media ID: {media.id}")
 

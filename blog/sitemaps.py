@@ -10,6 +10,7 @@ class PostSitemap(Sitemap):
     EN: Sitemap generator for published blog posts.
     FA: تولیدکننده نقشه سایت (Sitemap) برای پست‌های منتشر شده بلاگ.
     """
+
     changefreq = "weekly"
     priority = 0.9
 
@@ -40,6 +41,7 @@ class StaticViewSitemap(Sitemap):
     EN: Sitemap generator for static pages and important application routes.
     FA: تولیدکننده نقشه سایت برای صفحات استاتیک و مسیرهای مهم اپلیکیشن.
     """
+
     priority = 0.5
     changefreq = "daily"
 

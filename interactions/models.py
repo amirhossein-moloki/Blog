@@ -64,7 +64,9 @@ class Reaction(BaseModel):
     """
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reaction = models.CharField(max_length=50)  # EN: like|emoji_code | FA: لایک یا کد اموجی
+    reaction = models.CharField(
+        max_length=50
+    )  # EN: like|emoji_code | FA: لایک یا کد اموجی
 
     # EN: Generic Foreign Key setup
     # FA: تنظیمات Generic Foreign Key

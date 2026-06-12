@@ -13,6 +13,7 @@ class AuthorProfileAdmin(admin.ModelAdmin):
     EN: Admin interface for AuthorProfile.
     FA: رابط کاربری ادمین برای پروفایل نویسنده.
     """
+
     list_display = ("display_name", "user")
     search_fields = ("display_name", "user__username")
 
@@ -23,6 +24,7 @@ class CategoryAdmin(admin.ModelAdmin):
     EN: Admin interface for Categories.
     FA: رابط کاربری ادمین برای دسته‌بندی‌ها.
     """
+
     list_display = ("name", "slug", "parent", "order")
     list_filter = ("parent",)
     search_fields = ("name",)
@@ -34,6 +36,7 @@ class TagAdmin(admin.ModelAdmin):
     EN: Admin interface for Tags.
     FA: رابط کاربری ادمین برای برچسب‌ها.
     """
+
     list_display = ("name", "slug")
     search_fields = ("name",)
 
@@ -44,6 +47,7 @@ class SeriesAdmin(admin.ModelAdmin):
     EN: Admin interface for Series.
     FA: رابط کاربری ادمین برای مجموعه‌ها.
     """
+
     list_display = ("title", "slug", "order_strategy")
     search_fields = ("title",)
 
@@ -53,6 +57,7 @@ class PostTagInline(admin.TabularInline):
     EN: Inline editor for Post tags.
     FA: ویرایشگر داخلی برای برچسب‌های پست.
     """
+
     model = PostTag
     extra = 1
 
@@ -62,6 +67,7 @@ class PostMediaInline(admin.TabularInline):
     EN: Inline viewer for Post media attachments.
     FA: نمایشگر داخلی برای پیوست‌های رسانه‌ای پست.
     """
+
     model = PostMedia
     readonly_fields = ("media", "attachment_type")
     extra = 0
@@ -94,6 +100,7 @@ class PostAdmin(admin.ModelAdmin):
     رابط کاربری جامع ادمین برای پست‌ها.
     مجموعه‌فیلدهای پیشرفته، اینلاین‌ها برای برچسب‌ها و رسانه‌ها و منطق ذخیره‌سازی سفارشی را فراهم می‌کند.
     """
+
     form = PostAdminForm
     list_display = (
         "title",
@@ -155,6 +162,7 @@ class RevisionAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     EN: Admin interface for Post Revisions.
     FA: رابط کاربری ادمین برای بازنگری‌های پست.
     """
+
     list_display = ("post", "editor", "created_at")
     list_filter = ("editor",)
     search_fields = ("post__title",)

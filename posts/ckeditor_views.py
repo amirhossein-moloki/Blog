@@ -57,7 +57,7 @@ def ckeditor_upload_view(request):
             storage_key=storage_key,
             url=file_url,
             mime="image/avif",  # EN: Explicitly set the MIME type for AVIF
-                                # FA: تنظیم صریح نوع MIME برای AVIF
+            # FA: تنظیم صریح نوع MIME برای AVIF
             size_bytes=avif_file.size,
             title=sanitized_name,
             uploaded_by=request.user,

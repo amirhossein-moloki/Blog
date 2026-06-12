@@ -20,6 +20,7 @@ class MediaAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     تنظیمات ادمین برای اشیاء رسانه.
     از تاریخ‌های جلالی استفاده کرده و لینک‌های سفارشی برای دانلود فایل‌ها ارائه می‌دهد.
     """
+
     form = MediaAdminForm
     list_display = (
         "title",

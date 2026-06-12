@@ -40,8 +40,10 @@ class Command(BaseCommand):
                     for field_name in field_names:
                         field = getattr(obj, field_name)
                         if field:
-                            if hasattr(field, "path"):  # EN: For ImageField and FileField
-                                                        # FA: برای ImageField و FileField
+                            if hasattr(
+                                field, "path"
+                            ):  # EN: For ImageField and FileField
+                                # FA: برای ImageField و FileField
                                 if "image" in field.file.content_type:
                                     optimize_image(field)
                                     obj.save()
@@ -50,7 +52,7 @@ class Command(BaseCommand):
                             elif isinstance(field, str) and field.startswith(
                                 "/media/"
                             ):  # EN: For medias.Media
-                                                # FA: برای medias.Media
+                                # FA: برای medias.Media
                                 # EN: This part is tricky as we don't have the file object directly
                                 # FA: این بخش دشوار است زیرا مستقیماً به شیء فایل دسترسی نداریم
                                 # EN: We'll need to find the file in the storage and optimize it

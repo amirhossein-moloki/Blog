@@ -377,6 +377,7 @@ class AuthorProfileViewSet(viewsets.ModelViewSet):
     EN: ViewSet for managing author profiles.
     FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
     """
+
     queryset = AuthorProfile.objects.all()
     serializer_class = AuthorProfileSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
@@ -387,6 +388,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     EN: ViewSet for managing post categories.
     FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
     """
+
     queryset = Category.objects.select_related("parent").all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
@@ -397,6 +399,7 @@ class TagViewSet(viewsets.ModelViewSet):
     EN: ViewSet for managing post tags.
     FA: ViewSet برای مدیریت برچسب‌های پست.
     """
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminUserOrReadOnly]
@@ -407,6 +410,7 @@ class SeriesViewSet(viewsets.ModelViewSet):
     EN: ViewSet for managing post series.
     FA: ViewSet برای مدیریت مجموعه‌های پست.
     """
+
     queryset = Series.objects.all()
     serializer_class = SeriesSerializer
     permission_classes = [IsAdminUserOrReadOnly]
@@ -417,6 +421,7 @@ class RevisionViewSet(viewsets.ModelViewSet):
     EN: ViewSet for viewing post revisions.
     FA: ViewSet برای مشاهده بازنگری‌های پست.
     """
+
     queryset = Revision.objects.all()
     serializer_class = RevisionSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
