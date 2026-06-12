@@ -11,7 +11,7 @@ info:
   license:
     name: MIT License
 paths:
-  /api/interactions/comments/:
+  /api/comments/:
     get:
       operationId: interactions_comments_list
       parameters:
@@ -64,7 +64,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdCommentCreatePostCommentSerializer200'
           description: ''
-  /api/interactions/comments/{id}/:
+  /api/comments/{id}/:
     get:
       operationId: interactions_comments_retrieve
       parameters:
@@ -165,7 +165,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/interactions/reactions/:
+  /api/reactions/:
     get:
       operationId: interactions_reactions_list
       tags:
@@ -206,7 +206,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdReactionCreatePostReactionSerializer200'
           description: ''
-  /api/interactions/reactions/{id}/:
+  /api/reactions/{id}/:
     get:
       operationId: interactions_reactions_retrieve
       parameters:
@@ -306,7 +306,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/medias/media/:
+  /api/media/:
     get:
       operationId: medias_media_list
       parameters:
@@ -359,7 +359,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMediaCreatePostMediaCreateSerializer200'
           description: ''
-  /api/medias/media/{id}/:
+  /api/media/{id}/:
     get:
       operationId: medias_media_retrieve
       parameters:
@@ -460,7 +460,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/navigation/menu-items/:
+  /api/menu-items/:
     get:
       operationId: navigation_menu_items_list
       tags:
@@ -501,7 +501,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMenuItemCreatePostMenuItemSerializer200'
           description: ''
-  /api/navigation/menu-items/{id}/:
+  /api/menu-items/{id}/:
     get:
       operationId: navigation_menu_items_retrieve
       parameters:
@@ -601,7 +601,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/navigation/menus/:
+  /api/menus/:
     get:
       operationId: navigation_menus_list
       tags:
@@ -642,7 +642,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMenuCreatePostMenuSerializer200'
           description: ''
-  /api/navigation/menus/{id}/:
+  /api/menus/{id}/:
     get:
       operationId: navigation_menus_retrieve
       parameters:
@@ -742,7 +742,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/pages/pages/:
+  /api/pages/:
     get:
       operationId: pages_pages_list
       tags:
@@ -783,7 +783,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPageCreatePostPageSerializer200'
           description: ''
-  /api/pages/pages/{id}/:
+  /api/pages/{id}/:
     get:
       operationId: pages_pages_retrieve
       parameters:
@@ -883,7 +883,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/authors/:
+  /api/authors/:
     get:
       operationId: posts_authors_list
       tags:
@@ -925,7 +925,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdAuthorProfileCreatePostAuthorProfileSerializer200'
           description: ''
-  /api/posts/authors/{user}/:
+  /api/authors/{user}/:
     get:
       operationId: posts_authors_retrieve
       parameters:
@@ -1026,7 +1026,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/categories/:
+  /api/categories/:
     get:
       operationId: posts_categories_list
       tags:
@@ -1067,7 +1067,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdCategoryCreatePostCategorySerializer200'
           description: ''
-  /api/posts/categories/{id}/:
+  /api/categories/{id}/:
     get:
       operationId: posts_categories_retrieve
       parameters:
@@ -1167,12 +1167,12 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/posts/:
+  /api/posts/:
     get:
       operationId: posts_posts_list
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: query
         name: category
@@ -1236,10 +1236,11 @@ paths:
           - private
           - public
           - unlisted
-        description: |-
-          * `public` - Public
+        description: '* `public` - Public
+
           * `private` - Private
-          * `unlisted` - Unlisted
+
+          * `unlisted` - Unlisted'
       tags:
       - posts
       security:
@@ -1254,9 +1255,9 @@ paths:
           description: ''
     post:
       operationId: posts_posts_create
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       tags:
       - posts
       requestBody:
@@ -1280,7 +1281,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostCreatePostPostCreateUpdateSerializer200'
           description: ''
-  /api/posts/posts/{post_slug}/comments/:
+  /api/posts/{post_slug}/comments/:
     get:
       operationId: posts_posts_comments_list
       parameters:
@@ -1320,7 +1321,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedStdPostCommentListGetCommentListSerializer200List'
           description: ''
-  /api/posts/posts/{post_slug}/comments/{id}/:
+  /api/posts/{post_slug}/comments/{id}/:
     get:
       operationId: posts_posts_comments_retrieve
       parameters:
@@ -1348,12 +1349,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostCommentRetrieveGetCommentListSerializer200'
           description: ''
-  /api/posts/posts/{slug}/:
+  /api/posts/{slug}/:
     get:
       operationId: posts_posts_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1374,9 +1375,9 @@ paths:
           description: ''
     put:
       operationId: posts_posts_update
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1408,9 +1409,9 @@ paths:
           description: ''
     patch:
       operationId: posts_posts_partial_update
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1441,9 +1442,9 @@ paths:
           description: ''
     delete:
       operationId: posts_posts_destroy
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1457,7 +1458,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/posts/{slug}/publish/:
+  /api/posts/{slug}/publish/:
     post:
       operationId: posts_posts_publish_create
       description: Publish a draft or scheduled post.
@@ -1478,7 +1479,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PostDetail'
           description: ''
-  /api/posts/posts/{slug}/related/:
+  /api/posts/{slug}/related/:
     get:
       operationId: posts_posts_related_list
       description: Get related posts based on tags.
@@ -1502,12 +1503,12 @@ paths:
                 items:
                   $ref: '#/components/schemas/PostList'
           description: ''
-  /api/posts/posts/{slug}/same-category/:
+  /api/posts/{slug}/same-category/:
     get:
       operationId: posts_posts_same_category_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1526,12 +1527,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostSame_categoryGetPostListSerializer200'
           description: ''
-  /api/posts/posts/{slug}/similar/:
+  /api/posts/{slug}/similar/:
     get:
       operationId: posts_posts_similar_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1550,12 +1551,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostSimilarGetPostListSerializer200'
           description: ''
-  /api/posts/posts/slug/{slug}/:
+  /api/posts/slug/{slug}/:
     get:
       operationId: posts_posts_slug_retrieve
-      description: |-
-        A view mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A view mixin that takes an additional `fields` argument that controls
+
+        which fields should be displayed.'
       parameters:
       - in: path
         name: slug
@@ -1574,7 +1575,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdPostBy_slugGetPostListSerializer200'
           description: ''
-  /api/posts/revisions/:
+  /api/revisions/:
     get:
       operationId: posts_revisions_list
       tags:
@@ -1616,7 +1617,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdRevisionCreatePostRevisionSerializer200'
           description: ''
-  /api/posts/revisions/{id}/:
+  /api/revisions/{id}/:
     get:
       operationId: posts_revisions_retrieve
       parameters:
@@ -1717,7 +1718,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/series/:
+  /api/series/:
     get:
       operationId: posts_series_list
       tags:
@@ -1758,7 +1759,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdSeriesCreatePostSeriesSerializer200'
           description: ''
-  /api/posts/series/{id}/:
+  /api/series/{id}/:
     get:
       operationId: posts_series_retrieve
       parameters:
@@ -1858,7 +1859,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/posts/tags/:
+  /api/tags/:
     get:
       operationId: posts_tags_list
       tags:
@@ -1899,7 +1900,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdTagCreatePostTagSerializer200'
           description: ''
-  /api/posts/tags/{id}/:
+  /api/tags/{id}/:
     get:
       operationId: posts_tags_retrieve
       parameters:
@@ -2002,9 +2003,10 @@ paths:
   /api/token/:
     post:
       operationId: token_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: 'Takes a set of user credentials and returns an access and refresh
+        JSON web
+
+        token pair to prove the authentication of those credentials.'
       tags:
       - token
       requestBody:
@@ -2029,9 +2031,10 @@ paths:
   /api/token/refresh/:
     post:
       operationId: token_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      description: 'Takes a refresh type JSON web token and returns an access type
+        JSON web
+
+        token if the refresh token is valid.'
       tags:
       - token
       requestBody:
@@ -2053,12 +2056,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdTokenRefreshViewPostTokenRefreshSerializer200'
           description: ''
-  /api/users/auth/admin-login/:
+  /api/auth/admin-login/:
     post:
       operationId: users_auth_admin_login_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: 'Takes a set of user credentials and returns an access and refresh
+        JSON web
+
+        token pair to prove the authentication of those credentials.'
       tags:
       - users
       requestBody:
@@ -2080,7 +2084,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
           description: ''
-  /api/users/auth/google/login/:
+  /api/auth/google/login/:
     post:
       operationId: users_auth_google_login_create
       tags:
@@ -2103,7 +2107,7 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/users/users/:
+  /api/users/:
     get:
       operationId: users_users_list
       description: ViewSet for managing users.
@@ -2156,7 +2160,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdUserCreatePostUserCreateSerializer200'
           description: ''
-  /api/users/users/{id}/:
+  /api/users/{id}/:
     get:
       operationId: users_users_retrieve
       description: ViewSet for managing users.
@@ -2260,7 +2264,7 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/users/users/me/:
+  /api/users/me/:
     get:
       operationId: users_users_me_retrieve
       description: ViewSet for managing users.
@@ -2442,11 +2446,13 @@ components:
       - spam
       - removed
       type: string
-      description: |-
-        * `pending` - Pending
+      description: '* `pending` - Pending
+
         * `approved` - Approved
+
         * `spam` - Spam
-        * `removed` - Removed
+
+        * `removed` - Removed'
     CommentUser:
       type: object
       properties:
@@ -2491,10 +2497,11 @@ components:
       - footer
       - sidebar
       type: string
-      description: |-
-        * `header` - Header
+      description: '* `header` - Header
+
         * `footer` - Footer
-        * `sidebar` - Sidebar
+
+        * `sidebar` - Sidebar'
     MediaCreate:
       type: object
       properties:
@@ -2769,9 +2776,9 @@ components:
       - manual
       - by_date
       type: string
-      description: |-
-        * `manual` - Manual
-        * `by_date` - By Date
+      description: '* `manual` - Manual
+
+        * `by_date` - By Date'
     PagStdAuthorProfileCreatePostAuthorProfileSerializer200:
       type: object
       properties:
@@ -4740,9 +4747,10 @@ components:
       - title
     PostDetail:
       type: object
-      description: |-
-        A serializer mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A serializer mixin that takes an additional `fields` argument
+        that controls
+
+        which fields should be displayed.'
       properties:
         id:
           type: integer
@@ -4840,9 +4848,10 @@ components:
       - title
     PostList:
       type: object
-      description: |-
-        A serializer mixin that takes an additional `fields` argument that controls
-        which fields should be displayed.
+      description: 'A serializer mixin that takes an additional `fields` argument
+        that controls
+
+        which fields should be displayed.'
       properties:
         id:
           type: integer
@@ -4929,12 +4938,15 @@ components:
       - published
       - archived
       type: string
-      description: |-
-        * `draft` - Draft
+      description: '* `draft` - Draft
+
         * `review` - Review
+
         * `scheduled` - Scheduled
+
         * `published` - Published
-        * `archived` - Archived
+
+        * `archived` - Archived'
     Reaction:
       type: object
       properties:
@@ -6484,10 +6496,11 @@ components:
       - private
       - unlisted
       type: string
-      description: |-
-        * `public` - Public
+      description: '* `public` - Public
+
         * `private` - Private
-        * `unlisted` - Unlisted
+
+        * `unlisted` - Unlisted'
   securitySchemes:
     jwtAuth:
       type: http

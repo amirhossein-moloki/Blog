@@ -153,7 +153,7 @@ app.post('/api/token/refresh/', (req, res) => {
   }
 });
 
-app.post('/api/users/auth/admin-login/', (req, res) => {
+app.post('/api/auth/admin-login/', (req, res) => {
     const { username, password } = req.body;
     const user = db.users.find(u => u.username === username && u.is_staff);
     if (user) {
@@ -165,13 +165,13 @@ app.post('/api/users/auth/admin-login/', (req, res) => {
     }
 });
 
-app.get('/api/users/users/me/', (req, res) => {
+app.get('/api/users/me/', (req, res) => {
     if (!req.user) return res.status(401).json({ detail: 'Authentication credentials were not provided.' });
     res.json(wrapResponse(req.user));
 });
 
 // Posts with Enrichment
-app.get('/api/posts/posts/', (req, res) => {
+app.get('/api/posts/', (req, res) => {
     let results = [...db.posts];
     if (req.query.category) results = results.filter(p => String(p.category) === String(req.query.category));
     if (req.query.is_hot) results = results.filter(p => p.is_hot === (req.query.is_hot === 'true'));
@@ -201,7 +201,7 @@ app.get('/api/posts/posts/', (req, res) => {
     res.json(wrapResponse(paginated.data, paginated.pagination));
 });
 
-app.get('/api/posts/posts/:slug/', (req, res) => {
+app.get('/api/posts/:slug/', (req, res) => {
     const post = db.posts.find(p => p.slug === req.params.slug);
     if (!post) return res.status(404).json({ detail: 'Not found.' });
 
@@ -222,7 +222,7 @@ app.get('/api/posts/posts/:slug/', (req, res) => {
     }));
 });
 
-app.post('/api/posts/posts/:slug/publish/', (req, res) => {
+app.post('/api/posts/:slug/publish/', (req, res) => {
     const postIndex = db.posts.findIndex(p => p.slug === req.params.slug);
     if (postIndex === -1) return res.status(404).json({ detail: 'Not found.' });
     db.posts[postIndex].status = 'published';
@@ -231,7 +231,7 @@ app.post('/api/posts/posts/:slug/publish/', (req, res) => {
 });
 
 // Nested Comments
-app.get('/api/posts/posts/:slug/comments/', (req, res) => {
+app.get('/api/posts/:slug/comments/', (req, res) => {
     const post = db.posts.find(p => p.slug === req.params.slug);
     if (!post) return res.status(404).json({ detail: 'Not found.' });
     const comments = db.comments.filter(c => c.post === post.id && c.status === 'approved');
@@ -250,18 +250,18 @@ app.get('/api/posts/posts/:slug/comments/', (req, res) => {
 });
 
 // Initialize all CRUD routes
-createCrudHandlers('users/users', 'users');
-createCrudHandlers('posts/authors', 'authorProfiles', 'user');
-createCrudHandlers('posts/categories', 'categories');
-createCrudHandlers('posts/tags', 'tags');
-createCrudHandlers('posts/series', 'series');
-createCrudHandlers('posts/revisions', 'revisions');
-createCrudHandlers('medias/media', 'medias');
-createCrudHandlers('interactions/comments', 'comments');
-createCrudHandlers('interactions/reactions', 'reactions');
-createCrudHandlers('pages/pages', 'pages');
-createCrudHandlers('navigation/menus', 'menus');
-createCrudHandlers('navigation/menu-items', 'menuItems');
+createCrudHandlers('users', 'users');
+createCrudHandlers('authors', 'authorProfiles', 'user');
+createCrudHandlers('categories', 'categories');
+createCrudHandlers('tags', 'tags');
+createCrudHandlers('series', 'series');
+createCrudHandlers('revisions', 'revisions');
+createCrudHandlers('media', 'medias');
+createCrudHandlers('comments', 'comments');
+createCrudHandlers('reactions', 'reactions');
+createCrudHandlers('pages', 'pages');
+createCrudHandlers('menus', 'menus');
+createCrudHandlers('menu-items', 'menuItems');
 
 // Start server
 app.listen(PORT, () => {
