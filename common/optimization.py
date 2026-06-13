@@ -1,5 +1,6 @@
 import os
 import subprocess
+
 from celery import shared_task
 
 from common.utils.images import convert_image_to_avif
