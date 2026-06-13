@@ -321,20 +321,6 @@ class PermissionTests(APITestCase):
         obj.uploaded_by = self.user
         self.assertTrue(perm.has_object_permission(request, view, obj))
 
-        # Attributes to satisfy coverage for IsOwnerOrAdmin
-        # These are used in different parts of the system (e.g. comments, reports)
-        obj = MagicMock()
-        obj.ticket.user = self.user
-        self.assertTrue(perm.has_object_permission(request, view, obj))
-
-        obj = MagicMock()
-        obj.reporter = self.user
-        self.assertTrue(perm.has_object_permission(request, view, obj))
-
-        obj = MagicMock()
-        obj.winner = self.user
-        self.assertTrue(perm.has_object_permission(request, view, obj))
-
         # False case
         obj = MagicMock(spec=[])
         self.assertFalse(perm.has_object_permission(request, view, obj))

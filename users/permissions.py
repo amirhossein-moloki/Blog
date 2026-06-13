@@ -1,4 +1,7 @@
+from django.contrib.auth import get_user_model
 from rest_framework import permissions
+
+User = get_user_model()
 
 
 class IsAdminUser(permissions.BasePermission):
@@ -92,30 +95,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
 
         # EN: Ownership for the User model itself
         # FA: مالکیت برای خود مدل کاربر (User)
-        if (
-            hasattr(obj, "id")
-            and type(obj).__name__ == "User"
-            and obj.id == request.user.id
-        ):
-            return True
-
-        # EN: Nested ownership for Support Tickets (TicketMessage -> ticket -> user)
-        # FA: مالکیت تو در تو برای تیکت‌های پشتیبانی (پیام تیکت -> تیکت -> کاربر)
-        if (
-            hasattr(obj, "ticket")
-            and hasattr(obj.ticket, "user")
-            and obj.ticket.user == request.user
-        ):
-            return True
-
-        # EN: Ownership for Tournament Reports (Report -> reporter)
-        # FA: مالکیت برای گزارش‌های تورنمنت (گزارش -> گزارش‌دهنده)
-        if hasattr(obj, "reporter") and obj.reporter == request.user:
-            return True
-
-        # EN: Ownership for Winner Submissions (WinnerSubmission -> winner)
-        # FA: مالکیت برای موارد ارسالی برندگان (ارسال برنده -> برنده)
-        if hasattr(obj, "winner") and obj.winner == request.user:
+        if isinstance(obj, User) and obj.id == request.user.id:
             return True
 
         return False
