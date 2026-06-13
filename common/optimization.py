@@ -1,9 +1,9 @@
 import os
 import subprocess
-from io import BytesIO
 
 from celery import shared_task
-from PIL import Image
+
+from common.utils.images import convert_image_to_avif
 
 
 def optimize_image(image_field):
@@ -11,10 +11,12 @@ def optimize_image(image_field):
     EN:
     Optimizes an image by converting it to AVIF format and compressing it.
     AVIF offers superior compression compared to JPEG/PNG.
+    This function uses the robust convert_image_to_avif utility.
 
     FA:
     بهینه‌سازی تصویر با تبدیل آن به فرمت AVIF و فشرده‌سازی آن.
     فرمت AVIF فشرده‌سازی برتری نسبت به JPEG/PNG ارائه می‌دهد.
+    این تابع از ابزار قدرتمند convert_image_to_avif استفاده می‌کند.
 
     Args:
         image_field: The image file to optimize.
@@ -23,25 +25,11 @@ def optimize_image(image_field):
         dict: A dictionary containing the 'buffer' and 'filename' of the optimized image.
     """
     try:
-        img = Image.open(image_field)
+        # EN: Use the robust conversion utility to ensure transparency and ICC profiles are handled.
+        # FA: استفاده از ابزار تبدیل قدرتمند برای اطمینان از مدیریت شفافیت و پروفایل‌های ICC.
+        avif_content = convert_image_to_avif(image_field, quality=85)
 
-        # EN: Convert RGBA to RGB if necessary for AVIF compatibility
-        # FA: تبدیل RGBA به RGB در صورت نیاز برای سازگاری با AVIF
-        if img.mode == "RGBA":
-            img = img.convert("RGB")
-
-        # EN: Create a buffer to save the optimized image
-        # FA: ایجاد یک بافر برای ذخیره تصویر بهینه‌سازی شده
-        buffer = BytesIO()
-        img.save(buffer, format="AVIF", quality=85, optimize=True)
-        buffer.seek(0)
-
-        # EN: Get the original filename without extension
-        # FA: دریافت نام اصلی فایل بدون پسوند
-        filename = os.path.splitext(image_field.name)[0]
-        new_filename = f"{filename}.avif"
-
-        return {"buffer": buffer, "filename": new_filename}
+        return {"buffer": avif_content, "filename": avif_content.name}
 
     except Exception as e:
         # EN: Handle exceptions (e.g., corrupted images)

@@ -1,7 +1,12 @@
+import os
+
 from django.apps import apps
+from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand
 
 from common.optimization import optimize_image, optimize_video
+from common.utils.files import get_sanitized_filename
+from common.utils.images import convert_image_to_avif
 
 
 class Command(BaseCommand):
@@ -28,7 +33,7 @@ class Command(BaseCommand):
         # FA: لیستی از مدل‌ها و فیلدها برای بهینه‌سازی
         models_to_optimize = {
             "users.User": ["profile_picture"],
-            "medias.Media": ["file"],
+            "medias.Media": ["storage_key"],
         }
 
         for model_str, field_names in models_to_optimize.items():
@@ -38,26 +43,113 @@ class Command(BaseCommand):
 
                 for obj in model.objects.all():
                     for field_name in field_names:
-                        field = getattr(obj, field_name)
-                        if field:
-                            if hasattr(
-                                field, "path"
-                            ):  # EN: For ImageField and FileField
-                                # FA: برای ImageField و FileField
-                                if "image" in field.file.content_type:
-                                    optimize_image(field)
-                                    obj.save()
-                                elif "video" in field.file.content_type:
-                                    optimize_video.delay(field.path)
-                            elif isinstance(field, str) and field.startswith(
-                                "/media/"
-                            ):  # EN: For medias.Media
-                                # FA: برای medias.Media
-                                # EN: This part is tricky as we don't have the file object directly
-                                # FA: این بخش دشوار است زیرا مستقیماً به شیء فایل دسترسی نداریم
-                                # EN: We'll need to find the file in the storage and optimize it
-                                # FA: باید فایل را در فضای ذخیره‌سازی پیدا کرده و آن را بهینه‌سازی کنیم
-                                pass
+                        field_value = getattr(obj, field_name)
+                        if not field_value:
+                            continue
+
+                        # EN: Case 1: Standard ImageField/FileField (e.g., User.profile_picture)
+                        # FA: مورد اول: ImageField یا FileField استاندارد
+                        if hasattr(field_value, "path") and hasattr(
+                            field_value, "save"
+                        ):
+                            try:
+                                # EN: Skip if already AVIF
+                                # FA: اگر قبلاً AVIF شده باشد، رد شود
+                                if field_value.name.lower().endswith(".avif"):
+                                    continue
+
+                                content_type = ""
+                                if hasattr(field_value, "file") and hasattr(
+                                    field_value.file, "content_type"
+                                ):
+                                    content_type = field_value.file.content_type
+
+                                if (
+                                    "image" in content_type
+                                    or field_value.name.lower().endswith(
+                                        (".jpg", ".jpeg", ".png", ".webp")
+                                    )
+                                ):
+                                    self.stdout.write(
+                                        f"  Optimizing image field {field_name} for {model_str} ID {obj.pk}..."
+                                    )
+                                    result = optimize_image(field_value)
+                                    if result:
+                                        # EN: Use field.save to handle storage and database update
+                                        # FA: استفاده از field.save برای مدیریت ذخیره‌سازی و به‌روزرسانی پایگاه داده
+                                        field_value.save(
+                                            result["filename"],
+                                            result["buffer"],
+                                            save=True,
+                                        )
+                                elif (
+                                    "video" in content_type
+                                    or field_value.name.lower().endswith(
+                                        (".mp4", ".mov", ".avi", ".mkv")
+                                    )
+                                ):
+                                    if "_optimized" not in field_value.name:
+                                        self.stdout.write(
+                                            f"  Queuing video optimization for {field_name} in {model_str} ID {obj.pk}..."
+                                        )
+                                        optimize_video.delay(field_value.path)
+                            except Exception as e:
+                                self.stderr.write(
+                                    self.style.ERROR(
+                                        f"Error optimizing field {field_name} for {model_str} ID {obj.pk}: {e}"
+                                    )
+                                )
+
+                        # EN: Case 2: CharField storing storage path (e.g., Media.storage_key)
+                        # FA: مورد دوم: CharField که مسیر ذخیره‌سازی را نگه می‌دارد
+                        elif (
+                            isinstance(field_value, str)
+                            and model_str == "medias.Media"
+                            and field_name == "storage_key"
+                        ):
+                            if obj.type == "image" and not field_value.lower().endswith(
+                                ".avif"
+                            ):
+                                try:
+                                    self.stdout.write(
+                                        f"  Optimizing Media storage_key for ID {obj.pk}..."
+                                    )
+                                    original_storage_key = field_value
+                                    if default_storage.exists(original_storage_key):
+                                        with default_storage.open(
+                                            original_storage_key, "rb"
+                                        ) as f:
+                                            optimized_image_content = (
+                                                convert_image_to_avif(f)
+                                            )
+
+                                        sanitized_name = get_sanitized_filename(
+                                            optimized_image_content.name
+                                        )
+                                        base_name, _ = os.path.splitext(sanitized_name)
+                                        new_storage_key = f"{base_name}.avif"
+
+                                        saved_path = default_storage.save(
+                                            new_storage_key, optimized_image_content
+                                        )
+
+                                        # EN: Update media object attributes manually
+                                        # FA: به‌روزرسانی دستی ویژگی‌های شیء رسانه
+                                        obj.storage_key = saved_path
+                                        obj.url = default_storage.url(saved_path)
+                                        obj.mime = "image/avif"
+                                        obj.save()
+
+                                        # EN: Remove old file from storage
+                                        # FA: حذف فایل قدیمی از فضای ذخیره‌سازی
+                                        if default_storage.exists(original_storage_key):
+                                            default_storage.delete(original_storage_key)
+                                except Exception as e:
+                                    self.stderr.write(
+                                        self.style.ERROR(
+                                            f"Error optimizing Media ID {obj.pk}: {e}"
+                                        )
+                                    )
 
             except Exception as e:
                 self.stderr.write(
