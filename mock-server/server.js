@@ -20,17 +20,16 @@ let db = JSON.parse(fs.readFileSync(path.join(__dirname, 'seed-data.json'), 'utf
 
 // Helper: Standardized Response Wrapper
 const wrapResponse = (data, pagination = null) => {
-  return {
+  const response = {
     data: data,
-    pagination: pagination || {
-      pageNo: 1,
-      pageSize: 1000,
-      totalPage: 1,
-      totalCount: Array.isArray(data) ? data.length : 1,
-      lastId: null,
-    },
     messagesList: [],
   };
+
+  if (pagination) {
+    response.pagination = pagination;
+  }
+
+  return response;
 };
 
 // Helper: Pagination Slicing

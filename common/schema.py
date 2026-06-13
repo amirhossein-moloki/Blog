@@ -77,25 +77,53 @@ class StandardizedAutoSchema(AutoSchema):
         # FA: اطمینان از اینکه نام با حرف شروع شده و الفبایی-عددی باشد
         name = f"Std{view_name}{action_name}{method_name}{serializer_name}{status_code}"
 
+        # EN: Prepare fields for the standardized response
+        # FA: آماده‌سازی فیلدها برای پاسخ استاندارد
+        fields = {
+            "data": serializer,
+            "messagesList": serializers.ListField(
+                child=serializers.CharField(), default=[]
+            ),
+        }
+
         # EN: pagination fields should only be present if the view is paginated
         # FA: فیلدهای صفحه‌بندی فقط باید در صورتی وجود داشته باشند که view صفحه‌بندی شده باشد
-        pagination_fields = {
-            "pageNo": serializers.IntegerField(default=1),
-            "pageSize": serializers.IntegerField(default=10),
-            "totalPage": serializers.IntegerField(default=1),
-            "totalCount": serializers.IntegerField(default=1),
-            "lastId": serializers.CharField(allow_null=True, default=None),
-        }
+        include_pagination = False
+        if status_code.startswith("2"):
+            # EN: Detect list-like responses which are typically paginated
+            # FA: شناسایی پاسخ‌های شبیه لیست که معمولاً صفحه‌بندی می‌شوند
+            is_list_response = (
+                getattr(self.view, "action", None) == "list"
+                or isinstance(serializer, serializers.ListSerializer)
+                or getattr(serializer, "many", False)
+            )
+
+            # EN: Check if the view is configured for pagination
+            # FA: بررسی اینکه آیا view برای صفحه‌بندی پیکربندی شده است
+            has_pagination = getattr(self.view, "pagination_class", None) is not None
+
+            if is_list_response and has_pagination:
+                include_pagination = True
+
+            # EN: Handle specific cases or manual overrides if needed
+            # FA: مدیریت موارد خاص یا بازنویسی‌های دستی در صورت نیاز
+            action_name = getattr(self.view, "action", "")
+            if action_name in ["same_category", "related_posts"]:
+                include_pagination = True
+
+        if include_pagination:
+            pagination_fields = {
+                "pageNo": serializers.IntegerField(default=1),
+                "pageSize": serializers.IntegerField(default=10),
+                "totalPage": serializers.IntegerField(default=1),
+                "totalCount": serializers.IntegerField(default=1),
+                "lastId": serializers.CharField(allow_null=True, default=None),
+            }
+            fields["pagination"] = inline_serializer(
+                name=f"Pag{name}", fields=pagination_fields
+            )
 
         return inline_serializer(
             name=name,
-            fields={
-                "data": serializer,
-                "pagination": inline_serializer(
-                    name=f"Pag{name}", fields=pagination_fields
-                ),
-                "messagesList": serializers.ListField(
-                    child=serializers.CharField(), default=[]
-                ),
-            },
+            fields=fields,
         )

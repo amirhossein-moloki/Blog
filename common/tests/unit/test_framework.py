@@ -35,14 +35,29 @@ class RendererTests(TestCase):
         decoded = json.loads(rendered)
 
         self.assertEqual(decoded["data"], data)
-        self.assertIn("pagination", decoded)
+        self.assertNotIn("pagination", decoded)
+        self.assertIn("messagesList", decoded)
+
+    def test_standard_response_renderer_with_pagination(self):
+        renderer = StandardResponseRenderer()
+        data = {
+            "data": [{"id": 1}],
+            "pagination": {"pageNo": 1},
+        }
+        rendered = renderer.render(data)
+
+        import json
+
+        decoded = json.loads(rendered)
+
+        self.assertEqual(decoded["data"], [{"id": 1}])
+        self.assertEqual(decoded["pagination"], {"pageNo": 1})
         self.assertIn("messagesList", decoded)
 
     def test_standard_response_renderer_already_standardized(self):
         renderer = StandardResponseRenderer()
         data = {
             "data": {"key": "value"},
-            "pagination": {"pageNo": 1},
             "messagesList": [],
         }
         rendered = renderer.render(data)
