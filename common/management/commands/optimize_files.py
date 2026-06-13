@@ -49,7 +49,9 @@ class Command(BaseCommand):
 
                         # EN: Case 1: Standard ImageField/FileField (e.g., User.profile_picture)
                         # FA: مورد اول: ImageField یا FileField استاندارد
-                        if hasattr(field_value, "path") and hasattr(field_value, "save"):
+                        if hasattr(field_value, "path") and hasattr(
+                            field_value, "save"
+                        ):
                             try:
                                 # EN: Skip if already AVIF
                                 # FA: اگر قبلاً AVIF شده باشد، رد شود
@@ -62,15 +64,24 @@ class Command(BaseCommand):
                                 ):
                                     content_type = field_value.file.content_type
 
-                                if "image" in content_type or field_value.name.lower().endswith(
-                                    (".jpg", ".jpeg", ".png", ".webp")
+                                if (
+                                    "image" in content_type
+                                    or field_value.name.lower().endswith(
+                                        (".jpg", ".jpeg", ".png", ".webp")
+                                    )
                                 ):
-                                    self.stdout.write(f"  Optimizing image field {field_name} for {model_str} ID {obj.pk}...")
+                                    self.stdout.write(
+                                        f"  Optimizing image field {field_name} for {model_str} ID {obj.pk}..."
+                                    )
                                     result = optimize_image(field_value)
                                     if result:
                                         # EN: Use field.save to handle storage and database update
                                         # FA: استفاده از field.save برای مدیریت ذخیره‌سازی و به‌روزرسانی پایگاه داده
-                                        field_value.save(result["filename"], result["buffer"], save=True)
+                                        field_value.save(
+                                            result["filename"],
+                                            result["buffer"],
+                                            save=True,
+                                        )
                                 elif (
                                     "video" in content_type
                                     or field_value.name.lower().endswith(
@@ -78,7 +89,9 @@ class Command(BaseCommand):
                                     )
                                 ):
                                     if "_optimized" not in field_value.name:
-                                        self.stdout.write(f"  Queuing video optimization for {field_name} in {model_str} ID {obj.pk}...")
+                                        self.stdout.write(
+                                            f"  Queuing video optimization for {field_name} in {model_str} ID {obj.pk}..."
+                                        )
                                         optimize_video.delay(field_value.path)
                             except Exception as e:
                                 self.stderr.write(
@@ -94,16 +107,20 @@ class Command(BaseCommand):
                             and model_str == "medias.Media"
                             and field_name == "storage_key"
                         ):
-                            if obj.type == "image" and not field_value.lower().endswith(".avif"):
+                            if obj.type == "image" and not field_value.lower().endswith(
+                                ".avif"
+                            ):
                                 try:
-                                    self.stdout.write(f"  Optimizing Media storage_key for ID {obj.pk}...")
+                                    self.stdout.write(
+                                        f"  Optimizing Media storage_key for ID {obj.pk}..."
+                                    )
                                     original_storage_key = field_value
                                     if default_storage.exists(original_storage_key):
                                         with default_storage.open(
                                             original_storage_key, "rb"
                                         ) as f:
-                                            optimized_image_content = convert_image_to_avif(
-                                                f
+                                            optimized_image_content = (
+                                                convert_image_to_avif(f)
                                             )
 
                                         sanitized_name = get_sanitized_filename(
