@@ -73,13 +73,6 @@ def page_not_found_view(request, exception):
         return JsonResponse(
             {
                 "data": None,
-                "pagination": {
-                    "pageNo": 1,
-                    "pageSize": 1000,
-                    "totalPage": 0,
-                    "totalCount": 0,
-                    "lastId": None,
-                },
                 "messagesList": ["The requested API endpoint was not found."],
             },
             status=404,

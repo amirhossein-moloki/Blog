@@ -14,10 +14,9 @@ paths:
   /api/auth/admin-login/:
     post:
       operationId: auth_admin_login_create
-      description: 'Takes a set of user credentials and returns an access and refresh
-        JSON web
-
-        token pair to prove the authentication of those credentials.'
+      description: |-
+        EN: Handles JWT token generation for a user.
+        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
       tags:
       - auth
       requestBody:
@@ -42,6 +41,9 @@ paths:
   /api/auth/google/login/:
     post:
       operationId: auth_google_login_create
+      description: |-
+        EN: Processes the Google ID token and generates project-specific JWT tokens.
+        FA: توکن ID گوگل را پردازش کرده و توکن‌های JWT مخصوص پروژه را تولید می‌کند.
       tags:
       - auth
       requestBody:
@@ -65,6 +67,9 @@ paths:
   /api/authors/:
     get:
       operationId: authors_list
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       tags:
       - authors
       security:
@@ -81,6 +86,9 @@ paths:
           description: ''
     post:
       operationId: authors_create
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       tags:
       - authors
       requestBody:
@@ -107,12 +115,15 @@ paths:
   /api/authors/{user}/:
     get:
       operationId: authors_retrieve
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       parameters:
       - in: path
         name: user
         schema:
           type: integer
-        description: A unique value that identifies this author profile.
+        description: A unique value identifying this author profile.
         required: true
       tags:
       - authors
@@ -128,12 +139,15 @@ paths:
           description: ''
     put:
       operationId: authors_update
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       parameters:
       - in: path
         name: user
         schema:
           type: integer
-        description: A unique value that identifies this author profile.
+        description: A unique value identifying this author profile.
         required: true
       tags:
       - authors
@@ -160,12 +174,15 @@ paths:
           description: ''
     patch:
       operationId: authors_partial_update
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       parameters:
       - in: path
         name: user
         schema:
           type: integer
-        description: A unique value that identifies this author profile.
+        description: A unique value identifying this author profile.
         required: true
       tags:
       - authors
@@ -191,12 +208,15 @@ paths:
           description: ''
     delete:
       operationId: authors_destroy
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
       parameters:
       - in: path
         name: user
         schema:
           type: integer
-        description: A unique value that identifies this author profile.
+        description: A unique value identifying this author profile.
         required: true
       tags:
       - authors
@@ -208,6 +228,9 @@ paths:
   /api/categories/:
     get:
       operationId: categories_list
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       tags:
       - categories
       security:
@@ -223,6 +246,9 @@ paths:
           description: ''
     post:
       operationId: categories_create
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       tags:
       - categories
       requestBody:
@@ -249,12 +275,15 @@ paths:
   /api/categories/{id}/:
     get:
       operationId: categories_retrieve
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this category.
+        description: A unique integer value identifying this category.
         required: true
       tags:
       - categories
@@ -269,12 +298,15 @@ paths:
           description: ''
     put:
       operationId: categories_update
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this category.
+        description: A unique integer value identifying this category.
         required: true
       tags:
       - categories
@@ -301,12 +333,15 @@ paths:
           description: ''
     patch:
       operationId: categories_partial_update
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this category.
+        description: A unique integer value identifying this category.
         required: true
       tags:
       - categories
@@ -332,12 +367,15 @@ paths:
           description: ''
     delete:
       operationId: categories_destroy
+      description: |-
+        EN: ViewSet for managing post categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this category.
+        description: A unique integer value identifying this category.
         required: true
       tags:
       - categories
@@ -349,6 +387,16 @@ paths:
   /api/comments/:
     get:
       operationId: comments_list
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       parameters:
       - name: page
         required: false
@@ -376,6 +424,16 @@ paths:
           description: ''
     post:
       operationId: comments_create
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       tags:
       - comments
       requestBody:
@@ -402,12 +460,22 @@ paths:
   /api/comments/{id}/:
     get:
       operationId: comments_retrieve
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this comment.
+        description: A unique integer value identifying this comment.
         required: true
       tags:
       - comments
@@ -423,12 +491,22 @@ paths:
           description: ''
     put:
       operationId: comments_update
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this comment.
+        description: A unique integer value identifying this comment.
         required: true
       tags:
       - comments
@@ -455,12 +533,22 @@ paths:
           description: ''
     patch:
       operationId: comments_partial_update
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this comment.
+        description: A unique integer value identifying this comment.
         required: true
       tags:
       - comments
@@ -486,12 +574,22 @@ paths:
           description: ''
     delete:
       operationId: comments_destroy
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this comment.
+        description: A unique integer value identifying this comment.
         required: true
       tags:
       - comments
@@ -503,6 +601,14 @@ paths:
   /api/media/:
     get:
       operationId: media_list
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
       parameters:
       - name: page
         required: false
@@ -530,6 +636,9 @@ paths:
           description: ''
     post:
       operationId: media_create
+      description: |-
+        EN: Handles media file upload and returns the detailed representation of the created object.
+        FA: آپلود فایل رسانه را مدیریت کرده و نمایش جزئی شیء ایجاد شده را بازمی‌گرداند.
       tags:
       - media
       requestBody:
@@ -556,12 +665,20 @@ paths:
   /api/media/{id}/:
     get:
       operationId: media_retrieve
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this media.
+        description: A unique integer value identifying this media.
         required: true
       tags:
       - media
@@ -577,12 +694,20 @@ paths:
           description: ''
     put:
       operationId: media_update
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this media.
+        description: A unique integer value identifying this media.
         required: true
       tags:
       - media
@@ -609,12 +734,20 @@ paths:
           description: ''
     patch:
       operationId: media_partial_update
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this media.
+        description: A unique integer value identifying this media.
         required: true
       tags:
       - media
@@ -640,12 +773,20 @@ paths:
           description: ''
     delete:
       operationId: media_destroy
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this media.
+        description: A unique integer value identifying this media.
         required: true
       tags:
       - media
@@ -657,6 +798,14 @@ paths:
   /api/menu-items/:
     get:
       operationId: menu_items_list
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       tags:
       - menu-items
       security:
@@ -672,6 +821,14 @@ paths:
           description: ''
     post:
       operationId: menu_items_create
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       tags:
       - menu-items
       requestBody:
@@ -698,12 +855,20 @@ paths:
   /api/menu-items/{id}/:
     get:
       operationId: menu_items_retrieve
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu item.
+        description: A unique integer value identifying this menu item.
         required: true
       tags:
       - menu-items
@@ -718,12 +883,20 @@ paths:
           description: ''
     put:
       operationId: menu_items_update
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu item.
+        description: A unique integer value identifying this menu item.
         required: true
       tags:
       - menu-items
@@ -750,12 +923,20 @@ paths:
           description: ''
     patch:
       operationId: menu_items_partial_update
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu item.
+        description: A unique integer value identifying this menu item.
         required: true
       tags:
       - menu-items
@@ -781,12 +962,20 @@ paths:
           description: ''
     delete:
       operationId: menu_items_destroy
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu item.
+        description: A unique integer value identifying this menu item.
         required: true
       tags:
       - menu-items
@@ -798,6 +987,14 @@ paths:
   /api/menus/:
     get:
       operationId: menus_list
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       tags:
       - menus
       security:
@@ -813,6 +1010,14 @@ paths:
           description: ''
     post:
       operationId: menus_create
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       tags:
       - menus
       requestBody:
@@ -839,12 +1044,20 @@ paths:
   /api/menus/{id}/:
     get:
       operationId: menus_retrieve
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu.
+        description: A unique integer value identifying this menu.
         required: true
       tags:
       - menus
@@ -859,12 +1072,20 @@ paths:
           description: ''
     put:
       operationId: menus_update
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu.
+        description: A unique integer value identifying this menu.
         required: true
       tags:
       - menus
@@ -891,12 +1112,20 @@ paths:
           description: ''
     patch:
       operationId: menus_partial_update
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu.
+        description: A unique integer value identifying this menu.
         required: true
       tags:
       - menus
@@ -922,12 +1151,20 @@ paths:
           description: ''
     delete:
       operationId: menus_destroy
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this menu.
+        description: A unique integer value identifying this menu.
         required: true
       tags:
       - menus
@@ -939,6 +1176,14 @@ paths:
   /api/pages/:
     get:
       operationId: pages_list
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       tags:
       - pages
       security:
@@ -954,6 +1199,14 @@ paths:
           description: ''
     post:
       operationId: pages_create
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       tags:
       - pages
       requestBody:
@@ -980,12 +1233,20 @@ paths:
   /api/pages/{id}/:
     get:
       operationId: pages_retrieve
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this page.
+        description: A unique integer value identifying this page.
         required: true
       tags:
       - pages
@@ -1000,12 +1261,20 @@ paths:
           description: ''
     put:
       operationId: pages_update
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this page.
+        description: A unique integer value identifying this page.
         required: true
       tags:
       - pages
@@ -1032,12 +1301,20 @@ paths:
           description: ''
     patch:
       operationId: pages_partial_update
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this page.
+        description: A unique integer value identifying this page.
         required: true
       tags:
       - pages
@@ -1063,12 +1340,20 @@ paths:
           description: ''
     delete:
       operationId: pages_destroy
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this page.
+        description: A unique integer value identifying this page.
         required: true
       tags:
       - pages
@@ -1080,9 +1365,16 @@ paths:
   /api/posts/:
     get:
       operationId: posts_list
-      description: 'A view mixin that takes an additional `fields` argument that controls
+      description: |-
+        EN:
+        ViewSet for managing blog posts.
+        Provides advanced filtering, searching, and dynamic field selection.
+        Handles complex queryset optimizations and access control for drafts/scheduled posts.
 
-        which fields should be displayed.'
+        FA:
+        ViewSet برای مدیریت پست‌های بلاگ.
+        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: query
         name: category
@@ -1146,11 +1438,10 @@ paths:
           - private
           - public
           - unlisted
-        description: '* `public` - Public
-
+        description: |-
+          * `public` - Public
           * `private` - Private
-
-          * `unlisted` - Unlisted'
+          * `unlisted` - Unlisted
       tags:
       - posts
       security:
@@ -1165,9 +1456,16 @@ paths:
           description: ''
     post:
       operationId: posts_create
-      description: 'A view mixin that takes an additional `fields` argument that controls
+      description: |-
+        EN:
+        ViewSet for managing blog posts.
+        Provides advanced filtering, searching, and dynamic field selection.
+        Handles complex queryset optimizations and access control for drafts/scheduled posts.
 
-        which fields should be displayed.'
+        FA:
+        ViewSet برای مدیریت پست‌های بلاگ.
+        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
       tags:
       - posts
       requestBody:
@@ -1194,6 +1492,9 @@ paths:
   /api/posts/{post_slug}/comments/:
     get:
       operationId: posts_comments_list
+      description: |-
+        EN: ViewSet to list approved comments for a specific post.
+        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
       parameters:
       - name: ordering
         required: false
@@ -1234,12 +1535,15 @@ paths:
   /api/posts/{post_slug}/comments/{id}/:
     get:
       operationId: posts_comments_retrieve
+      description: |-
+        EN: ViewSet to list approved comments for a specific post.
+        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this comment.
+        description: A unique integer value identifying this comment.
         required: true
       - in: path
         name: post_slug
@@ -1262,9 +1566,9 @@ paths:
   /api/posts/{slug}/:
     get:
       operationId: posts_retrieve
-      description: 'A view mixin that takes an additional `fields` argument that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Increments the view count and returns post details.
+        FA: تعداد بازدیدها را افزایش داده و جزئیات پست را بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1285,9 +1589,16 @@ paths:
           description: ''
     put:
       operationId: posts_update
-      description: 'A view mixin that takes an additional `fields` argument that controls
+      description: |-
+        EN:
+        ViewSet for managing blog posts.
+        Provides advanced filtering, searching, and dynamic field selection.
+        Handles complex queryset optimizations and access control for drafts/scheduled posts.
 
-        which fields should be displayed.'
+        FA:
+        ViewSet برای مدیریت پست‌های بلاگ.
+        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1319,9 +1630,16 @@ paths:
           description: ''
     patch:
       operationId: posts_partial_update
-      description: 'A view mixin that takes an additional `fields` argument that controls
+      description: |-
+        EN:
+        ViewSet for managing blog posts.
+        Provides advanced filtering, searching, and dynamic field selection.
+        Handles complex queryset optimizations and access control for drafts/scheduled posts.
 
-        which fields should be displayed.'
+        FA:
+        ViewSet برای مدیریت پست‌های بلاگ.
+        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1352,9 +1670,16 @@ paths:
           description: ''
     delete:
       operationId: posts_destroy
-      description: 'A view mixin that takes an additional `fields` argument that controls
+      description: |-
+        EN:
+        ViewSet for managing blog posts.
+        Provides advanced filtering, searching, and dynamic field selection.
+        Handles complex queryset optimizations and access control for drafts/scheduled posts.
 
-        which fields should be displayed.'
+        FA:
+        ViewSet برای مدیریت پست‌های بلاگ.
+        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1416,9 +1741,9 @@ paths:
   /api/posts/{slug}/same-category/:
     get:
       operationId: posts_same_category_retrieve
-      description: 'A view mixin that takes an additional `fields` argument that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Returns paginated posts from the same category.
+        FA: پست‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1440,9 +1765,9 @@ paths:
   /api/posts/{slug}/similar/:
     get:
       operationId: posts_similar_retrieve
-      description: 'A view mixin that takes an additional `fields` argument that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Returns similar posts based on the category.
+        FA: پست‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1464,9 +1789,9 @@ paths:
   /api/posts/slug/{slug}/:
     get:
       operationId: posts_slug_retrieve
-      description: 'A view mixin that takes an additional `fields` argument that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Endpoint to retrieve a single post by its slug.
+        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ آن.
       parameters:
       - in: path
         name: slug
@@ -1488,6 +1813,14 @@ paths:
   /api/reactions/:
     get:
       operationId: reactions_list
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       tags:
       - reactions
       security:
@@ -1503,6 +1836,14 @@ paths:
           description: ''
     post:
       operationId: reactions_create
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       tags:
       - reactions
       requestBody:
@@ -1529,12 +1870,20 @@ paths:
   /api/reactions/{id}/:
     get:
       operationId: reactions_retrieve
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this reaction.
+        description: A unique integer value identifying this reaction.
         required: true
       tags:
       - reactions
@@ -1549,12 +1898,20 @@ paths:
           description: ''
     put:
       operationId: reactions_update
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this reaction.
+        description: A unique integer value identifying this reaction.
         required: true
       tags:
       - reactions
@@ -1581,12 +1938,20 @@ paths:
           description: ''
     patch:
       operationId: reactions_partial_update
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this reaction.
+        description: A unique integer value identifying this reaction.
         required: true
       tags:
       - reactions
@@ -1612,12 +1977,20 @@ paths:
           description: ''
     delete:
       operationId: reactions_destroy
+      description: |-
+        EN:
+        ViewSet for managing reactions (likes, emojis).
+        Users can only manage their own reactions.
+
+        FA:
+        ViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).
+        کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this reaction.
+        description: A unique integer value identifying this reaction.
         required: true
       tags:
       - reactions
@@ -1629,6 +2002,9 @@ paths:
   /api/revisions/:
     get:
       operationId: revisions_list
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       tags:
       - revisions
       security:
@@ -1645,6 +2021,9 @@ paths:
           description: ''
     post:
       operationId: revisions_create
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       tags:
       - revisions
       requestBody:
@@ -1671,12 +2050,15 @@ paths:
   /api/revisions/{id}/:
     get:
       operationId: revisions_retrieve
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this revision.
+        description: A unique integer value identifying this revision.
         required: true
       tags:
       - revisions
@@ -1692,12 +2074,15 @@ paths:
           description: ''
     put:
       operationId: revisions_update
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this revision.
+        description: A unique integer value identifying this revision.
         required: true
       tags:
       - revisions
@@ -1724,12 +2109,15 @@ paths:
           description: ''
     patch:
       operationId: revisions_partial_update
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this revision.
+        description: A unique integer value identifying this revision.
         required: true
       tags:
       - revisions
@@ -1755,12 +2143,15 @@ paths:
           description: ''
     delete:
       operationId: revisions_destroy
+      description: |-
+        EN: ViewSet for viewing post revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this revision.
+        description: A unique integer value identifying this revision.
         required: true
       tags:
       - revisions
@@ -1772,6 +2163,9 @@ paths:
   /api/series/:
     get:
       operationId: series_list
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       tags:
       - series
       security:
@@ -1787,6 +2181,9 @@ paths:
           description: ''
     post:
       operationId: series_create
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       tags:
       - series
       requestBody:
@@ -1813,12 +2210,15 @@ paths:
   /api/series/{id}/:
     get:
       operationId: series_retrieve
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this series.
+        description: A unique integer value identifying this series.
         required: true
       tags:
       - series
@@ -1833,12 +2233,15 @@ paths:
           description: ''
     put:
       operationId: series_update
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this series.
+        description: A unique integer value identifying this series.
         required: true
       tags:
       - series
@@ -1865,12 +2268,15 @@ paths:
           description: ''
     patch:
       operationId: series_partial_update
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this series.
+        description: A unique integer value identifying this series.
         required: true
       tags:
       - series
@@ -1896,12 +2302,15 @@ paths:
           description: ''
     delete:
       operationId: series_destroy
+      description: |-
+        EN: ViewSet for managing post series.
+        FA: ViewSet برای مدیریت مجموعه‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this series.
+        description: A unique integer value identifying this series.
         required: true
       tags:
       - series
@@ -1913,6 +2322,9 @@ paths:
   /api/tags/:
     get:
       operationId: tags_list
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       tags:
       - tags
       security:
@@ -1928,6 +2340,9 @@ paths:
           description: ''
     post:
       operationId: tags_create
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       tags:
       - tags
       requestBody:
@@ -1954,12 +2369,15 @@ paths:
   /api/tags/{id}/:
     get:
       operationId: tags_retrieve
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this tag.
+        description: A unique integer value identifying this tag.
         required: true
       tags:
       - tags
@@ -1974,12 +2392,15 @@ paths:
           description: ''
     put:
       operationId: tags_update
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this tag.
+        description: A unique integer value identifying this tag.
         required: true
       tags:
       - tags
@@ -2006,12 +2427,15 @@ paths:
           description: ''
     patch:
       operationId: tags_partial_update
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this tag.
+        description: A unique integer value identifying this tag.
         required: true
       tags:
       - tags
@@ -2037,12 +2461,15 @@ paths:
           description: ''
     delete:
       operationId: tags_destroy
+      description: |-
+        EN: ViewSet for managing post tags.
+        FA: ViewSet برای مدیریت برچسب‌های پست.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this tag.
+        description: A unique integer value identifying this tag.
         required: true
       tags:
       - tags
@@ -2054,10 +2481,9 @@ paths:
   /api/token/:
     post:
       operationId: token_create
-      description: 'Takes a set of user credentials and returns an access and refresh
-        JSON web
-
-        token pair to prove the authentication of those credentials.'
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
       tags:
       - token
       requestBody:
@@ -2082,10 +2508,9 @@ paths:
   /api/token/refresh/:
     post:
       operationId: token_refresh_create
-      description: 'Takes a refresh type JSON web token and returns an access type
-        JSON web
-
-        token if the refresh token is valid.'
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
       tags:
       - token
       requestBody:
@@ -2110,7 +2535,14 @@ paths:
   /api/users/:
     get:
       operationId: users_list
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       parameters:
       - in: query
         name: email
@@ -2135,7 +2567,14 @@ paths:
           description: ''
     post:
       operationId: users_create
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       tags:
       - users
       requestBody:
@@ -2163,13 +2602,20 @@ paths:
   /api/users/{id}/:
     get:
       operationId: users_retrieve
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this user.
+        description: A unique integer value identifying this user.
         required: true
       tags:
       - users
@@ -2184,13 +2630,20 @@ paths:
           description: ''
     put:
       operationId: users_update
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this user.
+        description: A unique integer value identifying this user.
         required: true
       tags:
       - users
@@ -2217,13 +2670,20 @@ paths:
           description: ''
     patch:
       operationId: users_partial_update
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this user.
+        description: A unique integer value identifying this user.
         required: true
       tags:
       - users
@@ -2249,13 +2709,20 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
-      description: ViewSet for managing users.
+      description: |-
+        EN:
+        ViewSet for managing users, providing CRUD operations with tailored serializers.
+        Restricts access based on administrative roles or account ownership.
+
+        FA:
+        ViewSet برای مدیریت کاربران، ارائه عملیات CRUD با سریالایزرهای اختصاصی.
+        دسترسی را بر اساس نقش‌های مدیریتی یا مالکیت حساب محدود می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique value that identifies this user.
+        description: A unique integer value identifying this user.
         required: true
       tags:
       - users
@@ -2267,7 +2734,9 @@ paths:
   /api/users/me/:
     get:
       operationId: users_me_retrieve
-      description: ViewSet for managing users.
+      description: |-
+        EN: Endpoint to retrieve the currently authenticated user's profile.
+        FA: اندپوینت برای دریافت پروفایل کاربر فعلی که احراز هویت شده است.
       tags:
       - users
       security:
@@ -2283,6 +2752,9 @@ components:
   schemas:
     AuthorForPost:
       type: object
+      description: |-
+        EN: Minimal author serializer for inclusion in Post representation.
+        FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش پست.
       properties:
         display_name:
           type: string
@@ -2296,6 +2768,9 @@ components:
       - display_name
     AuthorProfile:
       type: object
+      description: |-
+        EN: Serializer for AuthorProfile model.
+        FA: سریالایزر برای مدل AuthorProfile.
       properties:
         user:
           type: integer
@@ -2312,6 +2787,9 @@ components:
       - user
     AuthorProfileRequest:
       type: object
+      description: |-
+        EN: Serializer for AuthorProfile model.
+        FA: سریالایزر برای مدل AuthorProfile.
       properties:
         user:
           type: integer
@@ -2329,6 +2807,9 @@ components:
       - user
     Category:
       type: object
+      description: |-
+        EN: Serializer for Category model with support for parent categories.
+        FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد.
       properties:
         id:
           type: integer
@@ -2349,6 +2830,9 @@ components:
       - slug
     CategoryRequest:
       type: object
+      description: |-
+        EN: Serializer for Category model with support for parent categories.
+        FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد.
       properties:
         slug:
           type: string
@@ -2367,6 +2851,9 @@ components:
       - slug
     Comment:
       type: object
+      description: |-
+        EN: Serializer for creating and managing individual Comments.
+        FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
       properties:
         id:
           type: integer
@@ -2396,6 +2883,9 @@ components:
       - user
     CommentList:
       type: object
+      description: |-
+        EN: Serializer for listing Comments with user details and like counts.
+        FA: سریالایزر برای لیست کردن نظرات به همراه جزئیات کاربر و تعداد لایک‌ها.
       properties:
         id:
           type: integer
@@ -2425,6 +2915,9 @@ components:
       - user
     CommentRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and managing individual Comments.
+        FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
       properties:
         post:
           type: integer
@@ -2446,19 +2939,19 @@ components:
       - spam
       - removed
       type: string
-      description: '* `pending` - Pending
-
+      description: |-
+        * `pending` - Pending
         * `approved` - Approved
-
         * `spam` - Spam
-
-        * `removed` - Removed'
+        * `removed` - Removed
     CommentUser:
       type: object
+      description: |-
+        EN: Serializer for minimal User information within comments.
+        FA: سریالایزر برای اطلاعات حداقلی کاربر در نظرات.
       properties:
         username:
           type: string
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -2471,6 +2964,9 @@ components:
       - username
     CustomTokenObtainPairRequest:
       type: object
+      description: |-
+        EN: Custom JWT token serializer extending SimpleJWT's default.
+        FA: سریالایزر توکن JWT سفارشی که سریالایزر پیش‌فرض SimpleJWT را گسترش می‌دهد.
       properties:
         username:
           type: string
@@ -2485,6 +2981,9 @@ components:
       - username
     GoogleLoginRequest:
       type: object
+      description: |-
+        EN: Serializer for Google OAuth2 login, requiring an ID token from Google.
+        FA: سریالایزر برای ورود با گوگل OAuth2، که نیاز به یک ID token از سمت گوگل دارد.
       properties:
         id_token:
           type: string
@@ -2497,13 +2996,15 @@ components:
       - footer
       - sidebar
       type: string
-      description: '* `header` - Header
-
+      description: |-
+        * `header` - Header
         * `footer` - Footer
-
-        * `sidebar` - Sidebar'
+        * `sidebar` - Sidebar
     MediaCreate:
       type: object
+      description: |-
+        EN: Serializer for uploading new media files. Validates file size and type.
+        FA: سریالایزر برای آپلود فایل‌های رسانه‌ای جدید. حجم و نوع فایل را اعتبارسنجی می‌کند.
       properties:
         alt_text:
           type: string
@@ -2513,6 +3014,9 @@ components:
           maxLength: 255
     MediaCreateRequest:
       type: object
+      description: |-
+        EN: Serializer for uploading new media files. Validates file size and type.
+        FA: سریالایزر برای آپلود فایل‌های رسانه‌ای جدید. حجم و نوع فایل را اعتبارسنجی می‌کند.
       properties:
         file:
           type: string
@@ -2528,6 +3032,9 @@ components:
       - file
     MediaDetail:
       type: object
+      description: |-
+        EN: Detailed serializer for the Media model, including Jalali creation date.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
       properties:
         id:
           type: integer
@@ -2591,6 +3098,9 @@ components:
       - url
     MediaDetailRequest:
       type: object
+      description: |-
+        EN: Detailed serializer for the Media model, including Jalali creation date.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
       properties:
         storage_key:
           type: string
@@ -2648,6 +3158,9 @@ components:
       - url
     Menu:
       type: object
+      description: |-
+        EN: Serializer for Menus, including nested MenuItem representations.
+        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
       properties:
         id:
           type: integer
@@ -2684,6 +3197,9 @@ components:
       - updated_at
     MenuItem:
       type: object
+      description: |-
+        EN: Serializer for Menu items, including all their fields.
+        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
       properties:
         id:
           type: integer
@@ -2728,6 +3244,9 @@ components:
       - url
     MenuItemRequest:
       type: object
+      description: |-
+        EN: Serializer for Menu items, including all their fields.
+        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
       properties:
         is_active:
           type: boolean
@@ -2758,6 +3277,9 @@ components:
       - url
     MenuRequest:
       type: object
+      description: |-
+        EN: Serializer for Menus, including nested MenuItem representations.
+        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
       properties:
         is_active:
           type: boolean
@@ -2776,298 +3298,10 @@ components:
       - manual
       - by_date
       type: string
-      description: '* `manual` - Manual
-
-        * `by_date` - By Date'
-    PagStdAuthorProfileCreatePostAuthorProfileSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdAuthorProfileListGetAuthorProfileSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdAuthorProfilePartial_updatePatchAuthorProfileSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdAuthorProfileRetrieveGetAuthorProfileSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdAuthorProfileUpdatePutAuthorProfileSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCategoryCreatePostCategorySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCategoryListGetCategorySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCategoryPartial_updatePatchCategorySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCategoryRetrieveGetCategorySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCategoryUpdatePutCategorySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCommentCreatePostCommentSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
+      description: |-
+        * `manual` - Manual
+        * `by_date` - By Date
     PagStdCommentListGetCommentSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCommentPartial_updatePatchCommentSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCommentRetrieveGetCommentSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCommentUpdatePutCommentSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMediaCreatePostMediaCreateSerializer200:
       type: object
       properties:
         pageNo:
@@ -3103,385 +3337,7 @@ components:
         lastId:
           type: string
           nullable: true
-    PagStdMediaPartial_updatePatchMediaDetailSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMediaRetrieveGetMediaDetailSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMediaUpdatePutMediaDetailSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuCreatePostMenuSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuItemCreatePostMenuItemSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuItemListGetMenuItemSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuItemPartial_updatePatchMenuItemSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuItemRetrieveGetMenuItemSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuItemUpdatePutMenuItemSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuListGetMenuSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuPartial_updatePatchMenuSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuRetrieveGetMenuSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdMenuUpdatePutMenuSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPageCreatePostPageSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPageListGetPageSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPagePartial_updatePatchPageSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPageRetrieveGetPageSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPageUpdatePutPageSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostBy_slugGetPostListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
     PagStdPostCommentListGetCommentListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostCommentRetrieveGetCommentListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostCreatePostPostCreateUpdateSerializer200:
       type: object
       properties:
         pageNo:
@@ -3517,583 +3373,7 @@ components:
         lastId:
           type: string
           nullable: true
-    PagStdPostPartial_updatePatchPostCreateUpdateSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostRetrieveGetPostDetailSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
     PagStdPostSame_categoryGetPostListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostSimilarGetPostListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostUpdatePutPostCreateUpdateSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdReactionCreatePostReactionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdReactionListGetReactionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdReactionPartial_updatePatchReactionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdReactionRetrieveGetReactionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdReactionUpdatePutReactionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdRevisionCreatePostRevisionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdRevisionListGetRevisionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdRevisionPartial_updatePatchRevisionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdRevisionRetrieveGetRevisionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdRevisionUpdatePutRevisionSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdSeriesCreatePostSeriesSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdSeriesListGetSeriesSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdSeriesPartial_updatePatchSeriesSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdSeriesRetrieveGetSeriesSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdSeriesUpdatePutSeriesSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTagCreatePostTagSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTagListGetTagSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTagPartial_updatePatchTagSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTagRetrieveGetTagSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTagUpdatePutTagSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTokenObtainPairViewPostTokenObtainPairSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdTokenRefreshViewPostTokenRefreshSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserCreatePostUserCreateSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserListGetUserReadOnlySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserMeGetUserSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserPartial_updatePatchUserSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserRetrieveGetUserReadOnlySerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdUserUpdatePutUserSerializer200:
       type: object
       properties:
         pageNo:
@@ -4113,6 +3393,9 @@ components:
           nullable: true
     Page:
       type: object
+      description: |-
+        EN: Serializer for the Page model, providing all fields for individual pages.
+        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
       properties:
         id:
           type: integer
@@ -4159,6 +3442,9 @@ components:
       - updated_at
     PageRequest:
       type: object
+      description: |-
+        EN: Serializer for the Page model, providing all fields for individual pages.
+        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
       properties:
         is_active:
           type: boolean
@@ -4284,6 +3570,9 @@ components:
             $ref: '#/components/schemas/StdPostListGetPostListSerializer200'
     PatchedAuthorProfileRequest:
       type: object
+      description: |-
+        EN: Serializer for AuthorProfile model.
+        FA: سریالایزر برای مدل AuthorProfile.
       properties:
         user:
           type: integer
@@ -4298,6 +3587,9 @@ components:
           nullable: true
     PatchedCategoryRequest:
       type: object
+      description: |-
+        EN: Serializer for Category model with support for parent categories.
+        FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد.
       properties:
         slug:
           type: string
@@ -4313,6 +3605,9 @@ components:
           nullable: true
     PatchedCommentRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and managing individual Comments.
+        FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
       properties:
         post:
           type: integer
@@ -4326,6 +3621,9 @@ components:
           $ref: '#/components/schemas/CommentStatusEnum'
     PatchedMediaDetailRequest:
       type: object
+      description: |-
+        EN: Detailed serializer for the Media model, including Jalali creation date.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
       properties:
         storage_key:
           type: string
@@ -4378,6 +3676,9 @@ components:
           nullable: true
     PatchedMenuItemRequest:
       type: object
+      description: |-
+        EN: Serializer for Menu items, including all their fields.
+        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
       properties:
         is_active:
           type: boolean
@@ -4404,6 +3705,9 @@ components:
           nullable: true
     PatchedMenuRequest:
       type: object
+      description: |-
+        EN: Serializer for Menus, including nested MenuItem representations.
+        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
       properties:
         is_active:
           type: boolean
@@ -4416,6 +3720,9 @@ components:
           $ref: '#/components/schemas/LocationEnum'
     PatchedPageRequest:
       type: object
+      description: |-
+        EN: Serializer for the Page model, providing all fields for individual pages.
+        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
       properties:
         is_active:
           type: boolean
@@ -4445,6 +3752,9 @@ components:
           type: string
     PatchedPostCreateUpdateRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
       properties:
         title:
           type: string
@@ -4504,6 +3814,9 @@ components:
           nullable: true
     PatchedReactionRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and managing Reactions (likes, emojis) on various objects.
+        FA: سریالایزر برای ایجاد و مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها) روی اشیاء مختلف.
       properties:
         reaction:
           type: string
@@ -4518,6 +3831,9 @@ components:
           format: int64
     PatchedRevisionRequest:
       type: object
+      description: |-
+        EN: Serializer for Post Revisions.
+        FA: سریالایزر برای بازنگری‌های پست.
       properties:
         is_active:
           type: boolean
@@ -4542,6 +3858,9 @@ components:
           nullable: true
     PatchedSeriesRequest:
       type: object
+      description: |-
+        EN: Serializer for Series model.
+        FA: سریالایزر برای مدل مجموعه.
       properties:
         is_active:
           type: boolean
@@ -4561,6 +3880,9 @@ components:
           $ref: '#/components/schemas/OrderStrategyEnum'
     PatchedTagRequest:
       type: object
+      description: |-
+        EN: Serializer for Tag model.
+        FA: سریالایزر برای مدل برچسب.
       properties:
         slug:
           type: string
@@ -4573,28 +3895,27 @@ components:
           maxLength: 255
     PatchedUserRequest:
       type: object
-      description: Serializer for the User model (full view for owner).
+      description: |-
+        EN: Serializer for the User model providing full access for the account owner.
+        FA: سریالایزر برای مدل کاربر که دسترسی کامل را برای صاحب حساب فراهم می‌کند.
       properties:
         username:
           type: string
           minLength: 1
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: Email Address
+          title: Email address
           maxLength: 254
         profile_picture:
           type: string
@@ -4602,6 +3923,9 @@ components:
           nullable: true
     PostCreateUpdate:
       type: object
+      description: |-
+        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
       properties:
         title:
           type: string
@@ -4680,6 +4004,9 @@ components:
       - views_count
     PostCreateUpdateRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
       properties:
         title:
           type: string
@@ -4743,10 +4070,9 @@ components:
       - title
     PostDetail:
       type: object
-      description: 'A serializer mixin that takes an additional `fields` argument
-        that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Comprehensive serializer for detailed Post view, including content and attachments.
+        FA: سریالایزر جامع برای نمای جزئیات پست، شامل محتوا و پیوست‌ها.
       properties:
         id:
           type: integer
@@ -4844,10 +4170,9 @@ components:
       - title
     PostList:
       type: object
-      description: 'A serializer mixin that takes an additional `fields` argument
-        that controls
-
-        which fields should be displayed.'
+      description: |-
+        EN: Optimized serializer for listing Posts with essential fields.
+        FA: سریالایزر بهینه‌سازی شده برای لیست کردن پست‌ها با فیلدهای ضروری.
       properties:
         id:
           type: integer
@@ -4916,6 +4241,9 @@ components:
       - title
     PostMedia:
       type: object
+      description: |-
+        EN: Serializer for the relationship between Posts and Media.
+        FA: سریالایزر برای رابطه بین پست‌ها و رسانه‌ها.
       properties:
         media:
           allOf:
@@ -4934,17 +4262,17 @@ components:
       - published
       - archived
       type: string
-      description: '* `draft` - Draft
-
+      description: |-
+        * `draft` - Draft
         * `review` - Review
-
         * `scheduled` - Scheduled
-
         * `published` - Published
-
-        * `archived` - Archived'
+        * `archived` - Archived
     Reaction:
       type: object
+      description: |-
+        EN: Serializer for creating and managing Reactions (likes, emojis) on various objects.
+        FA: سریالایزر برای ایجاد و مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها) روی اشیاء مختلف.
       properties:
         id:
           type: integer
@@ -4972,6 +4300,9 @@ components:
       - reaction
     ReactionRequest:
       type: object
+      description: |-
+        EN: Serializer for creating and managing Reactions (likes, emojis) on various objects.
+        FA: سریالایزر برای ایجاد و مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها) روی اشیاء مختلف.
       properties:
         reaction:
           type: string
@@ -4990,6 +4321,9 @@ components:
       - reaction
     Revision:
       type: object
+      description: |-
+        EN: Serializer for Post Revisions.
+        FA: سریالایزر برای بازنگری‌های پست.
       properties:
         id:
           type: integer
@@ -5032,6 +4366,9 @@ components:
       - updated_at
     RevisionRequest:
       type: object
+      description: |-
+        EN: Serializer for Post Revisions.
+        FA: سریالایزر برای بازنگری‌های پست.
       properties:
         is_active:
           type: boolean
@@ -5061,6 +4398,9 @@ components:
       - title
     Series:
       type: object
+      description: |-
+        EN: Serializer for Series model.
+        FA: سریالایزر برای مدل مجموعه.
       properties:
         id:
           type: integer
@@ -5097,6 +4437,9 @@ components:
       - updated_at
     SeriesRequest:
       type: object
+      description: |-
+        EN: Serializer for Series model.
+        FA: سریالایزر برای مدل مجموعه.
       properties:
         is_active:
           type: boolean
@@ -5122,8 +4465,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/AuthorProfile'
-        pagination:
-          $ref: '#/components/schemas/PagStdAuthorProfileCreatePostAuthorProfileSerializer200'
         messagesList:
           type: array
           items:
@@ -5131,14 +4472,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdAuthorProfileListGetAuthorProfileSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/AuthorProfile'
-        pagination:
-          $ref: '#/components/schemas/PagStdAuthorProfileListGetAuthorProfileSerializer200'
         messagesList:
           type: array
           items:
@@ -5146,14 +4484,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdAuthorProfilePartial_updatePatchAuthorProfileSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/AuthorProfile'
-        pagination:
-          $ref: '#/components/schemas/PagStdAuthorProfilePartial_updatePatchAuthorProfileSerializer200'
         messagesList:
           type: array
           items:
@@ -5161,14 +4496,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdAuthorProfileRetrieveGetAuthorProfileSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/AuthorProfile'
-        pagination:
-          $ref: '#/components/schemas/PagStdAuthorProfileRetrieveGetAuthorProfileSerializer200'
         messagesList:
           type: array
           items:
@@ -5176,14 +4508,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdAuthorProfileUpdatePutAuthorProfileSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/AuthorProfile'
-        pagination:
-          $ref: '#/components/schemas/PagStdAuthorProfileUpdatePutAuthorProfileSerializer200'
         messagesList:
           type: array
           items:
@@ -5191,14 +4520,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCategoryCreatePostCategorySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Category'
-        pagination:
-          $ref: '#/components/schemas/PagStdCategoryCreatePostCategorySerializer200'
         messagesList:
           type: array
           items:
@@ -5206,14 +4532,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCategoryListGetCategorySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Category'
-        pagination:
-          $ref: '#/components/schemas/PagStdCategoryListGetCategorySerializer200'
         messagesList:
           type: array
           items:
@@ -5221,14 +4544,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCategoryPartial_updatePatchCategorySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Category'
-        pagination:
-          $ref: '#/components/schemas/PagStdCategoryPartial_updatePatchCategorySerializer200'
         messagesList:
           type: array
           items:
@@ -5236,14 +4556,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCategoryRetrieveGetCategorySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Category'
-        pagination:
-          $ref: '#/components/schemas/PagStdCategoryRetrieveGetCategorySerializer200'
         messagesList:
           type: array
           items:
@@ -5251,14 +4568,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCategoryUpdatePutCategorySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Category'
-        pagination:
-          $ref: '#/components/schemas/PagStdCategoryUpdatePutCategorySerializer200'
         messagesList:
           type: array
           items:
@@ -5266,14 +4580,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCommentCreatePostCommentSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Comment'
-        pagination:
-          $ref: '#/components/schemas/PagStdCommentCreatePostCommentSerializer200'
         messagesList:
           type: array
           items:
@@ -5281,19 +4592,18 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCommentListGetCommentSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Comment'
-        pagination:
-          $ref: '#/components/schemas/PagStdCommentListGetCommentSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdCommentListGetCommentSerializer200'
       required:
       - data
       - pagination
@@ -5302,8 +4612,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Comment'
-        pagination:
-          $ref: '#/components/schemas/PagStdCommentPartial_updatePatchCommentSerializer200'
         messagesList:
           type: array
           items:
@@ -5311,14 +4619,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCommentRetrieveGetCommentSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Comment'
-        pagination:
-          $ref: '#/components/schemas/PagStdCommentRetrieveGetCommentSerializer200'
         messagesList:
           type: array
           items:
@@ -5326,14 +4631,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCommentUpdatePutCommentSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Comment'
-        pagination:
-          $ref: '#/components/schemas/PagStdCommentUpdatePutCommentSerializer200'
         messagesList:
           type: array
           items:
@@ -5341,26 +4643,19 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200:
       type: object
       properties:
-        pagination:
-          $ref: '#/components/schemas/PagStdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
-      required:
-      - pagination
     StdMediaCreatePostMediaCreateSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MediaCreate'
-        pagination:
-          $ref: '#/components/schemas/PagStdMediaCreatePostMediaCreateSerializer200'
         messagesList:
           type: array
           items:
@@ -5368,19 +4663,18 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMediaListGetMediaDetailSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        pagination:
-          $ref: '#/components/schemas/PagStdMediaListGetMediaDetailSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdMediaListGetMediaDetailSerializer200'
       required:
       - data
       - pagination
@@ -5389,8 +4683,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        pagination:
-          $ref: '#/components/schemas/PagStdMediaPartial_updatePatchMediaDetailSerializer200'
         messagesList:
           type: array
           items:
@@ -5398,14 +4690,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMediaRetrieveGetMediaDetailSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        pagination:
-          $ref: '#/components/schemas/PagStdMediaRetrieveGetMediaDetailSerializer200'
         messagesList:
           type: array
           items:
@@ -5413,14 +4702,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMediaUpdatePutMediaDetailSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        pagination:
-          $ref: '#/components/schemas/PagStdMediaUpdatePutMediaDetailSerializer200'
         messagesList:
           type: array
           items:
@@ -5428,14 +4714,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuCreatePostMenuSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Menu'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuCreatePostMenuSerializer200'
         messagesList:
           type: array
           items:
@@ -5443,14 +4726,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuItemCreatePostMenuItemSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MenuItem'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuItemCreatePostMenuItemSerializer200'
         messagesList:
           type: array
           items:
@@ -5458,14 +4738,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuItemListGetMenuItemSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MenuItem'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuItemListGetMenuItemSerializer200'
         messagesList:
           type: array
           items:
@@ -5473,14 +4750,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuItemPartial_updatePatchMenuItemSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MenuItem'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuItemPartial_updatePatchMenuItemSerializer200'
         messagesList:
           type: array
           items:
@@ -5488,14 +4762,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuItemRetrieveGetMenuItemSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MenuItem'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuItemRetrieveGetMenuItemSerializer200'
         messagesList:
           type: array
           items:
@@ -5503,14 +4774,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuItemUpdatePutMenuItemSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/MenuItem'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuItemUpdatePutMenuItemSerializer200'
         messagesList:
           type: array
           items:
@@ -5518,14 +4786,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuListGetMenuSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Menu'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuListGetMenuSerializer200'
         messagesList:
           type: array
           items:
@@ -5533,14 +4798,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuPartial_updatePatchMenuSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Menu'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuPartial_updatePatchMenuSerializer200'
         messagesList:
           type: array
           items:
@@ -5548,14 +4810,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuRetrieveGetMenuSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Menu'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuRetrieveGetMenuSerializer200'
         messagesList:
           type: array
           items:
@@ -5563,14 +4822,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdMenuUpdatePutMenuSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Menu'
-        pagination:
-          $ref: '#/components/schemas/PagStdMenuUpdatePutMenuSerializer200'
         messagesList:
           type: array
           items:
@@ -5578,14 +4834,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPageCreatePostPageSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Page'
-        pagination:
-          $ref: '#/components/schemas/PagStdPageCreatePostPageSerializer200'
         messagesList:
           type: array
           items:
@@ -5593,14 +4846,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPageListGetPageSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Page'
-        pagination:
-          $ref: '#/components/schemas/PagStdPageListGetPageSerializer200'
         messagesList:
           type: array
           items:
@@ -5608,14 +4858,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPagePartial_updatePatchPageSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Page'
-        pagination:
-          $ref: '#/components/schemas/PagStdPagePartial_updatePatchPageSerializer200'
         messagesList:
           type: array
           items:
@@ -5623,14 +4870,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPageRetrieveGetPageSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Page'
-        pagination:
-          $ref: '#/components/schemas/PagStdPageRetrieveGetPageSerializer200'
         messagesList:
           type: array
           items:
@@ -5638,14 +4882,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPageUpdatePutPageSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Page'
-        pagination:
-          $ref: '#/components/schemas/PagStdPageUpdatePutPageSerializer200'
         messagesList:
           type: array
           items:
@@ -5653,14 +4894,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostBy_slugGetPostListSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostBy_slugGetPostListSerializer200'
         messagesList:
           type: array
           items:
@@ -5668,19 +4906,18 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostCommentListGetCommentListSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/CommentList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostCommentListGetCommentListSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdPostCommentListGetCommentListSerializer200'
       required:
       - data
       - pagination
@@ -5689,8 +4926,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/CommentList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostCommentRetrieveGetCommentListSerializer200'
         messagesList:
           type: array
           items:
@@ -5698,14 +4933,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostCreatePostPostCreateUpdateSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostCreateUpdate'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostCreatePostPostCreateUpdateSerializer200'
         messagesList:
           type: array
           items:
@@ -5713,19 +4945,18 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostListGetPostListSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostListGetPostListSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdPostListGetPostListSerializer200'
       required:
       - data
       - pagination
@@ -5734,8 +4965,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/PostCreateUpdate'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostPartial_updatePatchPostCreateUpdateSerializer200'
         messagesList:
           type: array
           items:
@@ -5743,14 +4972,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostRetrieveGetPostDetailSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostDetail'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostRetrieveGetPostDetailSerializer200'
         messagesList:
           type: array
           items:
@@ -5758,19 +4984,18 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostSame_categoryGetPostListSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostSame_categoryGetPostListSerializer200'
         messagesList:
           type: array
           items:
             type: string
           default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdPostSame_categoryGetPostListSerializer200'
       required:
       - data
       - pagination
@@ -5779,8 +5004,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/PostList'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostSimilarGetPostListSerializer200'
         messagesList:
           type: array
           items:
@@ -5788,14 +5011,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdPostUpdatePutPostCreateUpdateSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/PostCreateUpdate'
-        pagination:
-          $ref: '#/components/schemas/PagStdPostUpdatePutPostCreateUpdateSerializer200'
         messagesList:
           type: array
           items:
@@ -5803,14 +5023,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdReactionCreatePostReactionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Reaction'
-        pagination:
-          $ref: '#/components/schemas/PagStdReactionCreatePostReactionSerializer200'
         messagesList:
           type: array
           items:
@@ -5818,14 +5035,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdReactionListGetReactionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Reaction'
-        pagination:
-          $ref: '#/components/schemas/PagStdReactionListGetReactionSerializer200'
         messagesList:
           type: array
           items:
@@ -5833,14 +5047,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdReactionPartial_updatePatchReactionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Reaction'
-        pagination:
-          $ref: '#/components/schemas/PagStdReactionPartial_updatePatchReactionSerializer200'
         messagesList:
           type: array
           items:
@@ -5848,14 +5059,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdReactionRetrieveGetReactionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Reaction'
-        pagination:
-          $ref: '#/components/schemas/PagStdReactionRetrieveGetReactionSerializer200'
         messagesList:
           type: array
           items:
@@ -5863,14 +5071,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdReactionUpdatePutReactionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Reaction'
-        pagination:
-          $ref: '#/components/schemas/PagStdReactionUpdatePutReactionSerializer200'
         messagesList:
           type: array
           items:
@@ -5878,14 +5083,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdRevisionCreatePostRevisionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Revision'
-        pagination:
-          $ref: '#/components/schemas/PagStdRevisionCreatePostRevisionSerializer200'
         messagesList:
           type: array
           items:
@@ -5893,14 +5095,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdRevisionListGetRevisionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Revision'
-        pagination:
-          $ref: '#/components/schemas/PagStdRevisionListGetRevisionSerializer200'
         messagesList:
           type: array
           items:
@@ -5908,14 +5107,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdRevisionPartial_updatePatchRevisionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Revision'
-        pagination:
-          $ref: '#/components/schemas/PagStdRevisionPartial_updatePatchRevisionSerializer200'
         messagesList:
           type: array
           items:
@@ -5923,14 +5119,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdRevisionRetrieveGetRevisionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Revision'
-        pagination:
-          $ref: '#/components/schemas/PagStdRevisionRetrieveGetRevisionSerializer200'
         messagesList:
           type: array
           items:
@@ -5938,14 +5131,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdRevisionUpdatePutRevisionSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Revision'
-        pagination:
-          $ref: '#/components/schemas/PagStdRevisionUpdatePutRevisionSerializer200'
         messagesList:
           type: array
           items:
@@ -5953,14 +5143,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdSeriesCreatePostSeriesSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Series'
-        pagination:
-          $ref: '#/components/schemas/PagStdSeriesCreatePostSeriesSerializer200'
         messagesList:
           type: array
           items:
@@ -5968,14 +5155,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdSeriesListGetSeriesSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Series'
-        pagination:
-          $ref: '#/components/schemas/PagStdSeriesListGetSeriesSerializer200'
         messagesList:
           type: array
           items:
@@ -5983,14 +5167,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdSeriesPartial_updatePatchSeriesSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Series'
-        pagination:
-          $ref: '#/components/schemas/PagStdSeriesPartial_updatePatchSeriesSerializer200'
         messagesList:
           type: array
           items:
@@ -5998,14 +5179,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdSeriesRetrieveGetSeriesSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Series'
-        pagination:
-          $ref: '#/components/schemas/PagStdSeriesRetrieveGetSeriesSerializer200'
         messagesList:
           type: array
           items:
@@ -6013,14 +5191,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdSeriesUpdatePutSeriesSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Series'
-        pagination:
-          $ref: '#/components/schemas/PagStdSeriesUpdatePutSeriesSerializer200'
         messagesList:
           type: array
           items:
@@ -6028,14 +5203,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTagCreatePostTagSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Tag'
-        pagination:
-          $ref: '#/components/schemas/PagStdTagCreatePostTagSerializer200'
         messagesList:
           type: array
           items:
@@ -6043,14 +5215,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTagListGetTagSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Tag'
-        pagination:
-          $ref: '#/components/schemas/PagStdTagListGetTagSerializer200'
         messagesList:
           type: array
           items:
@@ -6058,14 +5227,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTagPartial_updatePatchTagSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Tag'
-        pagination:
-          $ref: '#/components/schemas/PagStdTagPartial_updatePatchTagSerializer200'
         messagesList:
           type: array
           items:
@@ -6073,14 +5239,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTagRetrieveGetTagSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Tag'
-        pagination:
-          $ref: '#/components/schemas/PagStdTagRetrieveGetTagSerializer200'
         messagesList:
           type: array
           items:
@@ -6088,14 +5251,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTagUpdatePutTagSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Tag'
-        pagination:
-          $ref: '#/components/schemas/PagStdTagUpdatePutTagSerializer200'
         messagesList:
           type: array
           items:
@@ -6103,14 +5263,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTokenObtainPairViewPostTokenObtainPairSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/TokenObtainPair'
-        pagination:
-          $ref: '#/components/schemas/PagStdTokenObtainPairViewPostTokenObtainPairSerializer200'
         messagesList:
           type: array
           items:
@@ -6118,14 +5275,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdTokenRefreshViewPostTokenRefreshSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/TokenRefresh'
-        pagination:
-          $ref: '#/components/schemas/PagStdTokenRefreshViewPostTokenRefreshSerializer200'
         messagesList:
           type: array
           items:
@@ -6133,14 +5287,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserCreatePostUserCreateSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/UserCreate'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserCreatePostUserCreateSerializer200'
         messagesList:
           type: array
           items:
@@ -6148,14 +5299,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserListGetUserReadOnlySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/UserReadOnly'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserListGetUserReadOnlySerializer200'
         messagesList:
           type: array
           items:
@@ -6163,14 +5311,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserMeGetUserSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/User'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserMeGetUserSerializer200'
         messagesList:
           type: array
           items:
@@ -6178,14 +5323,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserPartial_updatePatchUserSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/User'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserPartial_updatePatchUserSerializer200'
         messagesList:
           type: array
           items:
@@ -6193,14 +5335,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserRetrieveGetUserReadOnlySerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/UserReadOnly'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserRetrieveGetUserReadOnlySerializer200'
         messagesList:
           type: array
           items:
@@ -6208,14 +5347,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     StdUserUpdatePutUserSerializer200:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/User'
-        pagination:
-          $ref: '#/components/schemas/PagStdUserUpdatePutUserSerializer200'
         messagesList:
           type: array
           items:
@@ -6223,9 +5359,11 @@ components:
           default: []
       required:
       - data
-      - pagination
     Tag:
       type: object
+      description: |-
+        EN: Serializer for Tag model.
+        FA: سریالایزر برای مدل برچسب.
       properties:
         id:
           type: integer
@@ -6243,6 +5381,9 @@ components:
       - slug
     TagRequest:
       type: object
+      description: |-
+        EN: Serializer for Tag model.
+        FA: سریالایزر برای مدل برچسب.
       properties:
         slug:
           type: string
@@ -6301,30 +5442,29 @@ components:
       - refresh
     User:
       type: object
-      description: Serializer for the User model (full view for owner).
+      description: |-
+        EN: Serializer for the User model providing full access for the account owner.
+        FA: سریالایزر برای مدل کاربر که دسترسی کامل را برای صاحب حساب فراهم می‌کند.
       properties:
         id:
           type: integer
           readOnly: true
         username:
           type: string
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: Email Address
+          title: Email address
           maxLength: 254
         profile_picture:
           type: string
@@ -6341,11 +5481,12 @@ components:
       - username
     UserCreate:
       type: object
-      description: Serializer for creating a new User.
+      description: |-
+        EN: Serializer for registering a new User.
+        FA: سریالایزر برای ثبت‌نام یک کاربر جدید.
       properties:
         username:
           type: string
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -6355,23 +5496,22 @@ components:
           format: email
         first_name:
           type: string
-          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: Last Name
           maxLength: 150
       required:
       - email
       - username
     UserCreateRequest:
       type: object
-      description: Serializer for creating a new User.
+      description: |-
+        EN: Serializer for registering a new User.
+        FA: سریالایزر برای ثبت‌نام یک کاربر جدید.
       properties:
         username:
           type: string
           minLength: 1
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
@@ -6382,11 +5522,9 @@ components:
           minLength: 1
         first_name:
           type: string
-          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: Last Name
           maxLength: 150
         password:
           type: string
@@ -6403,7 +5541,9 @@ components:
       - username
     UserReadOnly:
       type: object
-      description: Serializer for public User profiles (read-only).
+      description: |-
+        EN: Serializer for public User profiles (read-only access).
+        FA: سریالایزر برای پروفایل‌های عمومی کاربران (دسترسی فقط خواندنی).
       properties:
         id:
           type: integer
@@ -6411,17 +5551,14 @@ components:
         username:
           type: string
           readOnly: true
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
         first_name:
           type: string
           readOnly: true
-          title: First Name
         last_name:
           type: string
           readOnly: true
-          title: Last Name
         profile_picture:
           type: string
           format: uri
@@ -6441,28 +5578,27 @@ components:
       - username
     UserRequest:
       type: object
-      description: Serializer for the User model (full view for owner).
+      description: |-
+        EN: Serializer for the User model providing full access for the account owner.
+        FA: سریالایزر برای مدل کاربر که دسترسی کامل را برای صاحب حساب فراهم می‌کند.
       properties:
         username:
           type: string
           minLength: 1
-          title: Username
           description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
             only.
           pattern: ^[\w.@+-]+$
           maxLength: 150
         first_name:
           type: string
-          title: First Name
           maxLength: 150
         last_name:
           type: string
-          title: Last Name
           maxLength: 150
         email:
           type: string
           format: email
-          title: Email Address
+          title: Email address
           maxLength: 254
         profile_picture:
           type: string
@@ -6476,11 +5612,10 @@ components:
       - private
       - unlisted
       type: string
-      description: '* `public` - Public
-
+      description: |-
+        * `public` - Public
         * `private` - Private
-
-        * `unlisted` - Unlisted'
+        * `unlisted` - Unlisted
   securitySchemes:
     jwtAuth:
       type: http

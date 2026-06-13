@@ -94,13 +94,6 @@ def custom_exception_handler(exc, context):
 
     custom_response_data = {
         "data": None,
-        "pagination": {
-            "pageNo": 1,
-            "pageSize": 1000,
-            "totalPage": 0,
-            "totalCount": 0,
-            "lastId": None,
-        },
         "messagesList": messages_list,
     }
 
