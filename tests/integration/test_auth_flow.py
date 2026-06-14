@@ -1,7 +1,7 @@
+from django.conf import settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from django.conf import settings
 
 from users.models import User
 

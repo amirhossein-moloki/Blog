@@ -1,7 +1,6 @@
-from django.contrib.auth import get_user_model
 from django.conf import settings
-from rest_framework import authentication
-from rest_framework import exceptions
+from django.contrib.auth import get_user_model
+from rest_framework import authentication, exceptions
 
 User = get_user_model()
 
