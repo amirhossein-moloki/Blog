@@ -50,6 +50,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 # EN: Site identity and connectivity configuration.
 # FA: تنظیمات هویت سایت و پیکربندی اتصال.
 DOMAIN = os.environ.get("DOMAIN", "localhost")
+STATIC_API_KEY = os.environ.get("STATIC_API_KEY", "your-default-api-key")
 SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
@@ -372,9 +373,9 @@ UNFOLD = {
 REST_FRAMEWORK = {
     # This line is required for drf-spectacular
     "DEFAULT_SCHEMA_CLASS": "common.schema.StandardizedAutoSchema",
-    # This line is for using JWT Authentication
+    # This line is for using Static API Key Authentication
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "common.authentication.StaticAPIKeyAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": (
         "common.renderers.StandardResponseRenderer",
