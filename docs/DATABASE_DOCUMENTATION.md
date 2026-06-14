@@ -18,7 +18,7 @@ All entities share these fields:
 
 ### 1. `users.User`
 Extends `AbstractUser`.
-- `profile_picture`: `OptimizedImageField`.
+- `profile_picture`: `ImageField`.
 
 ### 2. `posts.Post`
 The central content entity.

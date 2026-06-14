@@ -41,10 +41,9 @@ class MediaAPITest(TestCase):
         image_io.seek(0)
         return SimpleUploadedFile(name, image_io.getvalue(), content_type=content_type)
 
-    def test_media_upload_and_optimization(self):
+    def test_media_upload_no_optimization(self):
         """
-        Tests that an uploaded image is correctly converted to AVIF format
-        and that the response contains the full media details.
+        Tests that an uploaded image is correctly saved without AVIF conversion.
         """
         image_file = self._create_dummy_image(name="test_upload.jpg")
 
@@ -61,13 +60,15 @@ class MediaAPITest(TestCase):
         )
         self.assertIn("id", response.data)
         self.assertIn("url", response.data)
-        self.assertTrue(response.data["url"].endswith(".avif"))
+        # Optimization removed, so should NOT end with .avif
+        self.assertFalse(response.data["url"].endswith(".avif"))
+        self.assertTrue(response.data["url"].endswith(".jpg"))
 
         # Assert database state
         self.assertEqual(Media.objects.count(), 1)
         media = Media.objects.first()
-        self.assertTrue(media.storage_key.endswith(".avif"))
-        self.assertEqual(media.mime, "image/avif")
+        self.assertTrue(media.storage_key.endswith(".jpg"))
+        self.assertEqual(media.mime, "image/jpeg")
         self.assertEqual(media.type, "image")
         self.assertIsNotNone(media.width)
         self.assertIsNotNone(media.height)

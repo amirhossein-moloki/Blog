@@ -85,5 +85,5 @@ graph TD
 
 ## Shared Components
 - **`common.renderers.StandardResponseRenderer`:** Ensures all API responses are wrapped in a `{data, messagesList, pagination}` envelope.
-- **`common.fields.OptimizedImageField`:** Automatically resizes and converts images to AVIF on upload.
+- **`common.fields.OptimizedImageField`:** A legacy field for image management (optimization disabled).
 - **`core.base_models.BaseModel`:** Provides `created_at`, `updated_at`, and `is_active` fields for consistent auditing across all tables.

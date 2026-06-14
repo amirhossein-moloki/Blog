@@ -17,9 +17,9 @@ The **Blog Platform** is an enterprise-grade content management system (CMS) des
 The system operates in the **Digital Publishing and Content Management** domain. It handles complex content lifecycles, rich media management with automated optimizations, and user engagement through social interactions (comments and reactions).
 
 ## Main Features
-*   **Identity Management:** JWT-based authentication, Google OAuth2 integration, and Role-Based Access Control (RBAC).
+*   **Identity Management:** Static API Key-based authentication, Google OAuth2 integration, and Role-Based Access Control (RBAC).
 *   **Publishing Engine:** Advanced post lifecycle (Draft, Review, Scheduled, Published), rich-text editing with CKEditor 5, and automated scheduling via Celery.
-*   **Media Library:** Centralized media registry with automatic AVIF image conversion and FFmpeg-based video optimization.
+*   **Media Library:** Centralized media registry for managing audio, image, and video files.
 *   **Interactions:** Hierarchical threaded comments and a generic reaction system (likes/emojis) applicable to any content type.
 *   **SEO & Social:** Automated Sitemap generation, Jalali date support, SEO metadata management, and OpenGraph integration.
 
@@ -169,12 +169,10 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 
 ### Internal Structure:
 *   **core/base_models.py:** `BaseModel` providing audit fields (`created_at`, `updated_at`).
-*   **common/fields.py:** `OptimizedImageField` / `OptimizedVideoField` for automated processing.
+*   **common/fields.py:** Custom fields for media management.
 *   **common/renderers.py:** `StandardResponseRenderer` for consistent API output.
 *   **common/exceptions.py:** `custom_exception_handler` for standardized error JSON.
 *   **common/mixins.py:** `DynamicFieldsMixin` for selective field serialization.
-*   **common/utils/images.py:** Core AVIF conversion logic using Pillow.
-*   **common/tasks.py:** `convert_image_to_avif_task` for background optimization.
 
 ---
 
@@ -343,8 +341,7 @@ erDiagram
 2.  **Validation:** Serializer validates fields, including `publish_at`.
 3.  **Persistence:** Post is saved to DB.
 4.  **Async Scan:** `sync_post_media` scans for `<img>` tags and links `PostMedia` objects.
-5.  **Optimization:** `convert_image_to_avif_task` is queued for any direct image uploads.
-6.  **Scheduling:** If `status='scheduled'`, Celery Beat eventually triggers `publish_scheduled_posts_task` to make it public.
+5.  **Scheduling:** If `status='scheduled'`, Celery Beat eventually triggers `publish_scheduled_posts_task` to make it public.
 
 ---
 
@@ -419,10 +416,9 @@ The system uses **Stateless JWT Authentication**.
 # SECTION 8 — Business Rules
 
 1.  **Reading Time:** Calculated in `Post.save()` as `word_count / 200 * 60` seconds.
-2.  **AVIF Conversion:** Triggered in `create_media_from_file` for all `image/*` uploads (quality 85%).
-3.  **Scheduled Publication:** Handled by Celery task every 60 seconds; checks `scheduled_at <= now`.
-4.  **Post Visibility:** Regular users (`IsAuthenticatedOrReadOnly`) can only query posts with `status='published'`.
-5.  **View Counting:** `retrieve` action in `PostViewSet` increments `views_count` using `F()` expressions to avoid race conditions.
+2.  **Scheduled Publishing:** Managed by Celery task every 60 seconds; checks `scheduled_at <= now`.
+3.  **Post Visibility:** Regular users (`IsAuthenticatedOrReadOnly`) can only query posts with `status='published'`.
+4.  **View Counting:** The `retrieve` action in `PostViewSet` increments `views_count` using `F()` expressions to prevent race conditions.
 
 ---
 
@@ -476,16 +472,12 @@ classDiagram
     Media "1" -- "*" PostMedia : used in
 ```
 
-## Activity Diagram: Media Upload & Optimization
+## Activity Diagram: Media Upload
 
 ```mermaid
 stateDiagram-v2
     [*] --> Upload: File Received
-    Upload --> CheckType: Is Image?
-    CheckType --> ConvertAVIF: Yes
-    CheckType --> StoreOriginal: No
-    ConvertAVIF --> ExtractMetadata
-    StoreOriginal --> ExtractMetadata
+    Upload --> ExtractMetadata
     ExtractMetadata --> CreateMediaRecord
     CreateMediaRecord --> LinkToPost: Async Post Sync
     LinkToPost --> [*]

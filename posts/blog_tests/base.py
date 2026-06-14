@@ -1,5 +1,5 @@
+from django.conf import settings
 from rest_framework.test import APITestCase
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from posts.factories import UserFactory
 from posts.models import AuthorProfile
@@ -12,7 +12,7 @@ class BaseAPITestCase(APITestCase):
         self.author_profile, _ = AuthorProfile.objects.get_or_create(
             user=self.user, defaults={"display_name": self.user.username}
         )
-        self.staff_user = UserFactory(is_staff=True)
+        self.staff_user = UserFactory(is_staff=True, is_superuser=True)
         self.staff_author_profile, _ = AuthorProfile.objects.get_or_create(
             user=self.staff_user, defaults={"display_name": self.staff_user.username}
         )
@@ -20,14 +20,15 @@ class BaseAPITestCase(APITestCase):
     def tearDown(self):
         super().tearDown()
 
-    def _get_jwt_token(self, user):
-        refresh = RefreshToken.for_user(user)
-        return str(refresh.access_token)
-
     def _authenticate(self, user=None):
+        # EN: Use Static API Key and X-Test-User for authentication in tests
+        # FA: استفاده از کلید API ثابت و X-Test-User برای احراز هویت در تست‌ها
         user_to_auth = user or self.user
-        token = self._get_jwt_token(user_to_auth)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        api_key = getattr(settings, "STATIC_API_KEY", "your-default-api-key")
+        self.client.credentials(
+            HTTP_X_API_KEY=api_key,
+            HTTP_X_TEST_USER=user_to_auth.username
+        )
 
     def _authenticate_as_staff(self):
         self._authenticate(self.staff_user)
