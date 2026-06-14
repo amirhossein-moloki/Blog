@@ -1,16 +1,18 @@
-# API Documentation
+# Blog Platform API Documentation
 
-The Blog Platform API is built using Django REST Framework and follows RESTful standards. All responses are standardized and support dynamic field selection.
+This document provides a comprehensive guide to the Blog Platform API. Built with Django REST Framework (DRF), the API follows RESTful principles, uses JWT for authentication, and provides a standardized response format.
 
 ---
 
-## Global Standards
+## 1. Global Standards
 
 ### Base URL
 - **Production:** `https://api.yourdomain.com/api/`
 - **Development:** `http://localhost:8000/api/`
 
 ### Standard Response Format
+All successful (2xx) responses are wrapped in a standard JSON structure:
+
 ```json
 {
   "data": { ... },
@@ -19,77 +21,135 @@ The Blog Platform API is built using Django REST Framework and follows RESTful s
     "pageNo": 1,
     "pageSize": 10,
     "totalPage": 5,
-    "totalCount": 48
+    "totalCount": 48,
+    "lastId": null
   }
 }
 ```
-*Note: The `pagination` key is only present in list responses.*
+
+*Note:*
+- The `pagination` key is only present in list endpoints (e.g., `list`, `same_category`, `related_posts`).
+- `messagesList` contains string messages for the user/developer.
+- Errors (4xx/5xx) also follow a similar structure but without the `pagination` key.
+
+### Authentication
+The API uses **JWT (JSON Web Token)** authentication.
+- Headers: `Authorization: Bearer <your_access_token>`
 
 ---
 
-## Core Endpoints
+## 2. Global Query Parameters
 
-### 1. Authentication
-- **Admin Login:** `POST /api/auth/admin-login/`
-    - Request: `username`, `password`
-    - Response: `access`, `refresh`
-- **Google Login:** `POST /api/auth/google/login/`
-    - Request: `id_token`
-    - Response: `access`, `refresh`
-- **Token Refresh:** `POST /api/token/refresh/`
+Supported across most list endpoints:
 
-### 2. Posts
-- **List Posts:** `GET /api/posts/`
-    - Query Params: `category`, `tags`, `is_hot`, `search`, `ordering`, `fields`
-- **Retrieve Post:** `GET /api/posts/{slug}/`
-- **Publish Post:** `POST /api/posts/{slug}/publish/`
-    - Permission: Admin or Author of the post.
-
-### 3. Media
-- **Upload Media:** `POST /api/media/`
-    - Body: `file` (Multipart), `alt_text`, `title`
-    - Action: Automatically converts images to AVIF.
-- **Download Media:** `GET /api/media/{id}/download/`
-
-### 4. Interactions
-- **Post Comment:** `POST /api/comments/`
-    - Body: `post`, `content`, `parent`
-- **React to Content:** `POST /api/reactions/`
-    - Body: `reaction` (e.g., 'like'), `content_type`, `object_id`
+- `fields`: Comma-separated list of fields to include (e.g., `?fields=slug,title,author`).
+- `search`: Search term to filter results by text fields.
+- `ordering`: Field to order by (prefix with `-` for descending, e.g., `?ordering=-published_at`).
+- `page`: Page number for pagination.
+- `page_size`: Number of items per page.
 
 ---
 
-## Serializer Analysis
+## 3. Authentication Endpoints
 
-### Post Serializer
-- **Read-Only:** `views_count`, `reading_time_sec`, `comments_count`, `likes_count`.
-- **Dynamic:** Fields like `content` are only included in the retrieve view, not in the list view (optimized for bandwidth).
-- **Validation:** `publish_at` field handles status transitions (Draft → Scheduled → Published).
-
-### Media Serializer
-- **Optimization:** Extracts `width`, `height`, `mime`, and `size_bytes` automatically from the file.
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/token/` | Standard Login (returns `access` and `refresh`). |
+| `POST` | `/api/token/refresh/` | Refresh access token using `refresh` token. |
+| `POST` | `/api/auth/admin-login/` | Specialized login for administrative access. |
+| `POST` | `/api/auth/google/login/` | Login via Google OAuth2 (requires `id_token`). |
 
 ---
 
-## Business Logic Flows
+## 4. User Management
+
+| Method | Endpoint | Description | Permissions |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/users/` | List all users. | Staff Only |
+| `POST` | `/api/users/` | Create a new user (Register). | Public |
+| `GET` | `/api/users/me/` | Get current authenticated user profile. | Authenticated |
+| `GET` | `/api/users/{id}/` | Retrieve a user profile. | Staff or Owner |
+| `PATCH` | `/api/users/{id}/` | Update user profile. | Staff or Owner |
+
+---
+
+## 5. Blog Posts
+
+### Core Post Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/posts/` | List posts. Supports `category`, `tags`, `is_hot`, `series`, `visibility` filters. |
+| `POST` | `/api/posts/` | Create a new post. (Requires `AuthorProfile`). |
+| `GET` | `/api/posts/{slug}/` | Retrieve detailed post information (Increments `views_count`). |
+| `PUT/PATCH` | `/api/posts/{slug}/` | Update a post. (Owner or Admin). |
+| `POST` | `/api/posts/{slug}/publish/` | Transition a post from `draft`/`scheduled` to `published`. |
+| `GET` | `/api/posts/{slug}/related/` | Get related posts based on tags. |
+| `GET` | `/api/posts/{slug}/same-category/` | Get other posts in the same category (Paginated). |
+
+### Nested & Support Endpoints
+- **Comments:** `GET /api/posts/{post_slug}/comments/` (Lists approved comments for the post).
+- **Authors:** `GET /api/authors/` (List all author profiles).
+- **Categories:** `GET /api/categories/` (Hierarchical post categories).
+- **Tags:** `GET /api/tags/` (List of tags).
+- **Series:** `GET /api/series/` (Group posts into series).
+- **Revisions:** `GET /api/revisions/` (View post edit history).
+
+---
+
+## 6. Media Library
+
+All uploaded images are automatically converted to the **AVIF** format for optimization.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/media/` | List uploaded media files. |
+| `POST` | `/api/media/` | Upload media. Body: `file` (Multipart), `alt_text`, `title`. |
+| `GET` | `/api/media/{id}/` | Retrieve media details (URL, dimensions, etc.). |
+| `GET` | `/api/media/{id}/download/` | Download the media file directly. |
+
+---
+
+## 7. Interactions (Comments & Reactions)
+
+| Method | Endpoint | Description | Permissions |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/comments/` | List all comments. | Staff sees all, Public sees approved. |
+| `POST` | `/api/comments/` | Post a new comment. | Authenticated |
+| `POST` | `/api/reactions/` | Toggle a reaction (Like/Emoji). | Authenticated |
+
+---
+
+## 8. Pages & Navigation
+
+Used for static content and site structure.
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/pages/` | List static pages (e.g., About Us, Terms). |
+| `GET` | `/api/menus/` | List site menus (Header, Footer). |
+| `GET` | `/api/menu-items/` | List individual links within menus. |
+
+---
+
+## 9. Business Logic Highlights
 
 ### Post Lifecycle
-1. User creates a `Post` with `status='draft'`.
-2. User updates `status='scheduled'` and sets `publish_at` to a future date.
-3. Every minute, a Celery task (`publish_scheduled_posts_task`) checks for passed dates and sets `status='published'`.
+1. **Draft:** Created by an author, only visible to them and admins.
+2. **Scheduled:** Author sets a future `publish_at` date. Celery workers publish it at the set time.
+3. **Published:** Visible to the public.
 
-### Media Synchronization
-When a `Post` is saved, the `sync_post_media` service:
-1. Scans the `content` HTML for `<img>` tags.
-2. Extracts internal media URLs.
-3. Updates the `PostMedia` junction table to track which media is used in which post.
-4. Deletes unused attachments to maintain database integrity.
+### Media Sync
+When a post is saved, the system automatically scans the content for image URLs and synchronizes them with the `PostMedia` registry to ensure integrity and track usage.
+
+### Auto-Reading Time
+The `reading_time_sec` is automatically calculated on save based on the word count of the content (approx. 200 words per minute).
 
 ---
 
-## Error Handling
-The API returns standard HTTP status codes:
-- **401 Unauthorized:** Missing or invalid JWT.
-- **403 Forbidden:** Authenticated user lacks permission for the object/action.
-- **400 Bad Request:** Validation errors (returned in `data` or `messagesList`).
-- **429 Too Many Requests:** Triggered by Axes after multiple failed login attempts.
+## 10. Error Handling
+Standard HTTP codes are used:
+- `401 Unauthorized`: Token missing or expired.
+- `403 Forbidden`: You don't have permission for this action.
+- `404 Not Found`: The resource does not exist.
+- `400 Bad Request`: Validation errors (details provided in `data`).
+- `429 Too Many Requests`: Rate limit or brute-force protection (Axes) triggered.
