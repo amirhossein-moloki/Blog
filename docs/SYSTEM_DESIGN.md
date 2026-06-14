@@ -19,7 +19,7 @@ classDiagram
         +datetime updated_at
     }
 
-    subgraph Users Domain
+    subgraph UsersDomain ["Users Domain"]
         class User {
             +string username
             +string email
@@ -29,7 +29,7 @@ classDiagram
         }
     end
 
-    subgraph Posts Domain
+    subgraph PostsDomain ["Posts Domain"]
         class AuthorProfile {
             +string display_name
             +text bio
@@ -67,7 +67,7 @@ classDiagram
         }
     end
 
-    subgraph Medias Domain
+    subgraph MediasDomain ["Medias Domain"]
         class Media {
             +string storage_key
             +url url
@@ -80,7 +80,7 @@ classDiagram
         }
     end
 
-    subgraph Interactions Domain
+    subgraph InteractionsDomain ["Interactions Domain"]
         class Comment {
             +text content
             +string status
@@ -92,7 +92,7 @@ classDiagram
         }
     end
 
-    subgraph Pages Domain
+    subgraph PagesDomain ["Pages Domain"]
         class Page {
             +string slug
             +string title
@@ -101,7 +101,7 @@ classDiagram
         }
     end
 
-    subgraph Navigation Domain
+    subgraph NavigationDomain ["Navigation Domain"]
         class Menu {
             +string name
             +string location
@@ -171,7 +171,7 @@ flowchart LR
         S[System/Celery]
     end
 
-    subgraph Use Cases
+    subgraph UseCases ["Use Cases"]
         UC1(Login/Register)
         UC2(View Posts/Pages)
         UC3(Manage Profile)

@@ -60,34 +60,34 @@ The system follows a **Modular Monolith** architecture. Each domain (Users, Post
 
 ```mermaid
 graph TD
-    subgraph "API Layer"
+    subgraph APILayer ["API Layer"]
         DRF[DRF ViewSets & APIViews]
         Spectacular[drf-spectacular]
     end
 
-    subgraph "Business Logic"
+    subgraph BusinessLogic ["Business Logic"]
         Services[Service Layer]
         Tasks[Celery Tasks]
     end
 
-    subgraph "Core Domains"
+    subgraph CoreDomains ["Core Domains"]
         Users[Users App]
         Posts[Posts App]
         Medias[Medias App]
         Interactions[Interactions App]
     end
 
-    subgraph "Data Layer"
+    subgraph DataLayer ["Data Layer"]
         DB[(PostgreSQL)]
         Cache[(Redis)]
         Storage[S3 / Local Storage]
     end
 
     DRF --> Services
-    Services --> Core Domains
+    Services --> CoreDomains
     Services --> Tasks
-    Core Domains --> DB
-    Core Domains --> Storage
+    CoreDomains --> DB
+    CoreDomains --> Storage
     Tasks --> DB
     Tasks --> Cache
 ```
