@@ -28,4 +28,7 @@ class AuthFlowIntegrationTest(APITestCase):
         me_url = reverse("user-me")
         response = self.client.get(me_url)
         # It seems DRF or the custom exception handler might be returning 403
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+        )

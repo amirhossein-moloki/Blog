@@ -11,9 +11,7 @@ class MediaServicesTest(TestCase):
     @patch("medias.services.default_storage.save")
     @patch("medias.services.default_storage.url")
     @patch("medias.services.Image.open")
-    def test_create_media_from_file_image(
-        self, mock_image_open, mock_url, mock_save
-    ):
+    def test_create_media_from_file_image(self, mock_image_open, mock_url, mock_save):
         user = UserFactory()
         mock_file = SimpleUploadedFile(
             "test.jpg", b"content", content_type="image/jpeg"

@@ -26,8 +26,7 @@ class BaseAPITestCase(APITestCase):
         user_to_auth = user or self.user
         api_key = getattr(settings, "STATIC_API_KEY", "your-default-api-key")
         self.client.credentials(
-            HTTP_X_API_KEY=api_key,
-            HTTP_X_TEST_USER=user_to_auth.username
+            HTTP_X_API_KEY=api_key, HTTP_X_TEST_USER=user_to_auth.username
         )
 
     def _authenticate_as_staff(self):
