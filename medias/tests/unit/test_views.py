@@ -1,5 +1,4 @@
 import io
-from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -41,7 +40,7 @@ class MediaViewSetTests(APITestCase):
 
     def test_create_media_file(self):
         self.client.force_authenticate(user=self.user)
-        # Using .mp4 because it's allowed in validate_file and NOT processed by convert_image_to_avif
+        # Optimization removed, so we just check if it's saved as-is
         uploaded_file = SimpleUploadedFile(
             "test.mp4", b"hello world", content_type="video/mp4"
         )
@@ -124,9 +123,8 @@ class MediaServiceExtraTests(APITestCase):
         uploaded_file = SimpleUploadedFile(
             "corrupt.jpg", b"not an image", content_type="image/jpeg"
         )
-        with patch("medias.services.convert_image_to_avif") as mock_convert:
-            mock_convert.return_value = uploaded_file
-            media = create_media_from_file(uploaded_file, self.user)
-            self.assertEqual(media.type, "image")
-            self.assertIsNone(media.width)
-            self.assertIsNone(media.height)
+        # convert_image_to_avif is removed
+        media = create_media_from_file(uploaded_file, self.user)
+        self.assertEqual(media.type, "image")
+        self.assertIsNone(media.width)
+        self.assertIsNone(media.height)

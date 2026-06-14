@@ -10,18 +10,14 @@ from posts.factories import UserFactory
 class MediaServicesTest(TestCase):
     @patch("medias.services.default_storage.save")
     @patch("medias.services.default_storage.url")
-    @patch("medias.services.convert_image_to_avif")
     @patch("medias.services.Image.open")
-    def test_create_media_from_file_image(
-        self, mock_image_open, mock_convert, mock_url, mock_save
-    ):
+    def test_create_media_from_file_image(self, mock_image_open, mock_url, mock_save):
         user = UserFactory()
         mock_file = SimpleUploadedFile(
             "test.jpg", b"content", content_type="image/jpeg"
         )
-        mock_convert.return_value = mock_file
-        mock_save.return_value = "test.avif"
-        mock_url.return_value = "http://example.com/test.avif"
+        mock_save.return_value = "test.jpg"
+        mock_url.return_value = "http://example.com/test.jpg"
 
         mock_img = MagicMock()
         mock_img.width = 100

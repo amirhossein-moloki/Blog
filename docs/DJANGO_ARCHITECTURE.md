@@ -34,8 +34,8 @@ The project uses a hierarchical routing system:
 
 ## Authentication Architecture
 The system supports multiple authentication flows managed by DRF and Djoser:
-- **JWT (SimpleJWT):** Primary method for API access. Tokens are issued via `/api/token/` or social login.
-- **Social Auth:** Handled via a custom `GoogleLoginView` that validates Google ID Tokens and exchanges them for local JWTs.
+- **Static API Key:** Primary method for API access. A fixed key is expected in the `X-API-Key` header.
+- **Social Auth:** Handled via a custom `GoogleLoginView` that validates Google ID Tokens and exchanges them for local access.
 - **Staff Auth:** Uses `CustomTokenObtainPairView` for administrative access.
 - **Session Auth:** Used exclusively for the Unfold Admin Panel.
 
@@ -60,7 +60,6 @@ Signals are used for decoupled side effects:
 
 ## Reusable Mixins
 - **`DynamicFieldsMixin`:** Allows clients to specify exactly which fields they want in the response via the `?fields=` query parameter.
-- **`FileChangeDetectionMixin`:** Used in models to detect if a file field has been updated, triggering re-optimization tasks.
 - **`ContentNormalizationMixin`:** Ensures consistent text formatting (e.g., Persian character normalization) across all content.
 
 ---
@@ -69,6 +68,4 @@ Signals are used for decoupled side effects:
 
 | Command | Purpose | Usage |
 | :--- | :--- | :--- |
-| `optimize_images` | Batch processes existing images into AVIF format. | `python manage.py optimize_images` |
 | `create_random_posts` | Seeds the database with dummy data for UI testing. | `python manage.py create_random_posts` |
-| `queue_avif_conversion` | Adds all existing images to the Celery task queue. | `python manage.py queue_avif_conversion` |

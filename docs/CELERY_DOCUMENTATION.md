@@ -11,7 +11,7 @@ Tasks are distributed across three specialized queues to ensure optimal resource
 | :--- | :--- | :--- |
 | `high_priority` | High | User-facing tasks like password resets and auth emails. |
 | `default` | Medium | Standard background operations like post publishing and notifications. |
-| `low_priority` | Low | Resource-intensive tasks like video compression and batch image optimization. |
+| `low_priority` | Low | Resource-intensive background tasks. |
 
 ---
 
@@ -22,12 +22,7 @@ Tasks are distributed across three specialized queues to ensure optimal resource
 - **Trigger:** Automated (Celery Beat).
 - **Service Called:** `posts.services.publish_scheduled_posts()`.
 
-### 2. `common.optimization.optimize_video`
-- **Purpose:** Compresses uploaded videos using FFmpeg to reduce storage and bandwidth.
-- **Trigger:** Manual (via model signals when a video is uploaded).
-- **Concurrency:** Limited to prevent CPU starvation.
-
-### 3. `interactions.tasks.notify_author_on_new_comment`
+### 2. `interactions.tasks.notify_author_on_new_comment`
 - **Purpose:** Sends a notification (email/dashboard) to a post author when a new comment is approved.
 - **Trigger:** Manual (called in `CommentViewSet.perform_create`).
 

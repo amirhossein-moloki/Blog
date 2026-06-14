@@ -39,7 +39,6 @@ The service layer encapsulates the core business logic of the application, keepi
 ## Utilities Documentation
 
 ### Image Processing (`common/utils/images.py`)
-- **`convert_image_to_avif(image_field, ...)`**: Converts images to AVIF while preserving transparency and ICC profiles. Resizes if dimensions exceed 1920px.
 
 ### File Handling (`common/utils/files.py`)
 - **`get_sanitized_filename(filename)`**: Uses `slugify` to clean filenames while preserving extensions.
