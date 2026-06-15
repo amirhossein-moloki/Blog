@@ -149,12 +149,3 @@ class UserSerializer(serializers.ModelSerializer):
         if "profile_picture" not in self.initial_data:
             validated_data.pop("profile_picture", None)
         return super().update(instance, validated_data)
-
-
-class GoogleLoginSerializer(serializers.Serializer):
-    """
-    EN: Serializer for Google OAuth2 login, requiring an ID token from Google.
-    FA: سریالایزر برای ورود با گوگل OAuth2، که نیاز به یک ID token از سمت گوگل دارد.
-    """
-
-    id_token = serializers.CharField()

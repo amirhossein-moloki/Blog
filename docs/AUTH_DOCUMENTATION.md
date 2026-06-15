@@ -13,11 +13,11 @@ The platform uses JWT for stateless authentication.
 3. **Usage:** Client must include the access token in the `Authorization: Bearer <token>` header for all protected requests.
 4. **Renewal:** When the access token expires, the client uses the `refresh` token at `/api/token/refresh/` to get a new access token.
 
-### Google OAuth2
-1. **Frontend:** User logs in with Google and receives an `id_token`.
-2. **Backend Exchange:** Frontend sends `id_token` to `/api/auth/google/login/`.
-3. **Validation:** Backend verifies the token with Google services.
-4. **Local Auth:** If valid, the backend retrieves or creates the local user and issues standard JWT tokens.
+### Static API Key
+For development, automated testing, and internal service communication, a static API Key can be used.
+1. **Usage:** Include the key in the `X-API-Key` header.
+2. **User Simulation:** (Optional) Include a username in the `X-Test-User` header to act as that specific user.
+3. **Fallback:** If `X-Test-User` is not provided, the system defaults to the first superuser found.
 
 ---
 
@@ -55,21 +55,18 @@ sequenceDiagram
     API-->>Client: 200 OK (Tokens)
 ```
 
-### Social Login Flow (Google)
+### Static API Key Flow
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Google
     participant API
     participant DB
 
-    Client->>Google: Login & Get id_token
-    Google-->>Client: id_token
-    Client->>API: POST /api/auth/google/login/ (id_token)
-    API->>Google: Verify id_token
-    Google-->>API: Valid (Email/Info)
-    API->>DB: Get or Create User
-    API-->>Client: 200 OK (JWT Tokens)
+    Client->>API: GET /api/any/ (X-API-Key: <key>)
+    API->>API: Validate Static Key
+    API->>DB: Fetch User (X-Test-User or Default Superuser)
+    DB-->>API: User Record
+    API-->>Client: 200 OK (Data)
 ```
 
 ---
