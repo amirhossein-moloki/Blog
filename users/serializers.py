@@ -1,18 +1,8 @@
 from django.core.files.uploadedfile import UploadedFile
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
-
-
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    EN: Custom JWT token serializer extending SimpleJWT's default.
-    FA: سریالایزر توکن JWT سفارشی که سریالایزر پیش‌فرض SimpleJWT را گسترش می‌دهد.
-    """
-
-    pass
 
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
@@ -149,12 +139,3 @@ class UserSerializer(serializers.ModelSerializer):
         if "profile_picture" not in self.initial_data:
             validated_data.pop("profile_picture", None)
         return super().update(instance, validated_data)
-
-
-class GoogleLoginSerializer(serializers.Serializer):
-    """
-    EN: Serializer for Google OAuth2 login, requiring an ID token from Google.
-    FA: سریالایزر برای ورود با گوگل OAuth2، که نیاز به یک ID token از سمت گوگل دارد.
-    """
-
-    id_token = serializers.CharField()

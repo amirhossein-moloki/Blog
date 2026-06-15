@@ -46,7 +46,6 @@ cachecontrol[filecache]==0.14.4
     #   cachecontrol
     #   pip-audit
 cachetools==6.2.2
-    # via google-auth
 celery==5.5.3
     # via
     #   -r requirements.in
@@ -84,7 +83,6 @@ cryptography==44.0.3
     #   autobahn
     #   pyopenssl
     #   service-identity
-    #   social-auth-core
 cyclonedx-python-lib==9.1.0
     # via pip-audit
 daphne==4.2.1
@@ -93,7 +91,6 @@ defusedxml==0.7.1
     # via
     #   py-serializable
     #   python3-openid
-    #   social-auth-core
 diff-match-patch==20241021
     # via django-import-export
 dj-database-url==3.0.1
@@ -122,11 +119,8 @@ django==5.2.8
     #   django-tempus-dominus
     #   django-unfold
     #   djangorestframework
-    #   djangorestframework-simplejwt
-    #   djoser
     #   drf-nested-routers
     #   drf-spectacular
-    #   social-auth-app-django
 django-appconf==1.1.0
     # via django-select2
 django-axes==8.0.0
@@ -167,13 +161,8 @@ django-unfold==0.64.2
 djangorestframework==3.16.1
     # via
     #   -r requirements.in
-    #   djangorestframework-simplejwt
-    #   djoser
     #   drf-nested-routers
     #   drf-spectacular
-djangorestframework-simplejwt==5.5.1
-    # via djoser
-djoser==2.3.3
     # via -r requirements.in
 drf-nested-routers==0.94.2
     # via -r requirements.in
@@ -191,7 +180,6 @@ filelock==3.20.0
     # via cachecontrol
 flake8==7.3.0
     # via -r requirements.in
-google-auth==2.43.0
     # via -r requirements.in
 gprof2dot==2025.4.14
     # via django-silk
@@ -247,7 +235,6 @@ numpy==2.3.4
 oauthlib==3.3.1
     # via
     #   requests-oauthlib
-    #   social-auth-core
 packageurl-python==0.17.6
     # via cyclonedx-python-lib
 packaging==25.0
@@ -292,7 +279,6 @@ pyasn1==0.6.1
     #   service-identity
 pyasn1-modules==0.4.2
     # via
-    #   google-auth
     #   service-identity
 pycodestyle==2.14.0
     # via flake8
@@ -304,8 +290,6 @@ pygments==2.19.2
     # via rich
 pyjwt==2.10.1
     # via
-    #   djangorestframework-simplejwt
-    #   social-auth-core
 pyopenssl==24.3.0
     # via
     #   -r requirements.in
@@ -325,7 +309,6 @@ python-dotenv==1.1.1
 python-json-logger==4.0.0
     # via -r requirements.in
 python3-openid==3.2.0
-    # via social-auth-core
 pyyaml==6.0.2
     # via drf-spectacular
 redis==6.4.0
@@ -343,9 +326,7 @@ requests==2.31.0
     #   cachecontrol
     #   pip-audit
     #   requests-oauthlib
-    #   social-auth-core
 requests-oauthlib==2.0.0
-    # via social-auth-core
 rich==14.2.0
     # via pip-audit
 rpds-py==0.27.0
@@ -353,7 +334,6 @@ rpds-py==0.27.0
     #   jsonschema
     #   referencing
 rsa==4.9.1
-    # via google-auth
 s3transfer==0.13.1
     # via boto3
 scikit-learn==1.7.2
@@ -369,10 +349,6 @@ six==1.17.0
     #   markdownify
     #   python-dateutil
     # via -r requirements.in
-social-auth-app-django==5.5.1
-    # via djoser
-social-auth-core==4.7.0
-    # via social-auth-app-django
 sortedcontainers==2.4.0
     # via
     #   cyclonedx-python-lib

@@ -17,7 +17,7 @@ The **Blog Platform** is an enterprise-grade content management system (CMS) des
 The system operates in the **Digital Publishing and Content Management** domain. It handles complex content lifecycles, rich media management with automated optimizations, and user engagement through social interactions (comments and reactions).
 
 ## Main Features
-*   **Identity Management:** Static API Key-based authentication, Google OAuth2 integration, and Role-Based Access Control (RBAC).
+*   **Identity Management:** Static API Key-based authentication and Role-Based Access Control (RBAC).
 *   **Publishing Engine:** Advanced post lifecycle (Draft, Review, Scheduled, Published), rich-text editing with CKEditor 5, and automated scheduling via Celery.
 *   **Media Library:** Centralized media registry for managing audio, image, and video files.
 *   **Interactions:** Hierarchical threaded comments and a generic reaction system (likes/emojis) applicable to any content type.
@@ -55,14 +55,11 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 *   **models.py:**
     *   `User`: Custom model extending `AbstractUser`. Adds `profile_picture` with auto-optimization.
 *   **serializers.py:**
-    *   `CustomTokenObtainPairSerializer`: Custom JWT logic.
     *   `UserSerializer`: Full user profile management for owners.
     *   `UserCreateSerializer`: Handles registration and password validation.
     *   `UserReadOnlySerializer`: Public profile representation.
 *   **views.py:**
     *   `UserViewSet`: CRUD operations with dynamic permissions and serializers.
-    *   `GoogleLoginView`: Authenticates Google ID tokens and returns JWTs.
-    *   `CustomTokenObtainPairView`: Administrative login endpoint.
 *   **permissions.py:**
     *   `IsAdminUser`: Restricts to staff.
     *   `IsOwnerOrAdmin`: Restricts to object owner or staff.
@@ -70,7 +67,7 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
     *   `should_never_lockout_staff`: Custom callable for Axes to prevent admin lockout.
 *   **signals.py:**
     *   `user_post_save` / `user_post_delete`: Invalidates user dashboard cache entries.
-*   **urls.py:** Defines routes for `users/`, `auth/admin-login/`, and `auth/google/login/`.
+*   **urls.py:** Defines routes for `users/`.
 *   **admin.py:** Enhanced User admin using `Unfold`, including `SimpleHistory` and `Select2`.
 
 ---
@@ -352,9 +349,6 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 ## 1. Authentication & Users
 | URL | Method | ViewSet Action | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/auth/admin-login/` | POST | create | Obtain JWT tokens for staff. |
-| `/api/auth/google/login/` | POST | create | Authenticate via Google ID Token. |
-| `/api/token/refresh/` | POST | create | Refresh an expired access token. |
 | `/api/users/` | GET | list | List users (Admin only). |
 | `/api/users/me/` | GET | me | Retrieve current user profile. |
 | `/api/users/{id}/` | PATCH | partial_update | Update own profile (Owner only). |
@@ -395,10 +389,9 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 # SECTION 7 — Authentication & Authorization
 
 ## Authentication Flow
-The system uses **Stateless JWT Authentication**.
-1.  User authenticates via `/api/auth/admin-login/` or `/api/auth/google/login/`.
-2.  Server returns `access` and `refresh` tokens.
-3.  Client includes `Authorization: Bearer <access_token>` in subsequent requests.
+The system uses **Static API Key Authentication**.
+1.  All API requests must include the `X-API-Key` header with a valid static key.
+2.  Optionally, the `X-Test-User` header can be used during development to identify the user.
 
 ## Permission Matrix
 

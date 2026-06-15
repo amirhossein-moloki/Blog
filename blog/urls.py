@@ -11,11 +11,6 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
 from posts.ckeditor_views import ckeditor_upload_view
 
 from .ckeditor_views import ckeditor5_upload
@@ -43,9 +38,6 @@ urlpatterns = [
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    # --- JWT Token Authentication ---
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # --- Admin Panel ---
     path(
         "ckeditor5/image_upload/",

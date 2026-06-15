@@ -11,7 +11,6 @@ django_celery_results==2.6.0
 # Security Fixes for transitive dependencies are blocked by `zarinpal==1.0.0`
 # which pins vulnerable versions of certifi, idna, requests, and urllib3.
 # We can only update direct dependencies.
-djoser==2.3.3
 drf-nested-routers==0.94.2
 drf-spectacular==0.28.0
 
@@ -70,4 +69,3 @@ brotli
 whitenoise
 pip-audit
 python-json-logger
-google-auth

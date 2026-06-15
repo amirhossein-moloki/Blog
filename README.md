@@ -9,7 +9,7 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 ### Problem Solved
 - **Content Lifecycle Management:** Handles the transition from draft to review, scheduled, and published states.
 - **Media Inefficiency:** Automates image conversion to AVIF and video compression using FFmpeg to ensure fast load times.
-- **Fragmented User Management:** Integrates standard JWT authentication with Google OAuth2 and Iranian-specific localized features (Jalali dates).
+- **Fragmented User Management:** Provides static API key authentication and Iranian-specific localized features (Jalali dates).
 - **Scalability:** Built with a modular architecture that separates core concerns (Interactions, Navigation, Medias, Pages).
 
 ---
@@ -17,8 +17,7 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 ## Main Features
 
 ### 🔐 User & Identity Management
-- **JWT Authentication:** Secure token-based access with refresh mechanisms.
-- **Social Integration:** One-click login via Google OAuth2.
+- **API Key Authentication:** Secure authentication using a static `X-API-Key` header.
 - **RBAC (Role-Based Access Control):** Predefined roles for Admins, Authors, and Users.
 - **Profile Management:** Optimized profile pictures and biography tracking.
 
@@ -149,6 +148,13 @@ The API follows RESTful principles with standardized JSON responses:
   "pagination": { ... }
 }
 ```
+
+### Authentication
+All API requests must include the following header:
+- `X-API-Key`: Your static API key.
+
+For testing purposes, you can optionally specify the user to authenticate as:
+- `X-Test-User`: The username of the user (e.g., `admin`).
 
 - **Swagger UI:** `/api/schema/swagger-ui/`
 - **Redoc:** `/api/schema/redoc/`

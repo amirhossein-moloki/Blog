@@ -84,7 +84,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "axes",
     "django_celery_results",
-    "djoser",
     "sslserver",
     "guardian",
     "simple_history",
@@ -408,22 +407,6 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-# EN: Djoser configuration for authentication and account management.
-# FA: تنظیمات Djoser برای احراز هویت و مدیریت حساب کاربری.
-DJOSER = {
-    "PASSWORD_RESET_CONFIRM_URL": f"{FRONTEND_URL}/#/password/reset/confirm/{{uid}}/{{token}}",
-    "USERNAME_RESET_CONFIRM_URL": f"{FRONTEND_URL}/#/username/reset/confirm/{{uid}}/{{token}}",
-    "ACTIVATION_URL": f"{FRONTEND_URL}/#/activate/{{uid}}/{{token}}",
-    "SEND_ACTIVATION_EMAIL": True,
-    "USER_CREATE_PASSWORD_RETYPE": True,
-    "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
-    "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
-    "PASSWORD_RESET_CONFIRM_RETYPE": True,
-    "SET_USERNAME_RETYPE": True,
-    "SET_PASSWORD_RETYPE": True,
-    "SERIALIZERS": {},
-    "SITE_NAME": SITE_NAME,
-}
 
 
 FILE_UPLOAD_HANDLERS = [
