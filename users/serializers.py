@@ -149,5 +149,3 @@ class UserSerializer(serializers.ModelSerializer):
         if "profile_picture" not in self.initial_data:
             validated_data.pop("profile_picture", None)
         return super().update(instance, validated_data)
-
-

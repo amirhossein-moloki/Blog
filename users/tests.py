@@ -1,9 +1,7 @@
 from unittest.mock import MagicMock, patch
 
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from google.auth import exceptions as google_exceptions
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -168,8 +166,6 @@ class UserViewSetTests(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(User.objects.filter(pk=self.user1.pk).exists())
-
-
 
 
 class PermissionTests(APITestCase):

@@ -1,14 +1,11 @@
 import logging
 
-from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import User
@@ -118,5 +115,3 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_queryset().get(pk=request.user.pk)
         serializer = UserSerializer(user, context={"request": request})
         return Response(serializer.data)
-
-
