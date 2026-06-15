@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
@@ -26,6 +25,7 @@ class UserViewSetTests(APITestCase):
 
     def test_list_users_admin(self):
         self.client.force_authenticate(user=self.admin_user)
+        # Add the API Key for tests that might require it even with force_authenticate
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Check if it is already wrapped or not.

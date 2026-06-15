@@ -11,6 +11,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+
 from posts.ckeditor_views import ckeditor_upload_view
 
 from .ckeditor_views import ckeditor5_upload
