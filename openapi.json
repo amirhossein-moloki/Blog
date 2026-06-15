@@ -55,46 +55,6 @@
                 }
             }
         },
-        "/api/auth/google/login/": {
-            "post": {
-                "operationId": "auth_google_login_create",
-                "description": "EN: Processes the Google ID token and generates project-specific JWT tokens.\nFA: توکن ID گوگل را پردازش کرده و توکن‌های JWT مخصوص پروژه را تولید می‌کند.",
-                "tags": [
-                    "auth"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/GoogleLoginRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/GoogleLoginRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/GoogleLoginRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "description": "No response body"
-                    }
-                }
-            }
-        },
         "/api/authors/": {
             "get": {
                 "operationId": "authors_list",
@@ -103,9 +63,6 @@
                     "authors"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -150,11 +107,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -188,9 +140,6 @@
                     "authors"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -243,11 +192,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -297,11 +241,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -332,11 +271,6 @@
                 "tags": [
                     "authors"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -350,11 +284,6 @@
                 "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
                 "tags": [
                     "categories"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -398,11 +327,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -434,11 +358,6 @@
                 ],
                 "tags": [
                     "categories"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -490,11 +409,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -544,11 +458,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -578,11 +487,6 @@
                 ],
                 "tags": [
                     "categories"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "204": {
@@ -619,9 +523,6 @@
                     "comments"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -663,11 +564,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -701,9 +597,6 @@
                     "comments"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -756,11 +649,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -810,11 +698,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -844,11 +727,6 @@
                 ],
                 "tags": [
                     "comments"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "204": {
@@ -885,9 +763,6 @@
                     "media"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -929,11 +804,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -967,9 +837,6 @@
                     "media"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -1022,11 +889,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1076,11 +938,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1111,11 +968,6 @@
                 "tags": [
                     "media"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -1129,11 +981,6 @@
                 "description": "EN:\nViewSet for managing individual menu items.\nAllows administrative control over links and their hierarchy.\n\nFA:\nViewSet برای مدیریت آیتم‌های منو به صورت تکی.\nاجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.",
                 "tags": [
                     "menu-items"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1177,11 +1024,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -1213,11 +1055,6 @@
                 ],
                 "tags": [
                     "menu-items"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1269,11 +1106,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1323,11 +1155,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1358,11 +1185,6 @@
                 "tags": [
                     "menu-items"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -1376,11 +1198,6 @@
                 "description": "EN:\nViewSet for managing navigation menus.\nProvides read-only access to everyone and full access to administrators.\n\nFA:\nViewSet برای مدیریت منوهای پیمایش.\nدسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.",
                 "tags": [
                     "menus"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1424,11 +1241,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -1460,11 +1272,6 @@
                 ],
                 "tags": [
                     "menus"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1516,11 +1323,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1570,11 +1372,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1605,11 +1402,6 @@
                 "tags": [
                     "menus"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -1623,11 +1415,6 @@
                 "description": "EN:\nViewSet for managing static pages.\nProvides read-only access to everyone and full access to administrators.\n\nFA:\nViewSet برای مدیریت صفحات استاتیک.\nدسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.",
                 "tags": [
                     "pages"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1671,11 +1458,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -1707,11 +1489,6 @@
                 ],
                 "tags": [
                     "pages"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -1763,11 +1540,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1817,11 +1589,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -1851,11 +1618,6 @@
                 ],
                 "tags": [
                     "pages"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "204": {
@@ -1972,9 +1734,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2016,11 +1775,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -2081,9 +1835,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2128,9 +1879,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2165,9 +1913,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2219,11 +1964,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2272,11 +2012,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2306,11 +2041,6 @@
                 "tags": [
                     "posts"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -2334,11 +2064,6 @@
                 ],
                 "tags": [
                     "posts"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -2372,9 +2097,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2412,9 +2134,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2449,9 +2168,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2486,9 +2202,6 @@
                     "posts"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2511,11 +2224,6 @@
                 "description": "EN:\nViewSet for managing reactions (likes, emojis).\nUsers can only manage their own reactions.\n\nFA:\nViewSet برای مدیریت واکنش‌ها (لایک‌ها، اموجی‌ها).\nکاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.",
                 "tags": [
                     "reactions"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -2559,11 +2267,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -2595,11 +2298,6 @@
                 ],
                 "tags": [
                     "reactions"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -2651,11 +2349,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2705,11 +2398,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2740,11 +2428,6 @@
                 "tags": [
                     "reactions"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -2760,9 +2443,6 @@
                     "revisions"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2807,11 +2487,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -2845,9 +2520,6 @@
                     "revisions"
                 ],
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -2900,11 +2572,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2954,11 +2621,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2989,11 +2651,6 @@
                 "tags": [
                     "revisions"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -3007,11 +2664,6 @@
                 "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
                 "tags": [
                     "series"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -3055,11 +2707,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -3091,11 +2738,6 @@
                 ],
                 "tags": [
                     "series"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -3147,11 +2789,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3201,11 +2838,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3236,11 +2868,6 @@
                 "tags": [
                     "series"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -3254,11 +2881,6 @@
                 "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
                 "tags": [
                     "tags"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -3302,11 +2924,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "201": {
                         "content": {
@@ -3338,11 +2955,6 @@
                 ],
                 "tags": [
                     "tags"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -3394,11 +3006,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3448,11 +3055,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3482,11 +3084,6 @@
                 ],
                 "tags": [
                     "tags"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "204": {
@@ -3600,11 +3197,6 @@
                 "tags": [
                     "users"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3648,9 +3240,6 @@
                     "required": true
                 },
                 "security": [
-                    {
-                        "jwtAuth": []
-                    },
                     {}
                 ],
                 "responses": {
@@ -3684,11 +3273,6 @@
                 ],
                 "tags": [
                     "users"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -3740,11 +3324,6 @@
                     },
                     "required": true
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3794,11 +3373,6 @@
                         }
                     }
                 },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -3829,11 +3403,6 @@
                 "tags": [
                     "users"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
                 "responses": {
                     "204": {
                         "description": "No response body"
@@ -3847,11 +3416,6 @@
                 "description": "EN: Endpoint to retrieve the currently authenticated user's profile.\nFA: اندپوینت برای دریافت پروفایل کاربر فعلی که احراز هویت شده است.",
                 "tags": [
                     "users"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
                 ],
                 "responses": {
                     "200": {
@@ -4148,19 +3712,6 @@
                 "required": [
                     "password",
                     "username"
-                ]
-            },
-            "GoogleLoginRequest": {
-                "type": "object",
-                "description": "EN: Serializer for Google OAuth2 login, requiring an ID token from Google.\nFA: سریالایزر برای ورود با گوگل OAuth2، که نیاز به یک ID token از سمت گوگل دارد.",
-                "properties": {
-                    "id_token": {
-                        "type": "string",
-                        "minLength": 1
-                    }
-                },
-                "required": [
-                    "id_token"
                 ]
             },
             "LocationEnum": {
@@ -7673,13 +7224,6 @@
                 ],
                 "type": "string",
                 "description": "* `public` - Public\n* `private` - Private\n* `unlisted` - Unlisted"
-            }
-        },
-        "securitySchemes": {
-            "jwtAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
             }
         }
     }

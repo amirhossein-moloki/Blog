@@ -9,6 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = 4010;
 const SECRET_KEY = 'mock-secret-key';
+const STATIC_API_KEY = 'your-default-api-key';
 
 // Middleware
 app.use(cors());
@@ -56,7 +57,28 @@ const paginate = (req, results) => {
 };
 
 // Auth middleware simulation
-const authenticateToken = (req, res, next) => {
+const authenticate = (req, res, next) => {
+  // Check for Static API Key first
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey) {
+    if (apiKey === STATIC_API_KEY) {
+      const testUsername = req.headers['x-test-user'];
+      if (testUsername) {
+        const user = db.users.find(u => u.username === testUsername);
+        if (!user) return res.status(401).json({ detail: `Test user ${testUsername} not found` });
+        req.user = user;
+      } else {
+        // Fallback to first superuser
+        const superuser = db.users.find(u => u.is_superuser || u.is_staff);
+        if (superuser) req.user = superuser;
+      }
+      return next();
+    } else {
+      return res.status(403).json({ detail: 'Invalid API Key' });
+    }
+  }
+
+  // Check for JWT token
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -71,7 +93,7 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-app.use(authenticateToken);
+app.use(authenticate);
 
 // Generic CRUD Handlers
 const createCrudHandlers = (resourceName, dbKey, lookupField = 'id') => {

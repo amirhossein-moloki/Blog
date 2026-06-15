@@ -3693,38 +3693,6 @@
             }
           },
           {
-            "id": "858c9133-5533-43ea-9130-9619961b91e0",
-            "name": "users_auth_google_login_create",
-            "method": "POST",
-            "url": "{{BASE_URL}}/api/auth/google/login/",
-            "headers": [
-              {
-                "name": "Authorization",
-                "value": "Bearer {{ACCESS_TOKEN}}",
-                "enabled": true
-              }
-            ],
-            "queryParams": [],
-            "pathParams": [],
-            "auth": {
-              "type": "inherited"
-            },
-            "body": {
-              "type": "form",
-              "form": {
-                "isMultipart": true,
-                "fields": [
-                  {
-                    "name": "id_token",
-                    "value": "",
-                    "enabled": true,
-                    "type": "text"
-                  }
-                ]
-              }
-            }
-          },
-          {
             "id": "c5ab6004-333f-4bb1-9085-556b71665890",
             "name": "users_users_list",
             "method": "GET",
@@ -4050,6 +4018,12 @@
             "id": "3f73019c-1831-467b-ad2e-557655aa36a5",
             "name": "BASE_URL",
             "value": "http://localhost:8000",
+            "isSecret": false
+          },
+          {
+            "id": "apiKeyVariable",
+            "name": "API_KEY",
+            "value": "your-default-api-key",
             "isSecret": false
           },
           {

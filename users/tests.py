@@ -170,64 +170,6 @@ class UserViewSetTests(APITestCase):
         self.assertFalse(User.objects.filter(pk=self.user1.pk).exists())
 
 
-class GoogleLoginTests(APITestCase):
-    def setUp(self):
-        self.url = reverse("google-login")
-        self.user = User.objects.create_user(
-            username="googleuser", email="google@example.com"
-        )
-        self.original_google_client_id = getattr(settings, "GOOGLE_CLIENT_ID", None)
-        settings.GOOGLE_CLIENT_ID = "test-client-id"
-
-    def tearDown(self):
-        settings.GOOGLE_CLIENT_ID = self.original_google_client_id
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_success(self, mock_verify):
-        mock_verify.return_value = {"email": "google@example.com"}
-        response = self.client.post(self.url, {"id_token": "valid-token"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.data["data"] if "data" in response.data else response.data
-        self.assertIn("access", data)
-
-    def test_google_login_no_token(self):
-        response = self.client.post(self.url, {})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_google_login_no_config(self):
-        settings.GOOGLE_CLIENT_ID = None
-        response = self.client.post(self.url, {"id_token": "some-token"})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_invalid_token(self, mock_verify):
-        mock_verify.side_effect = ValueError("Invalid token")
-        response = self.client.post(self.url, {"id_token": "invalid-token"})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_transport_error(self, mock_verify):
-        mock_verify.side_effect = google_exceptions.TransportError("Transport error")
-        response = self.client.post(self.url, {"id_token": "valid-token"})
-        self.assertEqual(response.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_unexpected_error(self, mock_verify):
-        mock_verify.side_effect = Exception("Unexpected")
-        response = self.client.post(self.url, {"id_token": "valid-token"})
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_user_not_found(self, mock_verify):
-        mock_verify.return_value = {"email": "nonexistent@example.com"}
-        response = self.client.post(self.url, {"id_token": "valid-token"})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    @patch("google.oauth2.id_token.verify_oauth2_token")
-    def test_google_login_no_email_in_token(self, mock_verify):
-        mock_verify.return_value = {}
-        response = self.client.post(self.url, {"id_token": "valid-token"})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class PermissionTests(APITestCase):
