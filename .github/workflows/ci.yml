@@ -68,6 +68,7 @@ jobs:
           POSTGRES_PORT: 5432
           USE_REDIS: False
           SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+          STATIC_API_KEY: dummy_api_key_for_ci
       - name: Check for missing migrations
         run: |
           python manage.py makemigrations --check --dry-run
@@ -79,6 +80,7 @@ jobs:
           POSTGRES_PORT: 5432
           USE_REDIS: False
           SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+          STATIC_API_KEY: dummy_api_key_for_ci
       - name: Run Tests with Coverage
         run: |
           PYTHONPATH=. coverage run manage.py test --noinput
@@ -92,6 +94,7 @@ jobs:
           POSTGRES_PORT: 5432
           USE_REDIS: False
           SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
+          STATIC_API_KEY: dummy_api_key_for_ci
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
