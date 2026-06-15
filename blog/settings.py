@@ -50,7 +50,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 # EN: Site identity and connectivity configuration.
 # FA: تنظیمات هویت سایت و پیکربندی اتصال.
 DOMAIN = os.environ.get("DOMAIN", "localhost")
-STATIC_API_KEY = os.environ.get("STATIC_API_KEY", "your-default-api-key")
+STATIC_API_KEY = os.environ.get("STATIC_API_KEY")
 SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 

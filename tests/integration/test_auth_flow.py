@@ -13,7 +13,7 @@ class AuthFlowIntegrationTest(APITestCase):
             username="admin", email="admin@example.com", password="Password123!"
         )
 
-        api_key = getattr(settings, "STATIC_API_KEY", "your-default-api-key")
+        api_key = settings.STATIC_API_KEY
         self.client.credentials(HTTP_X_API_KEY=api_key)
 
         me_url = reverse("user-me")

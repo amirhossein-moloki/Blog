@@ -13,6 +13,7 @@ The Blog Platform uses environment variables for configuration, following the "T
 | `SITE_NAME` | String | No | `Blog Platform` | The title of the platform. |
 | `DOMAIN` | String | No | `localhost` | The primary domain of the application. |
 | `FRONTEND_URL` | URL | No | `http://localhost:3000` | URL for the frontend application. |
+| `STATIC_API_KEY` | String | Yes | - | Secret key used for Static API Key authentication. |
 
 ---
 

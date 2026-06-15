@@ -24,7 +24,7 @@ class BaseAPITestCase(APITestCase):
         # EN: Use Static API Key and X-Test-User for authentication in tests
         # FA: استفاده از کلید API ثابت و X-Test-User برای احراز هویت در تست‌ها
         user_to_auth = user or self.user
-        api_key = getattr(settings, "STATIC_API_KEY", "your-default-api-key")
+        api_key = settings.STATIC_API_KEY
         self.client.credentials(
             HTTP_X_API_KEY=api_key, HTTP_X_TEST_USER=user_to_auth.username
         )

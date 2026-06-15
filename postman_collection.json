@@ -973,7 +973,7 @@
     },
     {
       "key": "apiKey",
-      "value": "your-default-api-key"
+      "value": "your-secure-static-api-key"
     },
     {
       "key": "postId",
