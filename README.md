@@ -112,7 +112,7 @@ graph TD
 1. **Clone & Configure:**
    ```bash
    cp .env.example .env
-   # Edit .env with your credentials
+   # Edit .env with your credentials (ensure STATIC_API_KEY is set)
    ```
 2. **Build & Launch:**
    ```bash

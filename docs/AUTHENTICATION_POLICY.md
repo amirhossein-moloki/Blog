@@ -44,10 +44,10 @@ This method is primarily used for testing and bypasses the need for generating s
 این روش عمدتاً برای تست استفاده می‌شود و نیاز به تولید توکن‌های کوتاه مدت JWT را از بین می‌برد.
 
 ### Headers (هدرها)
-- `X-API-Key`: The static secret key (configured in `STATIC_API_KEY` setting).
+- `X-API-Key`: The static secret key (configured via `STATIC_API_KEY` environment variable).
 - `X-Test-User` (Optional): The username to authenticate as. If omitted, the system defaults to the first superuser.
 
-- `X-API-Key`: کلید مخفی ثابت (تنظیم شده در تنظیمات `STATIC_API_KEY`).
+- `X-API-Key`: کلید مخفی ثابت (تنظیم شده از طریق متغیر محیطی `STATIC_API_KEY`).
 - `X-Test-User` (اختیاری): نام کاربری برای احراز هویت به عنوان آن کاربر. در صورت حذف، سیستم به صورت پیش‌فرض اولین ابرکاربر را انتخاب می‌کند.
 
 ---
@@ -61,5 +61,5 @@ This method is primarily used for testing and bypasses the need for generating s
 ## 4. Security Measures (تدابیر امنیتی)
 - **Brute Force Protection:** Managed via `django-axes` to prevent multiple failed login attempts.
 - **محافظت در برابر حملات Brute Force:** مدیریت شده از طریق `django-axes` برای جلوگیری از تلاش‌های مکرر ناموفق برای ورود.
-- **Statelessness:** JWT ensures the API remains stateless and scalable.
-- **بدون وضعیت (Stateless):** JWT تضمین می‌کند که API بدون وضعیت و مقیاس‌پذیر باقی بماند.
+- **Environment Based:** The API Key must be configured via environment variables for security.
+- **مبتنی بر محیط:** کلید API برای امنیت باید از طریق متغیرهای محیطی تنظیم شود.

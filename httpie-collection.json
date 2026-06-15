@@ -4023,7 +4023,7 @@
           {
             "id": "apiKeyVariable",
             "name": "API_KEY",
-            "value": "your-default-api-key",
+            "value": "your-secure-static-api-key",
             "isSecret": false
           },
           {

@@ -9,7 +9,7 @@ const path = require('path');
 const app = express();
 const PORT = 4010;
 const SECRET_KEY = 'mock-secret-key';
-const STATIC_API_KEY = 'your-default-api-key';
+const STATIC_API_KEY = process.env.STATIC_API_KEY || 'your-secure-static-api-key';
 
 // Middleware
 app.use(cors());
