@@ -17,7 +17,6 @@ from pathlib import Path
 
 import dj_database_url
 from dotenv import load_dotenv
-from kombu import Exchange, Queue
 
 # EN: Build paths inside the project like this: BASE_DIR / 'subdir'.
 # FA: ساخت مسیرها در داخل پروژه به این صورت: BASE_DIR / 'subdir'.
@@ -82,7 +81,6 @@ INSTALLED_APPS = [
     "common",
     "corsheaders",
     "axes",
-    "django_celery_results",
     "djoser",
     "sslserver",
     "guardian",
@@ -242,28 +240,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # FA: مدل کاربر سفارشی برای اجازه دادن به گسترش‌های پروفایل در آینده.
 AUTH_USER_MODEL = "users.User"
 
-# EN: Redis and Channels configuration for real-time features and caching.
-# FA: تنظیمات Redis و Channels برای ویژگی‌های بلادرنگ و کشینگ.
-REDIS_URL = os.environ.get("REDIS_URL")
-USE_REDIS = (
-    os.environ.get("USE_REDIS", "false").lower() in ("true", "1", "t") and REDIS_URL
-)
-
-if "test" in sys.argv or not USE_REDIS:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer",
-        },
-    }
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [REDIS_URL],
-            },
-        },
-    }
+# EN: Channels configuration for real-time features.
+# FA: تنظیمات Channels برای ویژگی‌های بلادرنگ.
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 # EN: Logging Configuration for detailed error tracking and performance monitoring.
 # FA: تنظیمات لاگ برای ردیابی دقیق خطاها و نظارت بر کارایی.
@@ -481,50 +464,7 @@ AXES_COOLOFF_TIME = 1
 AXES_RESET_ON_SUCCESS = True
 AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
-# EN: Celery configuration for background tasks and scheduled events.
-# FA: تنظیمات Celery برای تسک‌های پس‌زمینه و رویدادهای زمان‌بندی شده.
-if USE_REDIS:
-    CELERY_BROKER_URL = REDIS_URL
-    CELERY_RESULT_BACKEND = REDIS_URL
-else:
-    CELERY_BROKER_URL = "memory://"
-    CELERY_RESULT_BACKEND = "cache+memory://"
-
-CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
-CELERY_TASK_DEFAULT_QUEUE = "default"
-CELERY_TASK_QUEUES = (
-    Queue("high_priority", Exchange("high_priority"), routing_key="high_priority"),
-    Queue("default", Exchange("default"), routing_key="default"),
-    Queue("low_priority", Exchange("low_priority"), routing_key="low_priority"),
-)
-CELERY_TASK_ROUTES = {}
-CELERY_TASK_ACKS_LATE = True
-CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
-CELERY_WORKER_PREFETCH_MULTIPLIER = 1
-CELERY_WORKER_MAX_TASKS_PER_CHILD = int(
-    os.environ.get("CELERY_WORKER_MAX_TASKS_PER_CHILD", "100")
-)
-CELERY_TASK_SOFT_TIME_LIMIT = int(os.environ.get("CELERY_TASK_SOFT_TIME_LIMIT", "900"))
-CELERY_TASK_TIME_LIMIT = int(os.environ.get("CELERY_TASK_TIME_LIMIT", "960"))
-CELERY_BROKER_TRANSPORT_OPTIONS = {
-    "visibility_timeout": int(os.environ.get("CELERY_VISIBILITY_TIMEOUT", "1200"))
-}
-CELERY_RESULT_EXPIRES = timedelta(
-    hours=int(os.environ.get("CELERY_RESULT_EXPIRES_HOURS", "24"))
-)
-
-CELERY_BEAT_SCHEDULE = {
-    "publish-scheduled-posts": {
-        "task": "posts.tasks.publish_scheduled_posts_task",
-        "schedule": timedelta(minutes=1),
-    },
-}
-
 if "test" in sys.argv or "pytest" in sys.modules:
-    CELERY_TASK_ALWAYS_EAGER = True
     # Disable guardian's anonymous user during tests to prevent test failures
     ANONYMOUS_USER_NAME = None
 
@@ -545,23 +485,14 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
-if "test" in sys.argv or "pytest" in sys.modules or not USE_REDIS:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-snowflake",
-        }
+# EN: Cache configuration using local memory.
+# FA: تنظیمات کش با استفاده از حافظه محلی.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
     }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"{REDIS_URL}/1",  # DB 1 for cache, 0 for channels/celery
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
-        },
-    }
+}
 
 # EN: CKEditor 5 configuration for rich text editing.
 # FA: تنظیمات CKEditor 5 برای ویرایش متن غنی (Rich Text).

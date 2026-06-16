@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.urls import reverse
 from rest_framework import status
 
@@ -9,8 +7,7 @@ from posts.factories import CommentFactory, PostFactory
 
 
 class CommentAPITest(BaseAPITestCase):
-    @patch("interactions.tasks.notify_author_on_new_comment.delay")
-    def test_create_comment(self, mock_task):
+    def test_create_comment(self):
         self._authenticate()
         post = PostFactory()
         url = reverse("interactions:comment-list")
@@ -25,11 +22,8 @@ class CommentAPITest(BaseAPITestCase):
         self.assertTrue(
             Comment.objects.filter(post=post, content="A test comment.").exists()
         )
-        new_comment = Comment.objects.latest("id")
-        mock_task.assert_called_once_with(new_comment.id)
 
-    @patch("interactions.tasks.notify_author_on_new_comment.delay")
-    def test_create_nested_comment(self, mock_task):
+    def test_create_nested_comment(self):
         self._authenticate()
         parent_comment = CommentFactory()
         url = reverse("interactions:comment-list")

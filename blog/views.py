@@ -8,18 +8,17 @@ from django.shortcuts import redirect
 def health_check(request):
     """
     EN:
-    Enhanced health check endpoint that verifies database and Redis connectivity.
-    Returns 200 if both are healthy, 503 otherwise.
+    Health check endpoint that verifies database connectivity.
+    Returns 200 if healthy, 503 otherwise.
 
     FA:
-    اندپوینت ارتقا یافته بررسی سلامت که اتصال پایگاه داده و Redis را تایید می‌کند.
-    اگر هر دو سالم باشند کد ۲۰۰ و در غیر این صورت کد ۵۰۳ برمی‌گرداند.
+    اندپوینت بررسی سلامت که اتصال پایگاه داده را تایید می‌کند.
+    اگر سالم باشد کد ۲۰۰ و در غیر این صورت کد ۵۰۳ برمی‌گرداند.
     """
     health_status = {
         "status": "healthy",
         "services": {
             "database": "unknown",
-            "redis": "unknown",
         },
     }
     is_healthy = True
@@ -35,19 +34,6 @@ def health_check(request):
         is_healthy = False
     except Exception as e:
         health_status["services"]["database"] = f"error: {str(e)}"
-        is_healthy = False
-
-    # EN: Check Redis (Cache) connectivity
-    # FA: بررسی اتصال Redis (کش)
-    try:
-        cache.set("health_check", "ok", timeout=1)
-        if cache.get("health_check") == "ok":
-            health_status["services"]["redis"] = "healthy"
-        else:
-            health_status["services"]["redis"] = "unhealthy"
-            is_healthy = False
-    except Exception as e:
-        health_status["services"]["redis"] = f"error: {str(e)}"
         is_healthy = False
 
     if not is_healthy:

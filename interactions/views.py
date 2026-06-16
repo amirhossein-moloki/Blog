@@ -6,7 +6,6 @@ from users.permissions import IsOwnerOrAdmin
 
 from .models import Comment, Reaction
 from .serializers import CommentSerializer, ReactionSerializer
-from .tasks import notify_author_on_new_comment
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -42,11 +41,10 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        EN: Saves the comment with the current user and triggers an author notification.
-        FA: نظر را با کاربر فعلی ذخیره کرده و یک اعلان برای نویسنده ارسال می‌کند.
+        EN: Saves the comment with the current user.
+        FA: نظر را با کاربر فعلی ذخیره می‌کند.
         """
         serializer.save(user=self.request.user)
-        notify_author_on_new_comment.delay(serializer.instance.id)
 
 
 class ReactionViewSet(viewsets.ModelViewSet):

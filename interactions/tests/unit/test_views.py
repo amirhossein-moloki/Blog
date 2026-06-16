@@ -45,13 +45,11 @@ class InteractionsViewSetTests(APITestCase):
         data = response.data["data"] if "data" in response.data else response.data
         self.assertEqual(len(data), 1)
 
-    @patch("interactions.views.notify_author_on_new_comment.delay")
-    def test_comment_create_mocks_celery(self, mock_notify):
+    def test_comment_create(self):
         self.client.force_authenticate(user=self.user)
         data = {"post": self.post.id, "content": "New Comment"}
         response = self.client.post(self.comment_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_notify.assert_called_once()
 
     def test_reaction_queryset_staff(self):
         ct = ContentType.objects.get_for_model(Post)

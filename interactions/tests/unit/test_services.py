@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.test import TestCase
 
 from interactions.models import Comment, Reaction
@@ -8,13 +6,11 @@ from posts.factories import PostFactory, UserFactory
 
 
 class InteractionServicesTest(TestCase):
-    @patch("interactions.services.notify_author_on_new_comment.delay")
-    def test_create_comment_service(self, mock_notify):
+    def test_create_comment_service(self):
         user = UserFactory()
         post = PostFactory()
         create_comment(user=user, post=post, content="Test content")
         self.assertEqual(Comment.objects.count(), 1)
-        mock_notify.assert_called_once()
 
     def test_toggle_reaction(self):
         user = UserFactory()

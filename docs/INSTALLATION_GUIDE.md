@@ -26,8 +26,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Database and Cache
-Ensure **PostgreSQL** and **Redis** are running. Create a database named `blog_db`.
+### 2. Database
+Ensure **PostgreSQL** is running. Create a database named `blog_db`.
 
 ### 3. Environment Variables
 Copy the template and update the values:
@@ -36,7 +36,6 @@ cp .env.example .env
 ```
 Key variables to check:
 - `DATABASE_URL`: `postgres://user:password@localhost:5432/blog_db`
-- `REDIS_URL`: `redis://localhost:6379/0`
 
 ### 4. Initialization
 ```bash
@@ -54,11 +53,6 @@ The recommended approach for consistent environments.
 The `docker-compose.yml` defines the following services:
 - `web`: Django application (Daphne/ASGI).
 - `db`: PostgreSQL 14.
-- `cache`: Redis 8.2.
-- `celery_high_priority`: Worker for critical tasks (e.g., Auth emails).
-- `celery_default`: Worker for standard tasks (e.g., Post publishing).
-- `celery_low_priority`: Worker for heavy processing (e.g., Video optimization).
-- `celery-beat`: Scheduler for periodic tasks.
 - `nginx`: Reverse proxy serving static/media files.
 
 ### 2. Launching the Stack

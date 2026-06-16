@@ -11,12 +11,11 @@ The Blog Platform follows a modular Django architecture, where each application 
 ├── blog/                   # Core Project Configuration
 │   ├── settings.py         # Global settings
 │   ├── urls.py             # Root URL routing
-│   ├── celery.py           # Celery app initialization
 │   └── wsgi.py / asgi.py   # Web server interfaces
 ├── common/                 # Shared Infrastructure & Utilities
 │   ├── renderers.py        # Standardized API response formatting
 │   ├── schema.py           # Custom OpenAPI schema generation
-│   ├── optimization.py    # Image/Video processing logic
+│   ├── optimization.py    # Image processing logic
 │   └── permissions.py      # Global reusable permissions
 ├── core/                   # Base Domain Logic
 │   └── base_models.py      # Abstract BaseModel (timestamps, is_active)
@@ -26,14 +25,13 @@ The Blog Platform follows a modular Django architecture, where each application 
 │   └── services.py         # Auth business logic
 ├── posts/                  # Content Management (The Core)
 │   ├── models.py           # Posts, Categories, Tags, Series, Revisions
-│   ├── tasks.py            # Scheduled publishing
 │   └── services.py         # Content sync and analytics
 ├── medias/                 # Centralized Asset Library
 │   ├── models.py           # Media metadata storage
 │   └── services.py         # Upload and optimization handling
 ├── interactions/           # Engagement Features
 │   ├── models.py           # Comments and Generic Reactions
-│   └── tasks.py            # Notification triggers
+│   └── services.py         # Interaction business logic
 ├── pages/                  # Static Content Management
 ├── navigation/            # Dynamic Menu Management
 ├── nginx/                  # Reverse Proxy Configuration
@@ -48,7 +46,7 @@ The Blog Platform follows a modular Django architecture, where each application 
 
 | App | Responsibility | Models | APIs | Dependencies |
 | :--- | :--- | :--- | :--- | :--- |
-| **users** | Identity & Auth | `User` | Register, Me, Login, Google Login | `common` |
+| **users** | Identity & Auth | `User` | Register, Me, Login | `common` |
 | **posts** | Content Engine | `Post`, `Category`, `Tag`, `Series`, `Revision` | CRUD, Publish, Similar Posts | `users`, `medias`, `core` |
 | **medias** | Asset Library | `Media`, `PostMedia` | Upload, Download | `users`, `common` |
 | **interactions** | Social Features | `Comment`, `Reaction` | Post Comments, Like/Emoji | `users`, `posts` |
@@ -85,5 +83,4 @@ graph TD
 
 ## Shared Components
 - **`common.renderers.StandardResponseRenderer`:** Ensures all API responses are wrapped in a `{data, messagesList, pagination}` envelope.
-- **`common.fields.OptimizedImageField`:** A legacy field for image management (optimization disabled).
 - **`core.base_models.BaseModel`:** Provides `created_at`, `updated_at`, and `is_active` fields for consistent auditing across all tables.

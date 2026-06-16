@@ -36,16 +36,6 @@ The Blog Platform uses environment variables for configuration, following the "T
 
 ---
 
-## Redis & Celery
-| Variable | Type | Required | Default | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `USE_REDIS` | Boolean | No | `False` | Set to `True` to enable Redis for cache and tasks. |
-| `REDIS_URL` | URL | No | `redis://cache:6379/0` | Redis server connection URL. |
-| `CELERY_WORKER_MAX_TASKS_PER_CHILD` | Integer | No | `100` | Limits tasks per worker child to prevent memory leaks. |
-| `CELERY_VISIBILITY_TIMEOUT` | Integer | No | `1200` | Time in seconds to wait for task acknowledgment. |
-
----
-
 ## Storage
 | Variable | Type | Required | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
@@ -63,13 +53,6 @@ The Blog Platform uses environment variables for configuration, following the "T
 | `EMAIL_HOST` | String | No | `localhost` | SMTP server host. |
 | `EMAIL_PORT` | Integer | No | `587` | SMTP server port. |
 | `EMAIL_USE_TLS` | Boolean | No | `True` | Use TLS for SMTP connection. |
-
----
-
-## Third-Party Services
-| Variable | Type | Required | Default | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `GOOGLE_CLIENT_ID` | String | No | - | Client ID for Google OAuth2 login. |
 
 ---
 

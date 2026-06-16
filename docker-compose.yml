@@ -12,7 +12,6 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - cache
 
   db:
     image: postgres:14
@@ -20,62 +19,6 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
-
-  cache:
-    image: redis:8.2-alpine
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 1s
-      timeout: 3s
-      retries: 5
-
-  celery_high_priority:
-    build: .
-    command: celery -A blog worker -l info -Q high_priority
-    volumes:
-      - .:/app
-      - media_volume:/app/media
-    env_file:
-      - .env
-    depends_on:
-      cache:
-        condition: service_healthy
-
-  celery_default:
-    build: .
-    command: celery -A blog worker -l info -Q default
-    volumes:
-      - .:/app
-      - media_volume:/app/media
-    env_file:
-      - .env
-    depends_on:
-      cache:
-        condition: service_healthy
-
-  celery_low_priority:
-    build: .
-    command: celery -A blog worker -l info -Q low_priority
-    volumes:
-      - .:/app
-      - media_volume:/app/media
-    env_file:
-      - .env
-    depends_on:
-      cache:
-        condition: service_healthy
-
-  celery-beat:
-    build: .
-    command: celery -A blog beat -l info
-    volumes:
-      - .:/app
-      - media_volume:/app/media
-    env_file:
-      - .env
-    depends_on:
-      cache:
-        condition: service_healthy
 
   nginx:
     build:

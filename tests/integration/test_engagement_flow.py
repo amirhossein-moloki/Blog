@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from rest_framework import status
@@ -10,8 +8,7 @@ from posts.factories import CommentFactory, PostFactory
 
 
 class EngagementFlowIntegrationTest(BaseAPITestCase):
-    @patch("interactions.views.notify_author_on_new_comment.delay")
-    def test_commenting_and_reply_flow(self, mock_notify):
+    def test_commenting_and_reply_flow(self):
         self._authenticate()
         post = PostFactory()
 
@@ -21,11 +18,6 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
         response = self.client.post(url, comment_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Success responses are NOT always wrapped by StandardResponseRenderer in test client
-        # unless it goes through the full middleware/renderer stack with JSON accept header.
-        # But wait, PostAPITest in test_posts.py expects response.data['data']?
-        # Let's re-examine test_posts.py.
-
         if "data" in response.data:
             comment_id = response.data["data"]["id"]
         else:
@@ -34,9 +26,6 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
         self.assertTrue(
             Comment.objects.filter(id=comment_id, user=self.user, post=post).exists()
         )
-
-        # Verify notification task was called
-        mock_notify.assert_called_once()
 
         # 2. Reply to the comment
         reply_data = {"post": post.id, "content": "I agree!", "parent": comment_id}

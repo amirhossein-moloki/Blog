@@ -8,8 +8,8 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 
 ### Problem Solved
 - **Content Lifecycle Management:** Handles the transition from draft to review, scheduled, and published states.
-- **Media Inefficiency:** Automates image conversion to AVIF and video compression using FFmpeg to ensure fast load times.
-- **Fragmented User Management:** Integrates standard JWT authentication with Google OAuth2 and Iranian-specific localized features (Jalali dates).
+- **Media Inefficiency:** Automates image conversion to AVIF to ensure fast load times.
+- **Fragmented User Management:** Integrates standard JWT authentication with Iranian-specific localized features (Jalali dates).
 - **Scalability:** Built with a modular architecture that separates core concerns (Interactions, Navigation, Medias, Pages).
 
 ---
@@ -18,19 +18,17 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 
 ### 🔐 User & Identity Management
 - **JWT Authentication:** Secure token-based access with refresh mechanisms.
-- **Social Integration:** One-click login via Google OAuth2.
 - **RBAC (Role-Based Access Control):** Predefined roles for Admins, Authors, and Users.
 - **Profile Management:** Optimized profile pictures and biography tracking.
 
 ### ✍️ Advanced Publishing Engine
 - **Rich Text Editing:** Integrated CKEditor 5 with image upload support.
-- **Post Scheduling:** Automated publishing of scheduled content via Celery.
+- **Post Scheduling:** Support for draft, review, and scheduled content states.
 - **Versioning:** Historical revision tracking for all post edits.
 - **Taxonomies:** Hierarchical categories, tags, and series management.
 
 ### 🖼️ Centralized Media Library
 - **Automatic Optimization:** Real-time AVIF conversion and resizing for images.
-- **Async Processing:** Background video optimization using FFmpeg.
 - **Smart Linking:** Automatically syncs media attachments by parsing post content.
 
 ### 💬 Engagement & Interactions
@@ -46,7 +44,6 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 | **Backend** | Django 5.0.6 (Python 3.12) |
 | **API Framework** | Django REST Framework (DRF) |
 | **Database** | PostgreSQL 14 |
-| **Task Queue** | Celery + Redis |
 | **Real-time** | Django Channels (ASGI) |
 | **Reverse Proxy** | Nginx |
 | **Containerization** | Docker + Docker Compose |
@@ -67,7 +64,6 @@ graph TD
 
     subgraph BusinessLogic ["Business Logic"]
         Services[Service Layer]
-        Tasks[Celery Tasks]
     end
 
     subgraph CoreDomains ["Core Domains"]
@@ -79,17 +75,13 @@ graph TD
 
     subgraph DataLayer ["Data Layer"]
         DB[(PostgreSQL)]
-        Cache[(Redis)]
         Storage[S3 / Local Storage]
     end
 
     DRF --> Services
     Services --> CoreDomains
-    Services --> Tasks
     CoreDomains --> DB
     CoreDomains --> Storage
-    Tasks --> DB
-    Tasks --> Cache
 ```
 
 ### Service Boundaries
@@ -106,7 +98,7 @@ graph TD
 ### Requirements
 - Docker and Docker Compose
 - Python 3.12+ (for local development)
-- PostgreSQL & Redis (for local development)
+- PostgreSQL (for local development)
 
 ### Docker Setup (Recommended)
 1. **Clone & Configure:**
