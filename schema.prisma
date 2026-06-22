@@ -1,0 +1,349 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- ENUMS ---
+
+enum PostStatus {
+  DRAFT
+  REVIEW
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PostVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum SeriesOrderStrategy {
+  MANUAL
+  BY_DATE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  REMOVED
+}
+
+enum MenuLocation {
+  HEADER
+  FOOTER
+  SIDEBAR
+}
+
+// --- MODELS ---
+
+model User {
+  id             String         @id @default(uuid())
+  username       String         @unique
+  email          String         @unique
+  password       String
+  firstName      String?
+  lastName       String?
+  profilePicture String?        // URL to OptimizedImageField
+  isActive       Boolean        @default(true)
+  isStaff        Boolean        @default(false)
+  isSuperuser    Boolean        @default(false)
+  lastLogin      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  authorProfile  AuthorProfile?
+  medias         Media[]        @relation("UploadedBy")
+  comments       Comment[]
+  reactions      Reaction[]
+  revisions      Revision[]     @relation("EditedBy")
+
+  @@map("users_user")
+}
+
+model AuthorProfile {
+  userId      String  @id
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String
+  bio         String? @db.Text
+  avatarId    String?
+  avatar      Media?  @relation("AuthorAvatar", fields: [avatarId], references: [id], onDelete: SetNull)
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       Post[]
+
+  @@map("posts_authorprofile")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryHierarchy")
+  description String?   @db.Text
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  posts       Post[]
+
+  @@index([slug])
+  @@map("posts_category")
+}
+
+model Tag {
+  id          String    @id @default(uuid())
+  slug        String    @unique
+  name        String
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  posts       PostTag[]
+
+  @@index([slug])
+  @@map("posts_tag")
+}
+
+model Series {
+  id            String              @id @default(uuid())
+  slug          String              @unique
+  title         String
+  description   String?             @db.Text
+  orderStrategy SeriesOrderStrategy @default(MANUAL)
+  isActive      Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  posts         Post[]
+
+  @@index([slug])
+  @@map("posts_series")
+}
+
+model Post {
+  id              String         @id @default(uuid())
+  slug            String         @unique
+  canonicalUrl    String?
+  title           String
+  excerpt         String         @db.Text
+  isHot           Boolean        @default(false)
+  content         String         @db.Text // CKEditor HTML
+  readingTimeSec  Int            @default(0)
+  status          PostStatus     @default(DRAFT)
+  visibility      PostVisibility @default(PUBLIC)
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  viewsCount      Int            @default(0)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  authorId        String
+  author          AuthorProfile  @relation(fields: [authorId], references: [userId], onDelete: Cascade)
+  categoryId      String?
+  category        Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  seriesId        String?
+  series          Series?        @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+
+  coverMediaId    String?
+  coverMedia      Media?         @relation("PostCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+
+  ogImageId       String?
+  ogImage         Media?         @relation("PostOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  seoTitle        String?
+  seoDescription  String?        @db.Text
+
+  tags            PostTag[]
+  revisions       Revision[]
+  mediaAttachments PostMedia[]
+  comments        Comment[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([authorId])
+  @@map("posts_post")
+}
+
+model PostTag {
+  postId    String
+  tagId     String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("posts_posttag")
+}
+
+model Revision {
+  id         String   @id @default(uuid())
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  editorId   String?
+  editor     User?    @relation("EditedBy", fields: [editorId], references: [id], onDelete: SetNull)
+  content    String   @db.Text
+  title      String
+  excerpt    String   @db.Text
+  changeNote String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("posts_revision")
+}
+
+model Media {
+  id          String    @id @default(uuid())
+  storageKey  String
+  url         String
+  type        MediaType
+  mime        String
+  width       Int?
+  height      Int?
+  duration    Int?      // in seconds
+  sizeBytes   Int       @default(0)
+  altText     String?
+  title       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  uploadedById String?
+  uploadedBy   User?    @relation("UploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  authorAvatars   AuthorProfile[] @relation("AuthorAvatar")
+  postCovers      Post[]          @relation("PostCover")
+  postOgImages    Post[]          @relation("PostOgImage")
+  postAttachments PostMedia[]
+
+  @@map("medias_media")
+}
+
+model PostMedia {
+  id             String   @id @default(uuid())
+  postId         String
+  post           Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaId        String
+  media          Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  attachmentType String   @default("in-content") // e.g., 'in-content', 'cover', 'og-image'
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([postId, mediaId, attachmentType])
+  @@map("medias_postmedia")
+}
+
+model Comment {
+  id          String        @id @default(uuid())
+  postId      String
+  post        Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[]     @relation("CommentReplies")
+  content     String        @db.Text
+  status      CommentStatus @default(PENDING)
+  ip          String?
+  userAgent   String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("interactions_comment")
+}
+
+model Reaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reaction    String   // e.g., 'like', or emoji code
+
+  // Polymorphic relation simulation (Generic Foreign Key)
+  contentType String   // e.g., 'post', 'comment'
+  objectId    String
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, contentType, objectId, reaction])
+  @@index([contentType, objectId])
+  @@map("interactions_reaction")
+}
+
+model Page {
+  id             String     @id @default(uuid())
+  slug           String     @unique
+  title          String
+  content        String     @db.Text
+  status         PostStatus @default(DRAFT)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?    @db.Text
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([slug])
+  @@map("pages_page")
+}
+
+model Menu {
+  id        String       @id @default(uuid())
+  name      String
+  location  MenuLocation @unique
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  items     MenuItem[]
+
+  @@map("navigation_menu")
+}
+
+model MenuItem {
+  id          String     @id @default(uuid())
+  menuId      String
+  menu        Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      MenuItem?  @relation("MenuItemHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children    MenuItem[] @relation("MenuItemHierarchy")
+  label       String
+  url         String
+  order       Int        @default(0)
+  targetBlank Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("navigation_menuitem")
+}
