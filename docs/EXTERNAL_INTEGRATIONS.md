@@ -12,11 +12,17 @@ This document describes the third-party services and APIs integrated into the Bl
 
 ---
 
-## 2. AWS S3 (Optional Storage)
-- **Purpose:** Scalable cloud storage for media assets.
-- **Implementation:** Integrated via `django-storages`.
-- **Configuration:** Triggered by setting `STORAGE_BACKEND=s3`.
-- **Behavior:** Files are uploaded directly to the S3 bucket; URLs are generated using the configured `AWS_S3_CUSTOM_DOMAIN`.
+## 2. Storage & CDN (AWS S3 / ParsPack)
+- **Purpose:** Scalable cloud storage for media assets and global delivery via CDN.
+- **Implementation:** Integrated via `django-storages` (S3Boto3Storage).
+- **Configuration:**
+    - Set `STORAGE_BACKEND=s3` to enable S3 storage.
+    - For ParsPack S3, configure `AWS_S3_ENDPOINT_URL` (e.g., `https://s3.parspack.com`).
+    - To enable CDN delivery, set `USE_CDN=True` and provide `CDN_DOMAIN`.
+- **Behavior:**
+    - Files are uploaded directly to the S3 bucket.
+    - If CDN is enabled, `STATIC_URL` and `MEDIA_URL` point to the CDN domain.
+    - If CDN is disabled but S3 is used, `MEDIA_URL` points to the S3 bucket or custom domain.
 
 ---
 

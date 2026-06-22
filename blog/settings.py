@@ -50,6 +50,8 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 # EN: Site identity and connectivity configuration.
 # FA: تنظیمات هویت سایت و پیکربندی اتصال.
 DOMAIN = os.environ.get("DOMAIN", "localhost")
+USE_CDN = os.environ.get("USE_CDN", "False").lower() in ("true", "1", "t")
+CDN_DOMAIN = os.environ.get("CDN_DOMAIN", "")
 STATIC_API_KEY = os.environ.get("STATIC_API_KEY")
 SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
@@ -207,11 +209,19 @@ USE_TZ = True
 
 # EN: Static and Media files configuration. Uses WhiteNoise for static files and local/S3 for media.
 # FA: تنظیمات فایل‌های ایستا و رسانه‌ای. استفاده از WhiteNoise برای فایل‌های ایستا و فضای محلی/S3 برای رسانه‌ها.
-STATIC_URL = "/static/"
+if USE_CDN and CDN_DOMAIN:
+    STATIC_URL = f"https://{CDN_DOMAIN}/static/"
+else:
+    STATIC_URL = "/static/"
+
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
-MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
+if USE_CDN and CDN_DOMAIN:
+    MEDIA_URL = f"https://{CDN_DOMAIN}/media/"
+else:
+    MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 PRIVATE_MEDIA_ROOT = os.path.join(BASE_DIR, "private_media")
 
@@ -224,12 +234,27 @@ if STORAGE_BACKEND == "s3":
     AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
     AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
     AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
-    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    AWS_S3_ENDPOINT_URL = os.environ.get("AWS_S3_ENDPOINT_URL")
+    AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN")
+
+    if not AWS_S3_CUSTOM_DOMAIN:
+        if AWS_S3_ENDPOINT_URL:
+            # EN: Extract domain from endpoint URL if custom domain is not provided.
+            # FA: استخراج دامنه از آدرس اندپوینت در صورتی که دامنه سفارشی ارائه نشده باشد.
+            AWS_S3_CUSTOM_DOMAIN = (
+                AWS_S3_ENDPOINT_URL.split("//")[-1].rstrip("/")
+                + f"/{AWS_STORAGE_BUCKET_NAME}"
+            )
+        else:
+            AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+
     AWS_S3_OBJECT_PARAMETERS = {
         "CacheControl": "max-age=86400",
     }
     AWS_LOCATION = "media"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+
+    if not (USE_CDN and CDN_DOMAIN):
+        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
 else:
     DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
@@ -432,6 +457,7 @@ FILE_UPLOAD_HANDLERS = [
 
 # EN: Security headers and cookie protection.
 # FA: هدرهای امنیتی و محافظت از کوکی‌ها.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "SAMEORIGIN"

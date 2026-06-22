@@ -12,6 +12,8 @@ The Blog Platform uses environment variables for configuration, following the "T
 | `ALLOWED_HOSTS` | CSV | No | `localhost,127.0.0.1` | Comma-separated list of host/domain names the site can serve. |
 | `SITE_NAME` | String | No | `Blog Platform` | The title of the platform. |
 | `DOMAIN` | String | No | `localhost` | The primary domain of the application. |
+| `USE_CDN` | Boolean | No | `False` | Enables serving static and media files from a CDN. |
+| `CDN_DOMAIN` | String | No | - | The domain of the CDN (e.g., `cdn.example.com`). |
 | `FRONTEND_URL` | URL | No | `http://localhost:3000` | URL for the frontend application. |
 | `STATIC_API_KEY` | String | Yes | - | Secret key used for Static API Key authentication. |
 
@@ -50,9 +52,11 @@ The Blog Platform uses environment variables for configuration, following the "T
 | Variable | Type | Required | Default | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `STORAGE_BACKEND` | String | No | `local` | `local` for filesystem, `s3` for AWS S3. |
-| `AWS_ACCESS_KEY_ID` | String | If S3 | - | AWS access key. |
-| `AWS_SECRET_ACCESS_KEY` | String | If S3 | - | AWS secret key. |
-| `AWS_STORAGE_BUCKET_NAME` | String | If S3 | - | AWS S3 bucket name. |
+| `AWS_ACCESS_KEY_ID` | String | If S3 | - | S3 access key. |
+| `AWS_SECRET_ACCESS_KEY` | String | If S3 | - | S3 secret key. |
+| `AWS_STORAGE_BUCKET_NAME` | String | If S3 | - | S3 bucket name. |
+| `AWS_S3_ENDPOINT_URL` | URL | No | - | S3 endpoint URL (Required for ParsPack). |
+| `AWS_S3_CUSTOM_DOMAIN` | String | No | - | Custom domain for S3 assets. |
 
 ---
 
