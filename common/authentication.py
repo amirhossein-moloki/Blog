@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import authentication, exceptions
 
 User = get_user_model()
@@ -50,3 +51,21 @@ class StaticAPIKeyAuthentication(authentication.BaseAuthentication):
             return None
 
         return (user, None)
+
+
+class StaticAPIKeyAuthenticationExtension(OpenApiAuthenticationExtension):
+    """
+    EN: OpenAPI extension for StaticAPIKeyAuthentication to document X-API-Key and X-Test-User headers.
+    FA: افزونه OpenAPI برای StaticAPIKeyAuthentication جهت مستندسازی هدرهای X-API-Key و X-Test-User.
+    """
+
+    target_class = "common.authentication.StaticAPIKeyAuthentication"
+    name = "StaticAPIKeyAuth"
+
+    def get_security_definition(self, auto_schema):
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-Key",
+            "description": "Enter your static API key. Optionally use X-Test-User header to simulate a specific user.",
+        }
