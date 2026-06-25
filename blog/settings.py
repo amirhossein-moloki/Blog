@@ -400,6 +400,7 @@ REST_FRAMEWORK = {
     # This line is for using Static API Key Authentication
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "common.authentication.StaticAPIKeyAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_RENDERER_CLASSES": (
         "common.renderers.StandardResponseRenderer",
