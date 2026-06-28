@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from posts.factories import AuthorProfileFactory, CategoryFactory, PostFactory
-from posts.models import Post
+from posts.models import Post, PostTranslation
 
 User = get_user_model()
 
@@ -12,29 +12,33 @@ class PostModelTests(TestCase):
         # 200 words should be around 1 minute (60 seconds)
         content = "word " * 200
         author = AuthorProfileFactory()
-        post = Post.objects.create(
+        post = Post.objects.create(author=author)
+        pt = PostTranslation.objects.create(
+            post=post,
+            language_code="en",
             title="Test Post",
             slug="test-post",
             content=content,
-            author=author,
             excerpt="Excerpt",
         )
-        self.assertEqual(post.reading_time_sec, 60)
+        self.assertEqual(pt.reading_time_sec, 60)
 
     def test_post_reading_time_empty_content(self):
         author = AuthorProfileFactory()
-        post = Post.objects.create(
+        post = Post.objects.create(author=author)
+        pt = PostTranslation.objects.create(
+            post=post,
+            language_code="en",
             title="Test Post",
             slug="test-post-empty",
             content="",
-            author=author,
             excerpt="Excerpt",
         )
-        self.assertEqual(post.reading_time_sec, 0)
+        self.assertEqual(pt.reading_time_sec, 0)
 
     def test_post_str(self):
-        post = PostFactory(title="Unique Title")
-        self.assertEqual(str(post), "Unique Title")
+        post = PostFactory(translation__title="Unique Title")
+        self.assertEqual(str(post.translation), "Unique Title (en)")
 
 
 class AuthorProfileModelTests(TestCase):

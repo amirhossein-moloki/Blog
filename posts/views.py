@@ -48,10 +48,11 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PostFilter
-    search_fields = ["title", "content", "excerpt"]
+    search_fields = ["translations__title", "translations__content", "translations__excerpt"]
     ordering_fields = ["published_at", "views_count", "id"]
     ordering = ["-published_at", "-id"]
-    lookup_field = "slug"
+    lookup_field = "translations__slug"
+    lookup_url_kwarg = "slug"
 
     def get_serializer_class(self):
         """
@@ -68,14 +69,15 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         """
         EN:
         Optimizes the queryset using select_related and prefetch_related based on requested fields.
-        Also handles visibility rules: regular users only see published posts, authors see their drafts.
+        Also handles visibility rules and localization.
 
         FA:
         QuerySet را با استفاده از select_related و prefetch_related بر اساس فیلدهای درخواستی بهینه می‌کند.
-        همچنین قوانین مشاهده‌پذیری را مدیریت می‌کند: کاربران عادی فقط پست‌های منتشر شده را می‌بینند، نویسندگان پیش‌نویس‌های خود را می‌بینند.
+        همچنین قوانین مشاهده‌پذیری و بومی‌سازی را مدیریت می‌کند.
         """
+        lang = self.request.query_params.get("lang", "en")
         if self.action == "list":
-            queryset = Post.objects.all()
+            queryset = Post.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
             fields = (
                 {f.strip() for f in fields_query.split(",")} if fields_query else set()
@@ -123,7 +125,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 ).distinct()
             return queryset.filter(status="published", published_at__lte=timezone.now())
         else:
-            queryset = Post.objects.all()
+            queryset = Post.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
             fields = (
                 {f.strip() for f in fields_query.split(",")}
@@ -251,11 +253,21 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")
     def by_slug(self, request, slug=None):
         """
-        EN: Endpoint to retrieve a single post by its slug.
-        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ آن.
+        EN: Endpoint to retrieve a single post by its slug and language.
+        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ و زبان آن.
         """
+        lang = request.query_params.get("lang", "en")
         try:
-            post = self.get_queryset().get(slug=slug)
+            # EN: Filter by translation slug
+            # FA: فیلتر بر اساس اسلاگ ترجمه
+            post = self.get_queryset().filter(translations__slug=slug, translations__language_code=lang).first()
+            if not post:
+                 # EN: Fallback: Try default language if translation not found for requested lang
+                 # FA: جایگزین: تلاش برای زبان پیش‌فرض اگر ترجمه برای زبان درخواستی یافت نشد
+                 post = self.get_queryset().filter(translations__slug=slug).first()
+
+            if not post:
+                 raise Post.DoesNotExist
         except Post.DoesNotExist:
             raise NotFound("No post was found with this slug.")
 
@@ -293,7 +305,7 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
         """
         post_slug = self.kwargs.get("post_slug")
         return (
-            Comment.objects.filter(post__slug=post_slug, status="approved")
+            Comment.objects.filter(post__translations__slug=post_slug, status="approved")
             .annotate(
                 likes_count=Count("reactions", filter=Q(reactions__reaction="like"))
             )
@@ -314,7 +326,7 @@ def publish_post(request, slug):
     FA: نمای API برای انتشار دستی یک پست پیش‌نویس یا زمان‌بندی شده.
     """
     try:
-        post = Post.objects.get(slug=slug)
+        post = Post.objects.get(translations__slug=slug)
     except Post.DoesNotExist:
         raise NotFound("No post was found with these specifications.")
 
@@ -346,7 +358,7 @@ def related_posts(request, slug):
     FA: پست‌های مرتبط که دارای برچسب‌های مشترک با پست مشخص شده هستند را بازمی‌گرداند.
     """
     try:
-        current_post = Post.objects.get(slug=slug)
+        current_post = Post.objects.get(translations__slug=slug)
     except Post.DoesNotExist:
         raise NotFound("The requested post to find related posts was not found.")
 

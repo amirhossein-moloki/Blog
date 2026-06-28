@@ -20,7 +20,7 @@ class SystemWideIntegrationTest(BaseAPITestCase):
 
     def test_response_format_detail(self):
         post = PostFactory()
-        url = reverse("posts:post-detail", kwargs={"slug": post.slug})
+        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
         # Use HTTP_ACCEPT to trigger the StandardResponseRenderer
         response = self.client.get(url, HTTP_ACCEPT="application/json")
 
@@ -36,7 +36,7 @@ class SystemWideIntegrationTest(BaseAPITestCase):
         # Detail response should NOT have pagination
         self.assertNotIn("pagination", data)
 
-        self.assertEqual(data["data"]["title"], post.title)
+        self.assertEqual(data["data"]["title"], post.translation.title)
 
     def test_global_404_error_handling(self):
         url = "/api/does-not-exist/"

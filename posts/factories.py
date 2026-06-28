@@ -89,11 +89,6 @@ class PostFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Post
 
-    title = factory.LazyAttribute(lambda _: fake.sentence())
-    slug = factory.Sequence(lambda n: f"{fake.slug()}-{n}")
-    excerpt = factory.LazyAttribute(lambda _: fake.paragraph())
-    content = factory.LazyAttribute(lambda _: fake.text())
-    reading_time_sec = factory.LazyAttribute(lambda _: fake.random_int(min=60, max=600))
     status = "published"
     visibility = "public"
     published_at = factory.LazyAttribute(
@@ -112,6 +107,22 @@ class PostFactory(factory.django.DjangoModelFactory):
                 self.tags.add(tag)
         else:
             self.tags.add(TagFactory())
+
+    @factory.post_generation
+    def translation(self, create, extracted, **kwargs):
+        if not create:
+            return
+
+        from posts.models import PostTranslation
+
+        PostTranslation.objects.create(
+            post=self,
+            language_code=kwargs.get('language_code', 'en'),
+            title=kwargs.get('title', fake.sentence()),
+            slug=kwargs.get('slug', f"{fake.slug()}-{self.id}"),
+            excerpt=kwargs.get('excerpt', fake.paragraph()),
+            content=kwargs.get('content', fake.text()),
+        )
 
 
 class CommentFactory(factory.django.DjangoModelFactory):
@@ -161,9 +172,9 @@ class RevisionFactory(factory.django.DjangoModelFactory):
 
     post = factory.SubFactory(PostFactory)
     editor = factory.SubFactory(UserFactory)
-    title = factory.LazyAttribute(lambda o: o.post.title)
-    content = factory.LazyAttribute(lambda o: o.post.content)
-    excerpt = factory.LazyAttribute(lambda o: o.post.excerpt)
+    title = factory.LazyAttribute(lambda o: o.post.translation.title)
+    content = factory.LazyAttribute(lambda o: o.post.translation.content)
+    excerpt = factory.LazyAttribute(lambda o: o.post.translation.excerpt)
     change_note = factory.LazyAttribute(lambda _: fake.sentence())
 
 

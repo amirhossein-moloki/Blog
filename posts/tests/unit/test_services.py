@@ -112,7 +112,7 @@ class PostServiceTests(TestCase):
                 type="image",
                 mime="image/jpeg",
             )
-            post = PostFactory(content='<img src="/media/content.jpg">')
+            post = PostFactory(translation__content='<img src="/media/content.jpg">')
             # Post.save calls sync_post_media
 
             self.assertTrue(
@@ -122,8 +122,9 @@ class PostServiceTests(TestCase):
             )
 
             # Change content
-            post.content = "no image"
-            sync_post_media(post)
+            trans = post.translation
+            trans.content = "no image"
+            sync_post_media(trans)
             self.assertFalse(
                 PostMedia.objects.filter(
                     post=post, media=media, attachment_type="in-content"
