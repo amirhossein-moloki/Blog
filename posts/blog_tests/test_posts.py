@@ -55,7 +55,9 @@ class PostPermissionAPITest(BaseAPITestCase):
         self._authenticate(self.user)
         response = self.client.post(self.url, self.post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(slug=self.post_data["slug"]).exists())
+        self.assertTrue(
+            Post.objects.filter(translations__slug=self.post_data["slug"]).exists()
+        )
 
     def test_staff_user_can_create_post(self):
         self._authenticate_as_staff()
@@ -64,7 +66,9 @@ class PostPermissionAPITest(BaseAPITestCase):
         post_data["slug"] = "test-post-by-staff"
         response = self.client.post(self.url, post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(slug=post_data["slug"]).exists())
+        self.assertTrue(
+            Post.objects.filter(translations__slug=post_data["slug"]).exists()
+        )
 
 
 class PostAPITest(BaseAPITestCase):
@@ -86,10 +90,10 @@ class PostAPITest(BaseAPITestCase):
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(slug="new-post").exists())
-        new_post = Post.objects.get(slug="new-post")
+        self.assertTrue(Post.objects.filter(translations__slug="new-post").exists())
+        new_post = Post.objects.get(translations__slug="new-post")
         self.assertEqual(new_post.tags.count(), 2)
-        self.assertIsNotNone(new_post.reading_time_sec)
+        self.assertIsNotNone(new_post.translation.reading_time_sec)
 
     def test_list_posts(self):
         PostFactory.create_batch(3)
@@ -192,7 +196,7 @@ class PostAPITest(BaseAPITestCase):
 
         post = PostFactory(status="published", author=author_profile)
 
-        url = reverse("posts:post-by-slug", kwargs={"slug": post.slug})
+        url = reverse("posts:post-by-slug", kwargs={"slug": post.translation.slug})
         response = self.client.get(url, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -208,21 +212,19 @@ class PostAPITest(BaseAPITestCase):
         cover_media = MediaFactory()
         in_content_media = MediaFactory()
 
-        post_content = (
-            f'<p>Some text</p><img src="/media/{in_content_media.storage_key}" />'
-        )
+        content = f'<p>Some text</p><img src="/media/{in_content_media.storage_key}" />'
         post = PostFactory(
             status="published",
             published_at=yesterday,
             cover_media=cover_media,
-            content=post_content,
+            translation__content=content,
         )
-        post.save()  # Trigger the media attachment logic
+        post.translation.save()  # Trigger the media attachment logic
 
-        url = reverse("posts:post-detail", kwargs={"slug": post.slug})
+        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["title"], post.title)
+        self.assertEqual(response.data["title"], post.translation.title)
 
         # Check for media attachments
         self.assertIn("media_attachments", response.data)
@@ -236,12 +238,12 @@ class PostAPITest(BaseAPITestCase):
     def test_update_post(self):
         self._authenticate_as_staff()
         post = PostFactory(author=self.staff_author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.slug})
+        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
         data = {"title": "Updated Title"}
         response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()
-        self.assertEqual(post.title, "Updated Title")
+        self.assertEqual(post.translation.title, "Updated Title")
 
     def test_admin_can_update_other_users_post(self):
         """
@@ -250,17 +252,17 @@ class PostAPITest(BaseAPITestCase):
         self._authenticate_as_staff()
         # self.user is the non-staff user, self.author_profile is their profile
         post = PostFactory(author=self.author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.slug})
+        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
         data = {"title": "Admin Edited Title"}
         response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         post.refresh_from_db()
-        self.assertEqual(post.title, "Admin Edited Title")
+        self.assertEqual(post.translation.title, "Admin Edited Title")
 
     def test_delete_post(self):
         self._authenticate_as_staff()
         post = PostFactory(author=self.staff_author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.slug})
+        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Post.objects.filter(pk=post.pk).exists())
@@ -269,7 +271,7 @@ class PostAPITest(BaseAPITestCase):
         tag = TagFactory()
         post = PostFactory(tags=[tag])
         PostFactory.create_batch(15, tags=[tag])
-        url = reverse("posts:post-related", kwargs={"slug": post.slug})
+        url = reverse("posts:post-related", kwargs={"slug": post.translation.slug})
         response = self.client.get(url, {"page_size": 5})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 5)
@@ -279,7 +281,9 @@ class PostAPITest(BaseAPITestCase):
         category = CategoryFactory()
         post = PostFactory(category=category)
         PostFactory.create_batch(15, category=category)
-        url = reverse("posts:post-same-category", kwargs={"slug": post.slug})
+        url = reverse(
+            "posts:post-same-category", kwargs={"slug": post.translation.slug}
+        )
         response = self.client.get(url, {"page_size": 7})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 7)

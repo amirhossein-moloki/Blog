@@ -29,7 +29,7 @@ class PostLifecycleIntegrationTest(BaseAPITestCase):
         response = self.client.post(url, post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post = Post.objects.get(slug="post-with-media")
+        post = Post.objects.get(translations__slug="post-with-media")
 
         # Verify sync_post_media associated the media
         attachments = PostMedia.objects.filter(
@@ -74,7 +74,7 @@ class PostLifecycleIntegrationTest(BaseAPITestCase):
         response = self.client.post(url, post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        post = Post.objects.get(slug="post-with-cover")
+        post = Post.objects.get(translations__slug="post-with-cover")
         self.assertEqual(post.cover_media, cover)
         self.assertEqual(post.og_image, og_image)
 

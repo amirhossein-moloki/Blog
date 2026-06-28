@@ -51,11 +51,11 @@ class CreateRandomPostsTest(TestCase):
         )
         self.assertEqual(Media.objects.count(), 10, "Should create 10 media objects")
 
-        # Verify post content
+        # Verify post.translation.content
         for post in Post.objects.all():
-            self.assertTrue(post.title)
-            self.assertTrue(post.content)
-            self.assertTrue(post.excerpt)
+            self.assertTrue(post.translation.title)
+            self.assertTrue(post.translation.content)
+            self.assertTrue(post.translation.excerpt)
             self.assertIsNotNone(post.author)
             self.assertIsNotNone(post.category)
             self.assertTrue(post.tags.exists())

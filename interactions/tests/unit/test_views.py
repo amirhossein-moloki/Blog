@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from interactions.models import Comment, Reaction
-from posts.models import AuthorProfile, Post
+from posts.models import AuthorProfile, Post, PostTranslation
 from users.models import User
 
 
@@ -19,8 +19,14 @@ class InteractionsViewSetTests(APITestCase):
         self.author_profile = AuthorProfile.objects.create(
             user=self.admin, display_name="Admin Author"
         )
-        self.post = Post.objects.create(
-            title="Post", slug="post", author=self.author_profile, status="published"
+        self.post = Post.objects.create(author=self.author_profile)
+        PostTranslation.objects.create(
+            post=self.post,
+            language_code="en",
+            title="Test Post",
+            slug="test-post",
+            excerpt="Excerpt",
+            content="Content",
         )
         self.comment = Comment.objects.create(
             post=self.post, user=self.user, content="Comment", status="approved"

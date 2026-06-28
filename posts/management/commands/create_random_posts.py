@@ -4,10 +4,11 @@ import requests
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from faker import Faker
 
 from medias.models import Media
-from posts.models import AuthorProfile, Category, Post, Tag
+from posts.models import AuthorProfile, Category, Post, PostTranslation, Tag
 
 User = get_user_model()
 
@@ -94,18 +95,23 @@ class Command(BaseCommand):
             cover_media = self._create_dummy_media(fake)
             og_image = self._create_dummy_media(fake)
 
-            post = Post.objects.create(
-                title=fake.sentence(nb_words=6),
-                slug=f"{fake.slug()}-{i}",
-                excerpt=fake.paragraph(nb_sentences=2),
-                content=" ".join(fake.paragraphs(nb=5)),
-                status=random.choice(["draft", "published"]),
-                author=random.choice(authors),
-                category=random.choice(categories),
-                cover_media=cover_media,
-                og_image=og_image,
-            )
-            post.tags.set(random.sample(tags, k=random.randint(1, 4)))
+            with transaction.atomic():
+                post = Post.objects.create(
+                    status=random.choice(["draft", "published"]),
+                    author=random.choice(authors),
+                    category=random.choice(categories),
+                    cover_media=cover_media,
+                    og_image=og_image,
+                )
+                PostTranslation.objects.create(
+                    post=post,
+                    language_code="en",
+                    title=fake.sentence(nb_words=6),
+                    slug=f"{fake.slug()}-{post.id}",
+                    excerpt=fake.paragraph(nb_sentences=2),
+                    content=" ".join(fake.paragraphs(nb=5)),
+                )
+                post.tags.set(random.sample(tags, k=random.randint(1, 4)))
 
         self.stdout.write(
             self.style.SUCCESS(f"Successfully created {count} random posts.")

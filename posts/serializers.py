@@ -151,6 +151,13 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     comments_count = serializers.IntegerField(read_only=True)
     published_at = JalaliDateTimeField()
 
+    slug = serializers.CharField(source="translation.slug", read_only=True)
+    title = serializers.CharField(source="translation.title", read_only=True)
+    excerpt = serializers.CharField(source="translation.excerpt", read_only=True)
+    reading_time_sec = serializers.IntegerField(
+        source="translation.reading_time_sec", read_only=True
+    )
+
     class Meta:
         model = Post
         fields = (
@@ -180,7 +187,11 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
 
     series = SeriesSerializer(read_only=True)
     og_image = MediaDetailSerializer(read_only=True)
-    content = serializers.CharField()
+    content = serializers.CharField(source="translation.content", read_only=True)
+    seo_title = serializers.CharField(source="translation.seo_title", read_only=True)
+    seo_description = serializers.CharField(
+        source="translation.seo_description", read_only=True
+    )
     media_attachments = serializers.SerializerMethodField()
 
     class Meta(PostListSerializer.Meta):
@@ -210,6 +221,16 @@ class PostCreateUpdateSerializer(
     EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
     FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
     """
+
+    language_code = serializers.CharField(write_only=True, default="en")
+    title = serializers.CharField(write_only=True)
+    slug = serializers.SlugField(write_only=True, required=False)
+    excerpt = serializers.CharField(write_only=True)
+    content = serializers.CharField(write_only=True)
+    seo_title = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    seo_description = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
 
     tag_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -252,6 +273,8 @@ class PostCreateUpdateSerializer(
     class Meta:
         model = Post
         fields = (
+            "id",
+            "language_code",
             "title",
             "excerpt",
             "content",
@@ -270,14 +293,13 @@ class PostCreateUpdateSerializer(
             "slug",
             "canonical_url",
             "views_count",
-            "reading_time_sec",
             "tag_ids",
             "category_id",
             "cover_media_id",
             "og_image_id",
             "publish_at",
         )
-        read_only_fields = ("views_count", "reading_time_sec")
+        read_only_fields = ("views_count",)
         extra_kwargs = {"slug": {"required": False}}
 
     def _handle_publication_date(self, validated_data):
@@ -319,19 +341,68 @@ class PostCreateUpdateSerializer(
 
     def create(self, validated_data):
         """
-        EN: Handles post creation with publication date processing.
-        FA: ایجاد پست را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
+        EN: Handles post and translation creation with publication date processing.
+        FA: ایجاد پست و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
         """
+        from django.db import transaction
+
+        from .models import PostTranslation
+
+        translation_data = {
+            "language_code": validated_data.pop("language_code", "en"),
+            "title": validated_data.pop("title"),
+            "slug": validated_data.pop("slug", ""),
+            "excerpt": validated_data.pop("excerpt"),
+            "content": validated_data.pop("content"),
+            "seo_title": validated_data.pop("seo_title", ""),
+            "seo_description": validated_data.pop("seo_description", ""),
+        }
+        if not translation_data["slug"]:
+            from django.utils.text import slugify
+
+            translation_data["slug"] = slugify(translation_data["title"])
+
         validated_data = self._handle_publication_date(validated_data)
-        return super().create(validated_data)
+
+        with transaction.atomic():
+            post = super().create(validated_data)
+            PostTranslation.objects.create(post=post, **translation_data)
+
+        return post
 
     def update(self, instance, validated_data):
         """
-        EN: Handles post update with publication date processing.
-        FA: به‌روزرسانی پست را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
+        EN: Handles post and translation update with publication date processing.
+        FA: به‌روزرسانی پست و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
         """
+        from django.db import transaction
+
+        from .models import PostTranslation
+
+        language_code = validated_data.pop("language_code", "en")
+        translation_fields = [
+            "title",
+            "slug",
+            "excerpt",
+            "content",
+            "seo_title",
+            "seo_description",
+        ]
+        translation_data = {}
+        for field in translation_fields:
+            if field in validated_data:
+                translation_data[field] = validated_data.pop(field)
+
         validated_data = self._handle_publication_date(validated_data)
-        return super().update(instance, validated_data)
+
+        with transaction.atomic():
+            post = super().update(instance, validated_data)
+            if translation_data:
+                PostTranslation.objects.update_or_create(
+                    post=post, language_code=language_code, defaults=translation_data
+                )
+
+        return post
 
 
 class RevisionSerializer(serializers.ModelSerializer):

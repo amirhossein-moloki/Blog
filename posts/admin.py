@@ -3,8 +3,16 @@ from jalali_date.admin import ModelAdminJalaliMixin
 
 from medias.models import PostMedia
 
-from .forms import PostAdminForm
-from .models import AuthorProfile, Category, Post, PostTag, Revision, Series, Tag
+from .models import (
+    AuthorProfile,
+    Category,
+    Post,
+    PostTag,
+    PostTranslation,
+    Revision,
+    Series,
+    Tag,
+)
 
 
 @admin.register(AuthorProfile)
@@ -52,6 +60,17 @@ class SeriesAdmin(admin.ModelAdmin):
     search_fields = ("title",)
 
 
+class PostTranslationInline(admin.StackedInline):
+    """
+    EN: Inline editor for Post translations.
+    FA: ویرایشگر داخلی برای ترجمه‌های پست.
+    """
+
+    model = PostTranslation
+    extra = 1
+    prepopulated_fields = {"slug": ("title",)}
+
+
 class PostTagInline(admin.TabularInline):
     """
     EN: Inline editor for Post tags.
@@ -94,17 +113,15 @@ class PostAdmin(admin.ModelAdmin):
     """
     EN:
     Comprehensive Admin interface for Posts.
-    Provides advanced fieldsets, inlines for tags and media, and custom save logic.
+    Provides advanced fieldsets, inlines for translations, tags and media, and custom save logic.
 
     FA:
     رابط کاربری جامع ادمین برای پست‌ها.
-    مجموعه‌فیلدهای پیشرفته، اینلاین‌ها برای برچسب‌ها و رسانه‌ها و منطق ذخیره‌سازی سفارشی را فراهم می‌کند.
+    مجموعه‌فیلدهای پیشرفته، اینلاین‌ها برای ترجمه‌ها، برچسب‌ها و رسانه‌ها و منطق ذخیره‌سازی سفارشی را فراهم می‌کند.
     """
 
-    form = PostAdminForm
     list_display = (
-        "title",
-        "slug",
+        "id",
         "author",
         "category",
         "status",
@@ -112,11 +129,11 @@ class PostAdmin(admin.ModelAdmin):
         "is_hot",
     )
     list_filter = ("status", "visibility", "category", "author", "is_hot")
-    search_fields = ("title", "content")
+    search_fields = ("translations__title", "translations__content")
     autocomplete_fields = ("cover_media", "og_image")
-    inlines = [PostTagInline, PostMediaInline]
+    inlines = [PostTranslationInline, PostTagInline, PostMediaInline]
     fieldsets = (
-        (None, {"fields": ("title", "slug", "author", "content", "excerpt")}),
+        (None, {"fields": ("author",)}),
         ("Metadata", {"fields": ("category", "series")}),
         ("Media", {"fields": ("cover_media", "og_image")}),
         (
@@ -132,10 +149,10 @@ class PostAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "SEO",
+            "Other",
             {
                 "classes": ("collapse",),
-                "fields": ("seo_title", "seo_description", "canonical_url"),
+                "fields": ("canonical_url",),
             },
         ),
     )
@@ -165,4 +182,4 @@ class RevisionAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
 
     list_display = ("post", "editor", "created_at")
     list_filter = ("editor",)
-    search_fields = ("post__title",)
+    search_fields = ("post__id",)

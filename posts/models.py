@@ -160,16 +160,38 @@ class PostManager(models.Manager):
         """
         return self.get_queryset().filter(status="published")
 
+    def with_translations(self, lang_code="en"):
+        """
+        EN: Prefetches translations for the given language code and the default 'en'.
+        FA: ترجمه‌ها را برای کد زبان داده شده و زبان پیش‌فرض 'en' پیش‌واکشی می‌کند.
+        """
+        from django.db.models import Prefetch
+
+        return self.prefetch_related(
+            Prefetch(
+                "translations",
+                queryset=PostTranslation.objects.filter(language_code=lang_code),
+                to_attr="requested_translation",
+            ),
+            Prefetch(
+                "translations",
+                queryset=PostTranslation.objects.filter(language_code="en"),
+                to_attr="default_translation",
+            ),
+        )
+
 
 class Post(BaseModel):
     """
     EN:
     Core model representing a blog post.
-    Handles content, status, scheduling, and various relations.
+    Handles status, scheduling, and various relations.
+    Content is moved to PostTranslation model for localization.
 
     FA:
     مدل اصلی نشان‌دهنده یک پست بلاگ.
-    محتوا، وضعیت، زمان‌بندی و روابط مختلف را مدیریت می‌کند.
+    وضعیت، زمان‌بندی و روابط مختلف را مدیریت می‌کند.
+    محتوا برای بومی‌سازی به مدل PostTranslation منتقل شده است.
     """
 
     STATUS_CHOICES = (
@@ -185,13 +207,8 @@ class Post(BaseModel):
         ("unlisted", "Unlisted"),
     )
 
-    slug = models.SlugField(unique=True, allow_unicode=False)
     canonical_url = models.URLField(null=True, blank=True)
-    title = models.CharField(max_length=255)
-    excerpt = models.TextField()
     is_hot = models.BooleanField(default=False)
-    content = CKEditor5Field(config_name="default")
-    reading_time_sec = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="draft")
     visibility = models.CharField(
         max_length=10, choices=VISIBILITY_CHOICES, default="public"
@@ -210,8 +227,6 @@ class Post(BaseModel):
         blank=True,
         related_name="post_covers",
     )
-    seo_title = models.CharField(max_length=255, blank=True)
-    seo_description = models.TextField(blank=True)
     og_image = models.ForeignKey(
         "medias.Media",
         on_delete=models.SET_NULL,
@@ -234,10 +249,63 @@ class Post(BaseModel):
 
     def __str__(self):
         """
-        EN: Returns the title of the post.
-        FA: عنوان پست را بازمی‌گرداند.
+        EN: Returns the ID and author of the post.
+        FA: شناسه و نویسنده پست را بازمی‌گرداند.
         """
-        return self.title
+        return f"Post {self.id} by {self.author}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from .services import sync_post_media
+
+        sync_post_media(self)
+
+    @property
+    def translation(self):
+        """
+        EN: Returns the requested translation or falls back to the default 'en' translation.
+        FA: ترجمه درخواستی را برمی‌گرداند یا به ترجمه پیش‌فرض 'en' بازمی‌گردد.
+        """
+        if hasattr(self, "requested_translation") and self.requested_translation:
+            return self.requested_translation[0]
+        if hasattr(self, "default_translation") and self.default_translation:
+            return self.default_translation[0]
+        return (
+            self.translations.filter(language_code="en").first()
+            or self.translations.first()
+        )
+
+
+class PostTranslation(BaseModel):
+    """
+    EN: Stores localized content for a Post.
+    FA: محتوای بومی‌سازی شده را برای یک پست ذخیره می‌کند.
+    """
+
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="translations"
+    )
+    language_code = models.CharField(max_length=10, db_index=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True)
+    title = models.CharField(max_length=255)
+    excerpt = models.TextField()
+    content = CKEditor5Field(config_name="default")
+    reading_time_sec = models.PositiveIntegerField(default=0)
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = (("post", "language_code"), ("slug", "language_code"))
+        indexes = [
+            models.Index(fields=["language_code", "slug"]),
+        ]
+
+    def __str__(self):
+        """
+        EN: Returns the title and language code.
+        FA: عنوان و کد زبان را بازمی‌گرداند.
+        """
+        return f"{self.title} ({self.language_code})"
 
     def save(self, *args, **kwargs):
         """
@@ -259,7 +327,8 @@ class Post(BaseModel):
 
         # EN: Synchronize media mentioned in the content.
         # FA: همگام‌سازی رسانه‌های ذکر شده در محتوا.
-        sync_post_media(self)
+        sync_post_media(self.post)  # Sync cover/OG images
+        sync_post_media(self)  # Sync in-content media
 
 
 class PostTag(BaseModel):
@@ -277,11 +346,12 @@ class PostTag(BaseModel):
 
 class Revision(BaseModel):
     """
-    EN: Stores a historical revision of a post's content and metadata.
-    FA: یک نسخه تاریخی از محتوا و متادیتای یک پست را ذخیره می‌کند.
+    EN: Stores a historical revision of a post's content and metadata per language.
+    FA: یک نسخه تاریخی از محتوا و متادیتای یک پست را به ازای هر زبان ذخیره می‌کند.
     """
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    language_code = models.CharField(max_length=10, default="en")
     editor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     content = CKEditor5Field(config_name="default")
     title = models.CharField(max_length=255)
@@ -290,7 +360,9 @@ class Revision(BaseModel):
 
     def __str__(self):
         """
-        EN: Returns a string representation identifying the post and the revision date.
-        FA: نمایشی رشته‌ای شامل شناسایی پست و تاریخ بازنگری را بازمی‌گرداند.
+        EN: Returns a string representation identifying the post, language and the revision date.
+        FA: نمایشی رشته‌ای شامل شناسایی پست، زبان و تاریخ بازنگری را بازمی‌گرداند.
         """
-        return f"Revision for {self.post.title} at {self.created_at}"
+        return (
+            f"Revision for {self.post.id} ({self.language_code}) at {self.created_at}"
+        )

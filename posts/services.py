@@ -44,65 +44,90 @@ def publish_scheduled_posts():
         logger.info("No scheduled posts to publish.")
 
 
-def sync_post_media(post):
+def sync_post_media(obj):
     """
     EN:
-    Synchronizes the Media attachments for a post based on its cover image,
-    OG image, and any media mentioned within the HTML content.
+    Synchronizes the Media attachments for a post or its translation based on
+    the cover image, OG image, and any media mentioned within the HTML content.
 
     FA:
-    همگام‌سازی پیوست‌های رسانه‌ای برای یک پست بر اساس تصویر کاور،
+    همگام‌سازی پیوست‌های رسانه‌ای برای یک پست یا ترجمه آن بر اساس تصویر کاور،
     تصویر OG و هر رسانه‌ای که در محتوای HTML ذکر شده است.
     """
-    # EN: Handle cover image synchronization
-    # FA: مدیریت همگام‌سازی تصویر کاور
-    post.media_attachments.filter(attachment_type="cover").exclude(
-        media=post.cover_media
-    ).delete()
-    if post.cover_media:
-        post.media_attachments.update_or_create(
-            media=post.cover_media, defaults={"attachment_type": "cover"}
+    from .models import Post, PostTranslation
+
+    if isinstance(obj, Post):
+        post = obj
+        content = ""  # No content-based sync for the base post
+    elif isinstance(obj, PostTranslation):
+        post = obj.post
+        content = obj.content
+    else:
+        logger.error(f"Unsupported object type for sync_post_media: {type(obj)}")
+        return
+
+    # EN: Handle cover image and OG image synchronization (tied to the Post)
+    # FA: مدیریت همگام‌سازی تصویر کاور و تصویر OG (متصل به پست)
+    if isinstance(obj, Post):
+        # Handle cover
+        post.media_attachments.filter(attachment_type="cover").exclude(
+            media=post.cover_media
+        ).delete()
+        if post.cover_media:
+            post.media_attachments.update_or_create(
+                media=post.cover_media, defaults={"attachment_type": "cover"}
+            )
+
+        # Handle OG image
+        post.media_attachments.filter(attachment_type="og-image").exclude(
+            media=post.og_image
+        ).delete()
+        if post.og_image:
+            post.media_attachments.update_or_create(
+                media=post.og_image, defaults={"attachment_type": "og-image"}
+            )
+
+    # EN: Handle in-content media (tied to the content, which exists in PostTranslation)
+    # FA: مدیریت رسانه‌های درون محتوا (متصل به محتوا، که در PostTranslation وجود دارد)
+    if content:
+        # EN: Parse content to find media mentioned in <img> tags (supports both double and single quotes)
+        # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img> (پشتیبانی از هر دو نوع کوتیشن)
+        media_paths_in_content = set()
+        urls = re.findall(r'<img [^>]*src="([^"]+)"', content) + re.findall(
+            r"<img [^>]*src='([^']+)'", content
+        )
+        for url in urls:
+            path = urlparse(url).path
+            if path.startswith(settings.MEDIA_URL):
+                media_paths_in_content.add(path[len(settings.MEDIA_URL) :].lstrip("/"))
+
+        linked_media_ids = set(
+            Media.objects.filter(storage_key__in=media_paths_in_content).values_list(
+                "id", flat=True
+            )
         )
 
-    # EN: Handle OpenGraph image synchronization
-    # FA: مدیریت همگام‌سازی تصویر OpenGraph
-    post.media_attachments.filter(attachment_type="og-image").exclude(
-        media=post.og_image
-    ).delete()
-    if post.og_image:
-        post.media_attachments.update_or_create(
-            media=post.og_image, defaults={"attachment_type": "og-image"}
+        current_media_ids = set(
+            post.media_attachments.filter(attachment_type="in-content").values_list(
+                "media_id", flat=True
+            )
         )
 
-    # EN: Parse content to find media mentioned in <img> tags
-    # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img>
-    media_paths_in_content = set()
-    for url in re.findall(r'<img [^>]*src="([^"]+)"', post.content):
-        path = urlparse(url).path
-        if path.startswith(settings.MEDIA_URL):
-            media_paths_in_content.add(path[len(settings.MEDIA_URL) :].lstrip("/"))
+        # EN: Add new media attachments found in content
+        # FA: اضافه کردن پیوست‌های رسانه‌ای جدید یافت شده در محتوا
+        ids_to_add = linked_media_ids - current_media_ids
+        for media_id in ids_to_add:
+            post.media_attachments.get_or_create(
+                media_id=media_id, attachment_type="in-content"
+            )
 
-    linked_media_ids = set(
-        Media.objects.filter(storage_key__in=media_paths_in_content).values_list(
-            "id", flat=True
-        )
-    )
-
-    current_media_ids = set(
-        post.media_attachments.filter(attachment_type="in-content").values_list(
-            "media_id", flat=True
-        )
-    )
-
-    # EN: Add new media attachments found in content
-    # FA: اضافه کردن پیوست‌های رسانه‌ای جدید یافت شده در محتوا
-    ids_to_add = linked_media_ids - current_media_ids
-    for media_id in ids_to_add:
-        post.media_attachments.create(media_id=media_id, attachment_type="in-content")
-
-    # EN: Remove media attachments that are no longer in content
-    # FA: حذف پیوست‌های رسانه‌ای که دیگر در محتوا نیستند
-    ids_to_remove = current_media_ids - linked_media_ids
-    post.media_attachments.filter(
-        media_id__in=ids_to_remove, attachment_type="in-content"
-    ).delete()
+        # EN: Remove media attachments that are no longer in content
+        # FA: حذف پیوست‌های رسانه‌ای که دیگر در محتوا نیستند
+        # Note: In a multi-language setup, a media might be used in one translation but not another.
+        # For simplicity, we keep it if it is used in ANY translation or we just manage it per sync.
+        # Here we follow the original logic: remove what's not in the CURRENTly syncing content.
+        ids_to_remove = current_media_ids - linked_media_ids
+        if ids_to_remove:
+            post.media_attachments.filter(
+                media_id__in=ids_to_remove, attachment_type="in-content"
+            ).delete()

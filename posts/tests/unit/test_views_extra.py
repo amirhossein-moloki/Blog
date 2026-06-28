@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from posts.models import AuthorProfile, Category, Post, Revision, Tag
+from posts.models import AuthorProfile, Category, Post, PostTranslation, Revision, Tag
 from users.models import User
 
 
@@ -21,17 +21,24 @@ class PostViewSetTests(APITestCase):
         self.category = Category.objects.create(name="Tech", slug="tech")
         self.tag = Tag.objects.create(name="Django", slug="django")
         self.post = Post.objects.create(
-            title="Initial Post",
-            slug="initial-post",
-            content="Some content",
             author=self.author_profile,
             category=self.category,
             status="published",
             published_at=timezone.now() - timedelta(days=1),
         )
+        PostTranslation.objects.create(
+            post=self.post,
+            language_code="en",
+            title="Initial Post",
+            slug="initial-post",
+            content="Some content",
+            excerpt="Some excerpt",
+        )
         self.post.tags.add(self.tag)
         self.list_url = reverse("posts:post-list")
-        self.detail_url = reverse("posts:post-detail", kwargs={"slug": self.post.slug})
+        self.detail_url = reverse(
+            "posts:post-detail", kwargs={"slug": self.post.translation.slug}
+        )
 
     def test_get_queryset_fields_select_related(self):
         # Testing the custom field selection logic in get_queryset
@@ -51,8 +58,14 @@ class PostViewSetTests(APITestCase):
         other_author = AuthorProfile.objects.create(
             user=other_user, display_name="Other"
         )
-        Post.objects.create(
-            title="Other Draft", slug="other-draft", author=other_author, status="draft"
+        other_post = Post.objects.create(author=other_author, status="draft")
+        PostTranslation.objects.create(
+            post=other_post,
+            language_code="en",
+            title="Other Draft",
+            slug="other-draft",
+            excerpt="Excerpt",
+            content="Content",
         )
 
         response = self.client.get(self.list_url)
@@ -69,15 +82,21 @@ class PostViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_similar_posts(self):
-        url = reverse("posts:post-similar", kwargs={"slug": self.post.slug})
+        url = reverse("posts:post-similar", kwargs={"slug": self.post.translation.slug})
         # Post with same category
-        Post.objects.create(
-            title="Similar Post",
-            slug="similar-post",
+        similar_post = Post.objects.create(
             author=self.author_profile,
             category=self.category,
             status="published",
             published_at=timezone.now(),
+        )
+        PostTranslation.objects.create(
+            post=similar_post,
+            language_code="en",
+            title="Similar Post",
+            slug="similar-post",
+            excerpt="Excerpt",
+            content="Content",
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -86,12 +105,18 @@ class PostViewSetTests(APITestCase):
 
     def test_similar_posts_no_category(self):
         post_no_cat = Post.objects.create(
-            title="No Cat",
-            slug="no-cat",
             author=self.author_profile,
             status="published",
         )
-        url = reverse("posts:post-similar", kwargs={"slug": post_no_cat.slug})
+        post_no_cat_trans = PostTranslation.objects.create(
+            post=post_no_cat,
+            language_code="en",
+            title="No Cat",
+            slug="no-cat",
+            excerpt="Excerpt",
+            content="Content",
+        )
+        url = reverse("posts:post-similar", kwargs={"slug": post_no_cat_trans.slug})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
@@ -122,12 +147,20 @@ class PostViewSetTests(APITestCase):
 
     def test_same_category_no_category(self):
         post_no_cat = Post.objects.create(
-            title="No Cat 2",
-            slug="no-cat-2",
             author=self.author_profile,
             status="published",
         )
-        url = reverse("posts:post-same-category", kwargs={"slug": post_no_cat.slug})
+        post_no_cat_trans = PostTranslation.objects.create(
+            post=post_no_cat,
+            language_code="en",
+            title="No Cat 2",
+            slug="no-cat-2",
+            excerpt="Excerpt",
+            content="Content",
+        )
+        url = reverse(
+            "posts:post-same-category", kwargs={"slug": post_no_cat_trans.slug}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
@@ -156,11 +189,17 @@ class PostViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_publish_post_api(self):
-        draft = Post.objects.create(
-            title="Draft", slug="draft-post", author=self.author_profile, status="draft"
+        draft = Post.objects.create(author=self.author_profile, status="draft")
+        draft_trans = PostTranslation.objects.create(
+            post=draft,
+            language_code="en",
+            title="Draft",
+            slug="draft-post",
+            excerpt="Excerpt",
+            content="Content",
         )
         self.client.force_authenticate(user=self.user)
-        url = reverse("posts:post-publish", kwargs={"slug": draft.slug})
+        url = reverse("posts:post-publish", kwargs={"slug": draft_trans.slug})
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         draft.refresh_from_db()
@@ -169,32 +208,44 @@ class PostViewSetTests(APITestCase):
     def test_publish_post_api_unauthorized(self):
         other_user = User.objects.create_user(username="other2", password="password")
         draft = Post.objects.create(
-            title="Draft 2",
-            slug="draft-post-2",
             author=self.author_profile,
             status="draft",
         )
+        draft_trans = PostTranslation.objects.create(
+            post=draft,
+            language_code="en",
+            title="Draft 2",
+            slug="draft-post-2",
+            excerpt="Excerpt",
+            content="Content",
+        )
         self.client.force_authenticate(user=other_user)
-        url = reverse("posts:post-publish", kwargs={"slug": draft.slug})
+        url = reverse("posts:post-publish", kwargs={"slug": draft_trans.slug})
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_publish_post_api_invalid_status(self):
         self.client.force_authenticate(user=self.user)
         url = reverse(
-            "posts:post-publish", kwargs={"slug": self.post.slug}
+            "posts:post-publish", kwargs={"slug": self.post.translation.slug}
         )  # Already published
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_related_posts_no_tags(self):
         post_no_tags = Post.objects.create(
-            title="No Tags",
-            slug="no-tags",
             author=self.author_profile,
             status="published",
         )
-        url = reverse("posts:post-related", kwargs={"slug": post_no_tags.slug})
+        post_no_tags_trans = PostTranslation.objects.create(
+            post=post_no_tags,
+            language_code="en",
+            title="No Tags",
+            slug="no-tags",
+            excerpt="Excerpt",
+            content="Content",
+        )
+        url = reverse("posts:post-related", kwargs={"slug": post_no_tags_trans.slug})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
