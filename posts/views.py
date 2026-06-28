@@ -48,7 +48,11 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PostFilter
-    search_fields = ["translations__title", "translations__content", "translations__excerpt"]
+    search_fields = [
+        "translations__title",
+        "translations__content",
+        "translations__excerpt",
+    ]
     ordering_fields = ["published_at", "views_count", "id"]
     ordering = ["-published_at", "-id"]
     lookup_field = "translations__slug"
@@ -260,14 +264,18 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         try:
             # EN: Filter by translation slug
             # FA: فیلتر بر اساس اسلاگ ترجمه
-            post = self.get_queryset().filter(translations__slug=slug, translations__language_code=lang).first()
+            post = (
+                self.get_queryset()
+                .filter(translations__slug=slug, translations__language_code=lang)
+                .first()
+            )
             if not post:
-                 # EN: Fallback: Try default language if translation not found for requested lang
-                 # FA: جایگزین: تلاش برای زبان پیش‌فرض اگر ترجمه برای زبان درخواستی یافت نشد
-                 post = self.get_queryset().filter(translations__slug=slug).first()
+                # EN: Fallback: Try default language if translation not found for requested lang
+                # FA: جایگزین: تلاش برای زبان پیش‌فرض اگر ترجمه برای زبان درخواستی یافت نشد
+                post = self.get_queryset().filter(translations__slug=slug).first()
 
             if not post:
-                 raise Post.DoesNotExist
+                raise Post.DoesNotExist
         except Post.DoesNotExist:
             raise NotFound("No post was found with this slug.")
 
@@ -305,7 +313,9 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
         """
         post_slug = self.kwargs.get("post_slug")
         return (
-            Comment.objects.filter(post__translations__slug=post_slug, status="approved")
+            Comment.objects.filter(
+                post__translations__slug=post_slug, status="approved"
+            )
             .annotate(
                 likes_count=Count("reactions", filter=Q(reactions__reaction="like"))
             )

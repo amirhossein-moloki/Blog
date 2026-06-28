@@ -36,7 +36,9 @@ class PostViewSetTests(APITestCase):
         )
         self.post.tags.add(self.tag)
         self.list_url = reverse("posts:post-list")
-        self.detail_url = reverse("posts:post-detail", kwargs={"slug": self.post.translation.slug})
+        self.detail_url = reverse(
+            "posts:post-detail", kwargs={"slug": self.post.translation.slug}
+        )
 
     def test_get_queryset_fields_select_related(self):
         # Testing the custom field selection logic in get_queryset
@@ -156,7 +158,9 @@ class PostViewSetTests(APITestCase):
             excerpt="Excerpt",
             content="Content",
         )
-        url = reverse("posts:post-same-category", kwargs={"slug": post_no_cat_trans.slug})
+        url = reverse(
+            "posts:post-same-category", kwargs={"slug": post_no_cat_trans.slug}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
@@ -185,9 +189,7 @@ class PostViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_publish_post_api(self):
-        draft = Post.objects.create(
-            author=self.author_profile, status="draft"
-        )
+        draft = Post.objects.create(author=self.author_profile, status="draft")
         draft_trans = PostTranslation.objects.create(
             post=draft,
             language_code="en",

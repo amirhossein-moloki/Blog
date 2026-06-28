@@ -4,9 +4,8 @@ import requests
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
-from faker import Faker
-
 from django.db import transaction
+from faker import Faker
 
 from medias.models import Media
 from posts.models import AuthorProfile, Category, Post, PostTranslation, Tag

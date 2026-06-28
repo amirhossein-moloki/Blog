@@ -55,7 +55,9 @@ class PostPermissionAPITest(BaseAPITestCase):
         self._authenticate(self.user)
         response = self.client.post(self.url, self.post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(translations__slug=self.post_data["slug"]).exists())
+        self.assertTrue(
+            Post.objects.filter(translations__slug=self.post_data["slug"]).exists()
+        )
 
     def test_staff_user_can_create_post(self):
         self._authenticate_as_staff()
@@ -64,7 +66,9 @@ class PostPermissionAPITest(BaseAPITestCase):
         post_data["slug"] = "test-post-by-staff"
         response = self.client.post(self.url, post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(translations__slug=post_data["slug"]).exists())
+        self.assertTrue(
+            Post.objects.filter(translations__slug=post_data["slug"]).exists()
+        )
 
 
 class PostAPITest(BaseAPITestCase):
@@ -208,9 +212,7 @@ class PostAPITest(BaseAPITestCase):
         cover_media = MediaFactory()
         in_content_media = MediaFactory()
 
-        content = (
-            f'<p>Some text</p><img src="/media/{in_content_media.storage_key}" />'
-        )
+        content = f'<p>Some text</p><img src="/media/{in_content_media.storage_key}" />'
         post = PostFactory(
             status="published",
             published_at=yesterday,
@@ -279,7 +281,9 @@ class PostAPITest(BaseAPITestCase):
         category = CategoryFactory()
         post = PostFactory(category=category)
         PostFactory.create_batch(15, category=category)
-        url = reverse("posts:post-same-category", kwargs={"slug": post.translation.slug})
+        url = reverse(
+            "posts:post-same-category", kwargs={"slug": post.translation.slug}
+        )
         response = self.client.get(url, {"page_size": 7})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 7)

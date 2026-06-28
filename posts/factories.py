@@ -117,11 +117,11 @@ class PostFactory(factory.django.DjangoModelFactory):
 
         PostTranslation.objects.create(
             post=self,
-            language_code=kwargs.get('language_code', 'en'),
-            title=kwargs.get('title', fake.sentence()),
-            slug=kwargs.get('slug', f"{fake.slug()}-{self.id}"),
-            excerpt=kwargs.get('excerpt', fake.paragraph()),
-            content=kwargs.get('content', fake.text()),
+            language_code=kwargs.get("language_code", "en"),
+            title=kwargs.get("title", fake.sentence()),
+            slug=kwargs.get("slug", f"{fake.slug()}-{self.id}"),
+            excerpt=kwargs.get("excerpt", fake.paragraph()),
+            content=kwargs.get("content", fake.text()),
         )
 
 

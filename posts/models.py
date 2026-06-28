@@ -253,11 +253,12 @@ class Post(BaseModel):
         FA: شناسه و نویسنده پست را بازمی‌گرداند.
         """
         return f"Post {self.id} by {self.author}"
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         from .services import sync_post_media
-        sync_post_media(self)
 
+        sync_post_media(self)
 
     @property
     def translation(self):
@@ -269,7 +270,10 @@ class Post(BaseModel):
             return self.requested_translation[0]
         if hasattr(self, "default_translation") and self.default_translation:
             return self.default_translation[0]
-        return self.translations.filter(language_code="en").first() or self.translations.first()
+        return (
+            self.translations.filter(language_code="en").first()
+            or self.translations.first()
+        )
 
 
 class PostTranslation(BaseModel):
@@ -278,7 +282,9 @@ class PostTranslation(BaseModel):
     FA: محتوای بومی‌سازی شده را برای یک پست ذخیره می‌کند.
     """
 
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="translations")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="translations"
+    )
     language_code = models.CharField(max_length=10, db_index=True)
     slug = models.SlugField(max_length=255, allow_unicode=True)
     title = models.CharField(max_length=255)
@@ -357,4 +363,6 @@ class Revision(BaseModel):
         EN: Returns a string representation identifying the post, language and the revision date.
         FA: نمایشی رشته‌ای شامل شناسایی پست، زبان و تاریخ بازنگری را بازمی‌گرداند.
         """
-        return f"Revision for {self.post.id} ({self.language_code}) at {self.created_at}"
+        return (
+            f"Revision for {self.post.id} ({self.language_code}) at {self.created_at}"
+        )

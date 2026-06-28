@@ -21,7 +21,12 @@ class InteractionsViewSetTests(APITestCase):
         )
         self.post = Post.objects.create(author=self.author_profile)
         PostTranslation.objects.create(
-            post=self.post, language_code="en", title="Test Post", slug="test-post", excerpt="Excerpt", content="Content"
+            post=self.post,
+            language_code="en",
+            title="Test Post",
+            slug="test-post",
+            excerpt="Excerpt",
+            content="Content",
         )
         self.comment = Comment.objects.create(
             post=self.post, user=self.user, content="Comment", status="approved"
