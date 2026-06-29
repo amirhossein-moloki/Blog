@@ -2593,7 +2593,7 @@
         "/api/posts/slug/{slug}/": {
             "get": {
                 "operationId": "posts_slug_retrieve",
-                "description": "EN: Endpoint to retrieve a single post by its slug.\nFA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ آن.",
+                "description": "EN: Endpoint to retrieve a single post by its slug and language.\nFA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ و زبان آن.",
                 "parameters": [
                     {
                         "in": "path",
@@ -5323,17 +5323,25 @@
                 "type": "object",
                 "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
                 "properties": {
+                    "language_code": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "default": "en"
+                    },
                     "title": {
                         "type": "string",
-                        "minLength": 1,
-                        "maxLength": 255
+                        "writeOnly": true,
+                        "minLength": 1
                     },
                     "excerpt": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1
                     },
                     "content": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1
                     },
                     "status": {
@@ -5351,15 +5359,16 @@
                     },
                     "seo_title": {
                         "type": "string",
-                        "maxLength": 255
+                        "writeOnly": true
                     },
                     "seo_description": {
-                        "type": "string"
+                        "type": "string",
+                        "writeOnly": true
                     },
                     "slug": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1,
-                        "maxLength": 50,
                         "pattern": "^[-a-zA-Z0-9_]+$"
                     },
                     "canonical_url": {
@@ -5425,6 +5434,11 @@
                     "is_active": {
                         "type": "boolean",
                         "description": "Specifies whether this record is active or not."
+                    },
+                    "language_code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10
                     },
                     "content": {
                         "type": "string",
@@ -5532,15 +5546,9 @@
                 "type": "object",
                 "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
                 "properties": {
-                    "title": {
-                        "type": "string",
-                        "maxLength": 255
-                    },
-                    "excerpt": {
-                        "type": "string"
-                    },
-                    "content": {
-                        "type": "string"
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
                     },
                     "status": {
                         "$ref": "#/components/schemas/PostStatusEnum"
@@ -5583,13 +5591,6 @@
                         ],
                         "readOnly": true
                     },
-                    "seo_title": {
-                        "type": "string",
-                        "maxLength": 255
-                    },
-                    "seo_description": {
-                        "type": "string"
-                    },
                     "og_image": {
                         "allOf": [
                             {
@@ -5605,11 +5606,6 @@
                         },
                         "readOnly": true
                     },
-                    "slug": {
-                        "type": "string",
-                        "maxLength": 50,
-                        "pattern": "^[-a-zA-Z0-9_]+$"
-                    },
                     "canonical_url": {
                         "type": "string",
                         "format": "uri",
@@ -5619,23 +5615,16 @@
                     "views_count": {
                         "type": "integer",
                         "readOnly": true
-                    },
-                    "reading_time_sec": {
-                        "type": "integer",
-                        "readOnly": true
                     }
                 },
                 "required": [
                     "category",
-                    "content",
                     "cover_media",
-                    "excerpt",
+                    "id",
                     "og_image",
                     "published_at",
-                    "reading_time_sec",
                     "scheduled_at",
                     "tags",
-                    "title",
                     "views_count"
                 ]
             },
@@ -5643,17 +5632,25 @@
                 "type": "object",
                 "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
                 "properties": {
+                    "language_code": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "default": "en"
+                    },
                     "title": {
                         "type": "string",
-                        "minLength": 1,
-                        "maxLength": 255
+                        "writeOnly": true,
+                        "minLength": 1
                     },
                     "excerpt": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1
                     },
                     "content": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1
                     },
                     "status": {
@@ -5671,15 +5668,16 @@
                     },
                     "seo_title": {
                         "type": "string",
-                        "maxLength": 255
+                        "writeOnly": true
                     },
                     "seo_description": {
-                        "type": "string"
+                        "type": "string",
+                        "writeOnly": true
                     },
                     "slug": {
                         "type": "string",
+                        "writeOnly": true,
                         "minLength": 1,
-                        "maxLength": 50,
                         "pattern": "^[-a-zA-Z0-9_]+$"
                     },
                     "canonical_url": {
@@ -5733,21 +5731,19 @@
                     },
                     "slug": {
                         "type": "string",
-                        "maxLength": 50,
-                        "pattern": "^[-a-zA-Z0-9_]+$"
+                        "readOnly": true
                     },
                     "title": {
                         "type": "string",
-                        "maxLength": 255
+                        "readOnly": true
                     },
                     "excerpt": {
-                        "type": "string"
+                        "type": "string",
+                        "readOnly": true
                     },
                     "reading_time_sec": {
                         "type": "integer",
-                        "maximum": 9223372036854775807,
-                        "minimum": 0,
-                        "format": "int64"
+                        "readOnly": true
                     },
                     "status": {
                         "$ref": "#/components/schemas/PostStatusEnum"
@@ -5803,7 +5799,8 @@
                         "readOnly": true
                     },
                     "content": {
-                        "type": "string"
+                        "type": "string",
+                        "readOnly": true
                     },
                     "canonical_url": {
                         "type": "string",
@@ -5821,10 +5818,11 @@
                     },
                     "seo_title": {
                         "type": "string",
-                        "maxLength": 255
+                        "readOnly": true
                     },
                     "seo_description": {
-                        "type": "string"
+                        "type": "string",
+                        "readOnly": true
                     },
                     "og_image": {
                         "allOf": [
@@ -5854,6 +5852,9 @@
                     "media_attachments",
                     "og_image",
                     "published_at",
+                    "reading_time_sec",
+                    "seo_description",
+                    "seo_title",
                     "series",
                     "slug",
                     "tags",
@@ -5870,21 +5871,19 @@
                     },
                     "slug": {
                         "type": "string",
-                        "maxLength": 50,
-                        "pattern": "^[-a-zA-Z0-9_]+$"
+                        "readOnly": true
                     },
                     "title": {
                         "type": "string",
-                        "maxLength": 255
+                        "readOnly": true
                     },
                     "excerpt": {
-                        "type": "string"
+                        "type": "string",
+                        "readOnly": true
                     },
                     "reading_time_sec": {
                         "type": "integer",
-                        "maximum": 9223372036854775807,
-                        "minimum": 0,
-                        "format": "int64"
+                        "readOnly": true
                     },
                     "status": {
                         "$ref": "#/components/schemas/PostStatusEnum"
@@ -5949,6 +5948,7 @@
                     "id",
                     "likes_count",
                     "published_at",
+                    "reading_time_sec",
                     "slug",
                     "tags",
                     "title"
@@ -6071,6 +6071,10 @@
                         "readOnly": true,
                         "description": "The time of the last update to the record."
                     },
+                    "language_code": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
                     "content": {
                         "type": "string"
                     },
@@ -6110,6 +6114,11 @@
                     "is_active": {
                         "type": "boolean",
                         "description": "Specifies whether this record is active or not."
+                    },
+                    "language_code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10
                     },
                     "content": {
                         "type": "string",
