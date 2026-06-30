@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const jalaali = require('jalaali-js');
 
 const app = express();
 const PORT = 4010;
@@ -31,6 +32,17 @@ const wrapResponse = (data, pagination = null) => {
   }
 
   return response;
+};
+
+// Helper: Jalali Date Simulation
+const toJalali = (isoDate) => {
+  if (!isoDate) return null;
+  const date = new Date(isoDate);
+  const j = jalaali.toJalaali(date.getFullYear(), date.getMonth() + 1, date.getDate());
+
+  const pad = (num) => String(num).padStart(2, '0');
+
+  return `${j.jy}/${pad(j.jm)}/${pad(j.jd)} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 };
 
 // Helper: Pagination Slicing
@@ -191,69 +203,146 @@ app.get('/api/users/me/', (req, res) => {
     res.json(wrapResponse(req.user));
 });
 
-// Posts with Enrichment
-app.get('/api/posts/', (req, res) => {
-    let results = [...db.posts];
-    if (req.query.category) results = results.filter(p => String(p.category) === String(req.query.category));
-    if (req.query.is_hot) results = results.filter(p => p.is_hot === (req.query.is_hot === 'true'));
-    if (req.query.search) {
-        const q = req.query.search.toLowerCase();
-        results = results.filter(p => p.title.toLowerCase().includes(q) || p.content.toLowerCase().includes(q));
-    }
-
-    const enrichedResults = results.map(post => {
-        const authorProfile = db.authorProfiles.find(ap => ap.user === post.author);
-        const category = db.categories.find(c => c.id === post.category);
-        const cover_media = db.medias.find(m => m.id === post.cover_media);
-        const tags = db.tags.filter(t => post.tags.includes(t.id));
-
-        return {
-            ...post,
-            author: authorProfile ? { display_name: authorProfile.display_name, avatar: db.medias.find(m => m.id === authorProfile.avatar) } : null,
-            category: category ? category.name : null,
-            cover_media: cover_media ? { url: cover_media.url } : null,
-            tags: tags,
-            likes_count: db.reactions.filter(r => r.content_type === 'post' && r.object_id === post.id && r.reaction === 'like').length,
-            comments_count: db.comments.filter(c => c.post === post.id && c.status === 'approved').length
-        };
-    });
-
-    const paginated = paginate(req, enrichedResults);
-    res.json(wrapResponse(paginated.data, paginated.pagination));
-});
-
-app.get('/api/posts/:slug/', (req, res) => {
-    const post = db.posts.find(p => p.slug === req.params.slug);
-    if (!post) return res.status(404).json({ detail: 'Not found.' });
+// Posts with Localization and Enrichment
+const enrichPost = (post, lang) => {
+    const translation = post.translations.find(t => t.language_code === lang) ||
+                       post.translations.find(t => t.language_code === 'en') ||
+                       post.translations[0];
 
     const authorProfile = db.authorProfiles.find(ap => ap.user === post.author);
     const category = db.categories.find(c => c.id === post.category);
     const cover_media = db.medias.find(m => m.id === post.cover_media);
     const tags = db.tags.filter(t => post.tags.includes(t.id));
 
-    res.json(wrapResponse({
-        ...post,
-        author: authorProfile ? { display_name: authorProfile.display_name, avatar: db.medias.find(m => m.id === authorProfile.avatar) } : null,
+    return {
+        id: post.id,
+        status: post.status,
+        visibility: post.visibility,
+        is_hot: post.is_hot,
+        published_at: toJalali(post.published_at),
+        views_count: post.views_count,
+        slug: translation.slug,
+        title: translation.title,
+        excerpt: translation.excerpt,
+        reading_time_sec: translation.reading_time_sec,
+        author: authorProfile ? {
+            display_name: authorProfile.display_name,
+            avatar: db.medias.find(m => m.id === authorProfile.avatar)
+        } : null,
         category: category ? category.name : null,
-        cover_media: cover_media,
+        cover_media: cover_media ? {
+            url: cover_media.url,
+            width: cover_media.width,
+            height: cover_media.height,
+            alt_text: cover_media.alt_text
+        } : null,
         tags: tags,
         likes_count: db.reactions.filter(r => r.content_type === 'post' && r.object_id === post.id && r.reaction === 'like').length,
-        comments_count: db.comments.filter(c => c.post === post.id && c.status === 'approved').length,
+        comments_count: db.comments.filter(c => c.post === post.id && c.status === 'approved').length
+    };
+};
+
+app.get('/api/posts/', (req, res) => {
+    let results = [...db.posts];
+    const lang = req.query.lang || 'en';
+
+    if (req.query.category) results = results.filter(p => String(p.category) === String(req.query.category));
+    if (req.query.is_hot) results = results.filter(p => p.is_hot === (req.query.is_hot === 'true'));
+    if (req.query.search) {
+        const q = req.query.search.toLowerCase();
+        results = results.filter(p => {
+            return p.translations.some(t => t.title.toLowerCase().includes(q) || t.content.toLowerCase().includes(q));
+        });
+    }
+
+    const enrichedResults = results.map(post => enrichPost(post, lang));
+    const paginated = paginate(req, enrichedResults);
+    res.json(wrapResponse(paginated.data, paginated.pagination));
+});
+
+app.get('/api/posts/:slug/', (req, res) => {
+    const lang = req.query.lang || 'en';
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.slug));
+
+    if (!post) return res.status(404).json({ detail: 'Not found.' });
+
+    const enriched = enrichPost(post, lang);
+    const translation = post.translations.find(t => t.language_code === lang) ||
+                       post.translations.find(t => t.language_code === 'en') ||
+                       post.translations[0];
+
+    const og_image = db.medias.find(m => m.id === post.og_image);
+
+    res.json(wrapResponse({
+        ...enriched,
+        content: translation.content,
+        seo_title: translation.seo_title,
+        seo_description: translation.seo_description,
+        og_image: og_image,
+        media_attachments: []
+    }));
+});
+
+// Alias for retrieve by slug
+app.get('/api/posts/slug/:slug/', (req, res) => {
+    const lang = req.query.lang || 'en';
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.slug));
+    if (!post) return res.status(404).json({ detail: 'No post was found with this slug.' });
+
+    const enriched = enrichPost(post, lang);
+    const translation = post.translations.find(t => t.language_code === lang) ||
+                       post.translations.find(t => t.language_code === 'en') ||
+                       post.translations[0];
+
+    res.json(wrapResponse({
+        ...enriched,
+        content: translation.content,
+        seo_title: translation.seo_title,
+        seo_description: translation.seo_description,
         media_attachments: []
     }));
 });
 
 app.post('/api/posts/:slug/publish/', (req, res) => {
-    const postIndex = db.posts.findIndex(p => p.slug === req.params.slug);
+    const postIndex = db.posts.findIndex(p => p.translations.some(t => t.slug === req.params.slug));
     if (postIndex === -1) return res.status(404).json({ detail: 'Not found.' });
     db.posts[postIndex].status = 'published';
     db.posts[postIndex].published_at = new Date().toISOString();
-    res.json(wrapResponse(db.posts[postIndex]));
+    res.json(wrapResponse(enrichPost(db.posts[postIndex], req.query.lang || 'en')));
+});
+
+app.get('/api/posts/:slug/similar/', (req, res) => {
+    const lang = req.query.lang || 'en';
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.slug));
+    if (!post) return res.status(404).json({ detail: 'Not found.' });
+
+    const similar = db.posts.filter(p => p.category === post.category && p.id !== post.id).slice(0, 5);
+    res.json(wrapResponse(similar.map(p => enrichPost(p, lang))));
+});
+
+app.get('/api/posts/:slug/same-category/', (req, res) => {
+    const lang = req.query.lang || 'en';
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.slug));
+    if (!post) return res.status(404).json({ detail: 'Not found.' });
+
+    const sameCategory = db.posts.filter(p => p.category === post.category && p.id !== post.id);
+    const paginated = paginate(req, sameCategory.map(p => enrichPost(p, lang)));
+    res.json(wrapResponse(paginated.data, paginated.pagination));
+});
+
+app.get('/api/posts/:slug/related/', (req, res) => {
+    const lang = req.query.lang || 'en';
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.slug));
+    if (!post) return res.status(404).json({ detail: 'Not found.' });
+
+    const related = db.posts.filter(p => p.tags.some(t => post.tags.includes(t)) && p.id !== post.id);
+    const paginated = paginate(req, related.map(p => enrichPost(p, lang)));
+    res.json(wrapResponse(paginated.data, paginated.pagination));
 });
 
 // Nested Comments
-app.get('/api/posts/:slug/comments/', (req, res) => {
-    const post = db.posts.find(p => p.slug === req.params.slug);
+app.get('/api/posts/:post_slug/comments/', (req, res) => {
+    const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.post_slug));
     if (!post) return res.status(404).json({ detail: 'Not found.' });
     const comments = db.comments.filter(c => c.post === post.id && c.status === 'approved');
 
