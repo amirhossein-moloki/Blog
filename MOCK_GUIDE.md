@@ -30,7 +30,7 @@ The server will be available at `http://localhost:4010`.
 ## 📖 Mock Behavior
 
 - **Standardized Responses**: All responses are wrapped in `{ data, pagination, messagesList }`.
-- **Authentication**: Use `/api/token/` with username `admin` and password `password` to get a mock JWT.
+- **Authentication**: Use `/api/token/` with any valid username from `seed-data.json` (e.g., `aynz70` for an Author or `lhall` for a standard User). The mock server accepts any password as long as the username is valid.
 - **State Persistence**: Created posts, users, or comments are saved in memory for the duration of the server session.
 - **Filtering**: Post listing supports `category`, `is_hot`, and `search` query parameters.
 
