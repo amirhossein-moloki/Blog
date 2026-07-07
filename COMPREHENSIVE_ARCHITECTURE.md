@@ -17,9 +17,9 @@ The **Blog Platform** is an enterprise-grade content management system (CMS) des
 The system operates in the **Digital Publishing and Content Management** domain. It handles complex content lifecycles, rich media management with automated optimizations, and user engagement through social interactions (comments and reactions).
 
 ## Main Features
-*   **Identity Management:** Static API Key-based authentication, Google OAuth2 integration, and Role-Based Access Control (RBAC).
-*   **Publishing Engine:** Advanced post lifecycle (Draft, Review, Scheduled, Published), rich-text editing with CKEditor 5, and automated scheduling via Celery.
-*   **Media Library:** Centralized media registry for managing audio, image, and video files.
+*   **Identity Management:** Static API Key-based authentication, JWT tokens, and Role-Based Access Control (RBAC).
+*   **Publishing Engine:** Advanced post lifecycle (Draft, Review, Scheduled, Published), content localization (Multi-language), rich-text editing with CKEditor 5, and automated scheduling via Celery.
+*   **Media Library:** Centralized media registry for managing audio, image, and video files with AVIF optimization.
 *   **Interactions:** Hierarchical threaded comments and a generic reaction system (likes/emojis) applicable to any content type.
 *   **SEO & Social:** Automated Sitemap generation, Jalali date support, SEO metadata management, and OpenGraph integration.
 
@@ -36,7 +36,7 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 | **Backend Framework** | Django 5.0.6 (Python 3.12) |
 | **API Framework** | Django REST Framework (DRF) |
 | **Primary Database** | PostgreSQL 14 |
-| **Caching & Broker** | Redis 8.2 |
+| **Caching & Broker** | Redis 7.2 |
 | **Task Queue** | Celery |
 | **Real-time** | Django Channels (ASGI) |
 | **Web Server** | Gunicorn |
@@ -49,7 +49,7 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 
 ## 1. `users` App
 **Responsibility:** Identity Management & Authentication.
-**Business Purpose:** Manage user accounts, authentication flows (JWT/OAuth), and access controls.
+**Business Purpose:** Manage user accounts, authentication flows (JWT/Static API Key), and access controls.
 
 ### Internal Structure:
 *   **models.py:**
@@ -61,7 +61,6 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
     *   `UserReadOnlySerializer`: Public profile representation.
 *   **views.py:**
     *   `UserViewSet`: CRUD operations with dynamic permissions and serializers.
-    *   `GoogleLoginView`: Authenticates Google ID tokens and returns JWTs.
     *   `CustomTokenObtainPairView`: Administrative login endpoint.
 *   **permissions.py:**
     *   `IsAdminUser`: Restricts to staff.
@@ -70,35 +69,36 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
     *   `should_never_lockout_staff`: Custom callable for Axes to prevent admin lockout.
 *   **signals.py:**
     *   `user_post_save` / `user_post_delete`: Invalidates user dashboard cache entries.
-*   **urls.py:** Defines routes for `users/`, `auth/admin-login/`, and `auth/google/login/`.
+*   **urls.py:** Defines routes for `users/` and `auth/admin-login/`.
 *   **admin.py:** Enhanced User admin using `Unfold`, including `SimpleHistory` and `Select2`.
 
 ---
 
 ## 2. `posts` App
 **Responsibility:** Content Engine & Taxonomies.
-**Business Purpose:** Core publishing logic and content organization.
+**Business Purpose:** Core publishing logic and content organization with multilingual support.
 
 ### Internal Structure:
 *   **models.py:**
-    *   `Post`: Central model managing content, status, and metadata. Uses `PostManager`.
+    *   `Post`: Central model managing status and relations. Uses `PostManager`.
+    *   `PostTranslation`: Stores localized content (title, content, SEO) per language.
     *   `AuthorProfile`: Linked to User, stores bio and display name.
     *   `Category`: Hierarchical taxonomies.
     *   `Tag`: Simple labels.
     *   `Series`: Groups related posts.
-    *   `Revision`: Historical content versions.
+    *   `Revision`: Historical content versions (per language).
     *   `PostTag`: Junction for many-to-many.
 *   **serializers.py:**
-    *   `PostListSerializer` / `PostDetailSerializer`: Optimized for different view contexts.
-    *   `PostCreateUpdateSerializer`: Handles complex publication logic (`publish_at`).
+    *   `PostListSerializer` / `PostDetailSerializer`: Optimized for localized content representation.
+    *   `PostCreateUpdateSerializer`: Handles complex publication logic and translations.
     *   `ContentNormalizationMixin`: Converts HTML to clean Markdown for representations.
     *   `JalaliDateTimeField`: Custom Persian date representation.
 *   **views.py:**
-    *   `PostViewSet`: Advanced filtering, dynamic field selection, and similarity logic.
+    *   `PostViewSet`: Advanced filtering by language, dynamic field selection, and similarity logic.
     *   `PostCommentViewSet`: Nested view for post-specific comments.
     *   `publish_post` / `related_posts`: Specialized API functional views.
 *   **services.py:**
-    *   `sync_post_media`: Syncs content `<img>` tags with `PostMedia` junction.
+    *   `sync_post_media`: Syncs content `<img>` tags in translations with `PostMedia` junction.
     *   `publish_scheduled_posts`: Business logic for scheduled releases.
 *   **tasks.py:**
     *   `publish_scheduled_posts_task`: Periodic Celery job.
@@ -106,13 +106,13 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 *   **filters.py:** `PostFilter` implementing "Hot Post" criteria and date ranges.
 *   **forms.py:** `PostAdminForm` integrating CKEditor 5.
 *   **urls.py:** Nested routers for posts and comments.
-*   **admin.py:** Comprehensive admin with `ModelAdminJalaliMixin` and inlines.
+*   **admin.py:** Comprehensive admin with `ModelAdminJalaliMixin` and translation inlines.
 
 ---
 
 ## 3. `medias` App
 **Responsibility:** Media Library & Optimization.
-**Business Purpose:** Centralized asset management and performance optimization.
+**Business Purpose:** Centralized asset management and performance optimization (AVIF).
 
 ### Internal Structure:
 *   **models.py:**
@@ -173,6 +173,7 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 *   **common/renderers.py:** `StandardResponseRenderer` for consistent API output.
 *   **common/exceptions.py:** `custom_exception_handler` for standardized error JSON.
 *   **common/mixins.py:** `DynamicFieldsMixin` for selective field serialization.
+*   **common/authentication.py:** `StaticAPIKeyAuthentication` for external tools and testing.
 
 ---
 
@@ -225,14 +226,10 @@ Every model in the system (except those inheriting from Django defaults) inherit
 ---
 
 ## 4. `posts.Post`
-**Purpose:** Primary content entity.
+**Purpose:** Primary content entity (General structure).
 
 | Field | Type | Nullable | Default | Constraints | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `slug` | Slug | No | - | Unique | URL identifier. |
-| `title` | VarChar | No | - | - | Article title. |
-| `excerpt` | Text | No | - | - | Brief summary. |
-| `content` | RichText | No | - | - | HTML content (CKEditor). |
 | `status` | Choice | No | 'draft' | draft/published/scheduled/archived | Publishing state. |
 | `visibility` | Choice | No | 'public' | public/private/unlisted | Access level. |
 | `author` | FK(Author)| No | - | CASCADE | Content creator. |
@@ -240,12 +237,29 @@ Every model in the system (except those inheriting from Django defaults) inherit
 | `series` | FK(Series)| Yes | - | SET_NULL | Part of a series. |
 | `cover_media` | FK(Media)| Yes | - | SET_NULL | Main featured image. |
 | `views_count` | Integer | No | 0 | - | View counter. |
-| `reading_time_sec`| Integer | No | 0 | - | Estimate reading time. |
 | `published_at`| DateTime | Yes | - | - | Publication timestamp. |
+| `scheduled_at`| DateTime | Yes | - | - | Scheduled publication time. |
 
 ---
 
-## 5. `medias.Media`
+## 5. `posts.PostTranslation`
+**Purpose:** Stores localized content for each Post.
+
+| Field | Type | Nullable | Default | Constraints | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `post` | FK(Post) | No | - | CASCADE | Link to the main post. |
+| `language_code`| VarChar | No | - | en/fa/... | Language code of translation. |
+| `slug` | Slug | No | - | Unique(lang) | URL identifier in the specific language. |
+| `title` | VarChar | No | - | - | Article title in this language. |
+| `excerpt` | Text | No | - | - | Brief summary. |
+| `content` | RichText | No | - | - | HTML content (CKEditor). |
+| `reading_time_sec`| Integer | No | 0 | - | Estimated reading time (in seconds). |
+| `seo_title` | VarChar | Yes | - | - | SEO Title. |
+| `seo_description`| Text | Yes | - | - | SEO Description. |
+
+---
+
+## 6. `medias.Media`
 **Purpose:** Reusable asset registry.
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -261,7 +275,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 6. `interactions.Comment`
+## 7. `interactions.Comment`
 **Purpose:** Threaded discussions.
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -275,7 +289,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 7. `interactions.Reaction`
+## 8. `interactions.Reaction`
 **Purpose:** Generic engagement system.
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -287,7 +301,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 8. `navigation.MenuItem`
+## 9. `navigation.MenuItem`
 **Purpose:** Navigation link.
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -304,7 +318,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 *   **`posts.PostTag`**: Connects `Post` and `Tag` with unique constraint.
 *   **`medias.PostMedia`**: Connects `Post` and `Media`. Includes `attachment_type` (cover, og-image, in-content).
-*   **`posts.Revision`**: Historical snapshot of Post content, title, and excerpt.
+*   **`posts.Revision`**: Historical snapshot of Post content, title, and excerpt (per language).
 
 ---
 
@@ -319,6 +333,7 @@ erDiagram
 
     AUTHOR_PROFILE ||--o{ POST : "authors"
 
+    POST ||--o{ POST_TRANSLATION : "has (localization)"
     POST ||--o{ COMMENT : "contains"
     POST ||--o{ REVISION : "has"
     POST }o--o{ TAG : "tagged with"
@@ -326,6 +341,7 @@ erDiagram
     POST }o--o| SERIES : "part of"
 
     POST ||--o{ POST_MEDIA : "attaches"
+    POST_TRANSLATION ||--o{ POST_MEDIA : "contains content media"
     MEDIA ||--o{ POST_MEDIA : "linked via"
 
     COMMENT ||--o{ COMMENT : "parent of (nested)"
@@ -337,10 +353,10 @@ erDiagram
 # SECTION 5 — Data Flow Analysis
 
 ## Content Creation & Processing Flow
-1.  **Submission:** User submits a Post via `POST /api/posts/`.
-2.  **Validation:** Serializer validates fields, including `publish_at`.
-3.  **Persistence:** Post is saved to DB.
-4.  **Async Scan:** `sync_post_media` scans for `<img>` tags and links `PostMedia` objects.
+1.  **Submission:** User submits a Post along with translation data via `POST /api/posts/`.
+2.  **Validation:** Serializer validates fields and translations, including `publish_at`.
+3.  **Persistence:** Main Post record and `PostTranslation` record are saved in an atomic transaction.
+4.  **Async Scan:** `sync_post_media` scans for `<img>` tags in translation content and links `PostMedia` objects.
 5.  **Scheduling:** If `status='scheduled'`, Celery Beat eventually triggers `publish_scheduled_posts_task` to make it public.
 
 ---
@@ -353,7 +369,6 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 | URL | Method | ViewSet Action | Description |
 | :--- | :--- | :--- | :--- |
 | `/api/auth/admin-login/` | POST | create | Obtain JWT tokens for staff. |
-| `/api/auth/google/login/` | POST | create | Authenticate via Google ID Token. |
 | `/api/token/refresh/` | POST | create | Refresh an expired access token. |
 | `/api/users/` | GET | list | List users (Admin only). |
 | `/api/users/me/` | GET | me | Retrieve current user profile. |
@@ -362,8 +377,8 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 ## 2. Posts & Taxonomies
 | URL | Method | ViewSet Action | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/posts/` | GET | list | Paginated list with filtering/search. |
-| `/api/posts/{slug}/` | GET | retrieve | Get detailed post content (increments views). |
+| `/api/posts/` | GET | list | Paginated list (supports `lang` parameter). |
+| `/api/posts/{slug}/` | GET | retrieve | Get detailed post content in specified language (increments views). |
 | `/api/posts/{slug}/publish/` | POST | publish | Manually publish a draft. |
 | `/api/posts/{slug}/related/` | GET | related | Get posts sharing tags. |
 | `/api/posts/{slug}/comments/` | GET | list | Get approved comments for a post. |
@@ -395,10 +410,9 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 # SECTION 7 — Authentication & Authorization
 
 ## Authentication Flow
-The system uses **Stateless JWT Authentication**.
-1.  User authenticates via `/api/auth/admin-login/` or `/api/auth/google/login/`.
-2.  Server returns `access` and `refresh` tokens.
-3.  Client includes `Authorization: Bearer <access_token>` in subsequent requests.
+The system uses **Stateless JWT Authentication** and **Static API Key Authentication**.
+1.  **JWT:** User authenticates via `/api/auth/admin-login/` and obtains `access` and `refresh` tokens. Header: `Authorization: Bearer <token>`.
+2.  **Static API Key:** For external tools or testing, by sending the key in `X-API-Key` header and optionally the username in `X-Test-User`.
 
 ## Permission Matrix
 
@@ -415,9 +429,9 @@ The system uses **Stateless JWT Authentication**.
 
 # SECTION 8 — Business Rules
 
-1.  **Reading Time:** Calculated in `Post.save()` as `word_count / 200 * 60` seconds.
+1.  **Reading Time:** Calculated in `PostTranslation.save()` per language content as `word_count / 200 * 60` seconds.
 2.  **Scheduled Publishing:** Managed by Celery task every 60 seconds; checks `scheduled_at <= now`.
-3.  **Post Visibility:** Regular users (`IsAuthenticatedOrReadOnly`) can only query posts with `status='published'`.
+3.  **Post Visibility:** Regular users can only query posts with `status='published'`. Language filtering is handled intelligently (Fallback to English).
 4.  **View Counting:** The `retrieve` action in `PostViewSet` increments `views_count` using `F()` expressions to prevent race conditions.
 
 ---
@@ -426,14 +440,14 @@ The system uses **Stateless JWT Authentication**.
 
 ## Layered Design
 The system implements a **Service-Oriented Modular Monolith**.
-*   **Web (REST):** Decoupled from logic.
+*   **Web (REST):** Decoupled from logic, supporting localization.
 *   **Service Layer:** Pure logic in `services.py`.
 *   **Infrastructure:** Celery/Redis for non-blocking IO.
 
 ## Strengths
-*   High performance media pipeline.
-*   Clean domain boundaries.
-*   Strong type/schema safety via drf-spectacular.
+*   Flexible Multilingual architecture.
+*   High performance media pipeline (AVIF).
+*   Multi-layered security (JWT + Static API Key + Axes).
 
 ---
 
@@ -449,11 +463,15 @@ classDiagram
         +file profile_picture
     }
     class Post {
-        +string slug
+        +string status
+        +datetime published_at
+        +save()
+    }
+    class PostTranslation {
+        +string language_code
         +string title
         +html content
-        +string status
-        +save()
+        +int reading_time_sec
     }
     class Media {
         +string storage_key
@@ -466,6 +484,7 @@ classDiagram
     }
     User "1" -- "1" AuthorProfile
     AuthorProfile "1" -- "*" Post : authors
+    Post "1" -- "*" PostTranslation : translations
     Post "1" -- "*" Comment : contains
     Post "*" -- "*" Tag : tagged
     Post "1" -- "*" PostMedia : attaches
@@ -478,7 +497,8 @@ classDiagram
 stateDiagram-v2
     [*] --> Upload: File Received
     Upload --> ExtractMetadata
-    ExtractMetadata --> CreateMediaRecord
+    ExtractMetadata --> AVIFOptimization
+    AVIFOptimization --> CreateMediaRecord
     CreateMediaRecord --> LinkToPost: Async Post Sync
     LinkToPost --> [*]
 ```
@@ -502,9 +522,9 @@ graph TD
 
 # SECTION 12 — Code Quality Audit
 
-*   **SOLID:** Followed via service/model separation.
-*   **DRY:** Mixins (`DynamicFieldsMixin`) handle repeating logic.
-*   **Security:** JWT, Google OAuth2, and Axes.
+*   **SOLID:** Followed via service/model separation and translation abstraction.
+*   **DRY:** Mixins (`DynamicFieldsMixin`, `ContentNormalizationMixin`) handle repeating logic.
+*   **Security:** JWT, Static API Key, and Axes (Brute-force prevention).
 
 ---
 
@@ -514,12 +534,12 @@ graph TD
 .
 ├── blog/             # Core Config
 ├── users/            # Auth/Identity
-├── posts/            # Content/Taxonomies
-├── medias/           # Assets
-├── interactions/     # Social
+├── posts/            # Content (Post & PostTranslation)/Taxonomies
+├── medias/           # Assets (AVIF Optimization)
+├── interactions/     # Social (Reaction & Comment)
 ├── navigation/       # Menus
 ├── pages/            # Static CMS
-├── common/           # Utils/Mixins
+├── common/           # Utils/Mixins/Auth
 └── core/             # Base Models
 ```
 
@@ -528,5 +548,6 @@ graph TD
 # SECTION 14 — Executive Summary
 
 *   **Scalability:** 9/10 (Redis/Celery integrated).
-*   **Security:** 9/10 (JWT + Social + Axes).
+*   **Security:** 9.5/10 (JWT + Static Key + Axes).
+*   **Multilingual Support:** 10/10 (Dedicated translation model).
 *   **Documentation:** 10/10.
