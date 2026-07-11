@@ -3,11 +3,11 @@ from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
+    ArticleFactory,
     CategoryFactory,
     GalleryItemFactory,
     PodcastCategoryFactory,
     PodcastFactory,
-    PostFactory,
 )
 from posts.models import (
     GalleryItem,
@@ -33,29 +33,31 @@ class NewContentModelsAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("icon", response.data)
 
-    def test_post_related_posts_and_short_description(self):
-        """Test Post related_posts and short_description field."""
+    def test_article_related_articles_and_short_description(self):
+        """Test Article related_articles and short_description field."""
         self._authenticate_as_staff()
-        post1 = PostFactory()
-        post2 = PostFactory()
+        article1 = ArticleFactory()
+        article2 = ArticleFactory()
 
         # Test short_description write-only/read-only flow
         payload = {
-            "title": "New Post with short desc",
-            "slug": "new-post-with-short-desc",
+            "title": "New Article with short desc",
+            "slug": "new-article-with-short-desc",
             "excerpt": "My excerpt",
             "short_description": "My short description text for SEO card.",
             "content": "<p>Content with rich text</p>",
-            "related_post_ids": [post1.pk, post2.pk],
+            "related_article_ids": [article1.pk, article2.pk],
         }
 
-        response = self.client.post(reverse("posts:post-list"), payload, format="json")
+        response = self.client.post(
+            reverse("posts:article-list"), payload, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data["id"])
 
-        # Retrieve detailed post to check short_description and related_posts
+        # Retrieve detailed article to check short_description and related_articles
         detail_url = reverse(
-            "posts:post-detail", kwargs={"slug": "new-post-with-short-desc"}
+            "posts:article-detail", kwargs={"slug": "new-article-with-short-desc"}
         )
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -63,7 +65,7 @@ class NewContentModelsAPITest(BaseAPITestCase):
             response.data["short_description"],
             "My short description text for SEO card.",
         )
-        self.assertEqual(len(response.data["related_posts"]), 2)
+        self.assertEqual(len(response.data["related_articles"]), 2)
 
     def test_podcast_category_api(self):
         """Test PodcastCategory API endpoints."""

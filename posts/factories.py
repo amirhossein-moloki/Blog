@@ -11,12 +11,12 @@ from medias.models import Media
 from navigation.models import Menu, MenuItem
 from pages.models import Page
 from posts.models import (
+    Article,
     AuthorProfile,
     Category,
     GalleryItem,
     Podcast,
     PodcastCategory,
-    Post,
     Revision,
     Series,
     Tag,
@@ -146,9 +146,9 @@ class MenuItemFactory(factory.django.DjangoModelFactory):
     url = factory.LazyAttribute(lambda _: fake.uri())
 
 
-class PostFactory(factory.django.DjangoModelFactory):
+class ArticleFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Post
+        model = Article
 
     status = "published"
     visibility = "public"
@@ -174,10 +174,10 @@ class PostFactory(factory.django.DjangoModelFactory):
         if not create:
             return
 
-        from posts.models import PostTranslation
+        from posts.models import ArticleTranslation
 
-        PostTranslation.objects.create(
-            post=self,
+        ArticleTranslation.objects.create(
+            article=self,
             language_code=kwargs.get("language_code", "en"),
             title=kwargs.get("title", fake.sentence()),
             slug=kwargs.get("slug", f"{fake.slug()}-{self.id}"),
@@ -190,7 +190,7 @@ class CommentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Comment
 
-    post = factory.SubFactory(PostFactory)
+    article = factory.SubFactory(ArticleFactory)
     user = factory.SubFactory(UserFactory)
     content = factory.LazyAttribute(lambda _: fake.paragraph())
     status = "approved"
@@ -231,11 +231,11 @@ class RevisionFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Revision
 
-    post = factory.SubFactory(PostFactory)
+    article = factory.SubFactory(ArticleFactory)
     editor = factory.SubFactory(UserFactory)
-    title = factory.LazyAttribute(lambda o: o.post.translation.title)
-    content = factory.LazyAttribute(lambda o: o.post.translation.content)
-    excerpt = factory.LazyAttribute(lambda o: o.post.translation.excerpt)
+    title = factory.LazyAttribute(lambda o: o.article.translation.title)
+    content = factory.LazyAttribute(lambda o: o.article.translation.content)
+    excerpt = factory.LazyAttribute(lambda o: o.article.translation.excerpt)
     change_note = factory.LazyAttribute(lambda _: fake.sentence())
 
 
@@ -249,7 +249,7 @@ class ReactionFactory(factory.django.DjangoModelFactory):
         lambda o: ContentType.objects.get_for_model(o.content_object)
     )
     object_id = factory.SelfAttribute("content_object.id")
-    content_object = factory.SubFactory(PostFactory)
+    content_object = factory.SubFactory(ArticleFactory)
 
 
 class TagFactory(factory.django.DjangoModelFactory):

@@ -11,7 +11,7 @@ class CommentAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     FA: رابط کاربری ادمین برای نظرات، با پشتیبانی از تاریخ جلالی.
     """
 
-    list_display = ("user", "post", "status", "created_at")
+    list_display = ("user", "article", "status", "created_at")
     list_filter = ("status",)
     search_fields = ("user__username", "content")
 

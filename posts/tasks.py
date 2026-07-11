@@ -1,21 +1,21 @@
 from celery import shared_task
 
-from .services import increment_post_view_count, publish_scheduled_posts
+from .services import increment_article_view_count, publish_scheduled_articles
 
 
 @shared_task
-def increment_post_view_count_task(post_id):
+def increment_article_view_count_task(article_id):
     """
-    EN: Celery task to increment the view count of a post.
-    FA: تسک Celery برای افزایش تعداد بازدیدهای یک پست.
+    EN: Celery task to increment the view count of an article.
+    FA: تسک Celery برای افزایش تعداد بازدیدهای یک مقاله.
     """
-    increment_post_view_count(post_id)
+    increment_article_view_count(article_id)
 
 
 @shared_task
-def publish_scheduled_posts_task():
+def publish_scheduled_articles_task():
     """
-    EN: Periodic Celery task to publish posts that are scheduled for the current time.
-    FA: تسک دوره‌ای Celery برای انتشار پست‌هایی که برای زمان فعلی زمان‌بندی شده‌اند.
+    EN: Periodic Celery task to publish articles that are scheduled for the current time.
+    FA: تسک دوره‌ای Celery برای انتشار مقاله‌هایی که برای زمان فعلی زمان‌بندی شده‌اند.
     """
-    publish_scheduled_posts()
+    publish_scheduled_articles()

@@ -8,87 +8,89 @@ from django.utils import timezone
 
 from medias.models import Media
 
-from .models import Post
+from .models import Article
 
 logger = logging.getLogger(__name__)
 
 
-def increment_post_view_count(post_id):
+def increment_article_view_count(article_id):
     """
-    EN: Asynchronously increments the view count for a specific post.
-    FA: به طور نامتقارن تعداد بازدیدهای یک پست خاص را افزایش می‌دهد.
+    EN: Asynchronously increments the view count for a specific article.
+    FA: به طور نامتقارن تعداد بازدیدهای یک مقاله خاص را افزایش می‌دهد.
     """
     try:
         # EN: Use F() expression to prevent race conditions during concurrent updates.
         # FA: استفاده از عبارت F() برای جلوگیری از تداخل در به‌روزرسانی‌های همزمان.
-        Post.objects.filter(pk=post_id).update(views_count=F("views_count") + 1)
-        logger.info(f"Incremented view count for Post ID: {post_id}")
+        Article.objects.filter(pk=article_id).update(views_count=F("views_count") + 1)
+        logger.info(f"Incremented view count for Article ID: {article_id}")
     except Exception as e:
-        logger.error(f"Error incrementing view count for Post ID {post_id}: {e}")
+        logger.error(f"Error incrementing view count for Article ID {article_id}: {e}")
 
 
-def publish_scheduled_posts():
+def publish_scheduled_articles():
     """
-    EN: Identifies and publishes all posts whose scheduled time has passed.
-    FA: تمامی پست‌هایی که زمان زمان‌بندی آن‌ها فرا رسیده است را شناسایی و منتشر می‌کند.
+    EN: Identifies and publishes all articles whose scheduled time has passed.
+    FA: تمامی مقاله‌هایی که زمان زمان‌بندی آن‌ها فرا رسیده است را شناسایی و منتشر می‌کند.
     """
     now = timezone.now()
-    posts_to_publish = Post.objects.filter(status="scheduled", scheduled_at__lte=now)
+    articles_to_publish = Article.objects.filter(
+        status="scheduled", scheduled_at__lte=now
+    )
 
-    if posts_to_publish.exists():
-        num_published = posts_to_publish.update(
+    if articles_to_publish.exists():
+        num_published = articles_to_publish.update(
             status="published", published_at=F("scheduled_at"), scheduled_at=None
         )
-        logger.info(f"Successfully published {num_published} scheduled posts.")
+        logger.info(f"Successfully published {num_published} scheduled articles.")
     else:
-        logger.info("No scheduled posts to publish.")
+        logger.info("No scheduled articles to publish.")
 
 
-def sync_post_media(obj):
+def sync_article_media(obj):
     """
     EN:
-    Synchronizes the Media attachments for a post or its translation based on
+    Synchronizes the Media attachments for an article or its translation based on
     the cover image, OG image, and any media mentioned within the HTML content.
 
     FA:
-    همگام‌سازی پیوست‌های رسانه‌ای برای یک پست یا ترجمه آن بر اساس تصویر کاور،
+    همگام‌سازی پیوست‌های رسانه‌ای برای یک مقاله یا ترجمه آن بر اساس تصویر کاور،
     تصویر OG و هر رسانه‌ای که در محتوای HTML ذکر شده است.
     """
-    from .models import Post, PostTranslation
+    from .models import Article, ArticleTranslation
 
-    if isinstance(obj, Post):
-        post = obj
-        content = ""  # No content-based sync for the base post
-    elif isinstance(obj, PostTranslation):
-        post = obj.post
+    if isinstance(obj, Article):
+        article = obj
+        content = ""  # No content-based sync for the base article
+    elif isinstance(obj, ArticleTranslation):
+        article = obj.article
         content = obj.content
     else:
-        logger.error(f"Unsupported object type for sync_post_media: {type(obj)}")
+        logger.error(f"Unsupported object type for sync_article_media: {type(obj)}")
         return
 
-    # EN: Handle cover image and OG image synchronization (tied to the Post)
-    # FA: مدیریت همگام‌سازی تصویر کاور و تصویر OG (متصل به پست)
-    if isinstance(obj, Post):
+    # EN: Handle cover image and OG image synchronization (tied to the Article)
+    # FA: مدیریت همگام‌سازی تصویر کاور و تصویر OG (متصل به مقاله)
+    if isinstance(obj, Article):
         # Handle cover
-        post.media_attachments.filter(attachment_type="cover").exclude(
-            media=post.cover_media
+        article.media_attachments.filter(attachment_type="cover").exclude(
+            media=article.cover_image
         ).delete()
-        if post.cover_media:
-            post.media_attachments.update_or_create(
-                media=post.cover_media, defaults={"attachment_type": "cover"}
+        if article.cover_image:
+            article.media_attachments.update_or_create(
+                media=article.cover_image, defaults={"attachment_type": "cover"}
             )
 
         # Handle OG image
-        post.media_attachments.filter(attachment_type="og-image").exclude(
-            media=post.og_image
+        article.media_attachments.filter(attachment_type="og-image").exclude(
+            media=article.og_image
         ).delete()
-        if post.og_image:
-            post.media_attachments.update_or_create(
-                media=post.og_image, defaults={"attachment_type": "og-image"}
+        if article.og_image:
+            article.media_attachments.update_or_create(
+                media=article.og_image, defaults={"attachment_type": "og-image"}
             )
 
-    # EN: Handle in-content media (tied to the content, which exists in PostTranslation)
-    # FA: مدیریت رسانه‌های درون محتوا (متصل به محتوا، که در PostTranslation وجود دارد)
+    # EN: Handle in-content media (tied to the content, which exists in ArticleTranslation)
+    # FA: مدیریت رسانه‌های درون محتوا (متصل به محتوا، که در ArticleTranslation وجود دارد)
     if content:
         # EN: Parse content to find media mentioned in <img> tags (supports both double and single quotes)
         # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img> (پشتیبانی از هر دو نوع کوتیشن)
@@ -108,7 +110,7 @@ def sync_post_media(obj):
         )
 
         current_media_ids = set(
-            post.media_attachments.filter(attachment_type="in-content").values_list(
+            article.media_attachments.filter(attachment_type="in-content").values_list(
                 "media_id", flat=True
             )
         )
@@ -117,7 +119,7 @@ def sync_post_media(obj):
         # FA: اضافه کردن پیوست‌های رسانه‌ای جدید یافت شده در محتوا
         ids_to_add = linked_media_ids - current_media_ids
         for media_id in ids_to_add:
-            post.media_attachments.get_or_create(
+            article.media_attachments.get_or_create(
                 media_id=media_id, attachment_type="in-content"
             )
 
@@ -128,6 +130,6 @@ def sync_post_media(obj):
         # Here we follow the original logic: remove what's not in the CURRENTly syncing content.
         ids_to_remove = current_media_ids - linked_media_ids
         if ids_to_remove:
-            post.media_attachments.filter(
+            article.media_attachments.filter(
                 media_id__in=ids_to_remove, attachment_type="in-content"
             ).delete()

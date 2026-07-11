@@ -544,8 +544,8 @@ CELERY_RESULT_EXPIRES = timedelta(
 )
 
 CELERY_BEAT_SCHEDULE = {
-    "publish-scheduled-posts": {
-        "task": "posts.tasks.publish_scheduled_posts_task",
+    "publish-scheduled-articles": {
+        "task": "posts.tasks.publish_scheduled_articles_task",
         "schedule": timedelta(minutes=1),
     },
 }

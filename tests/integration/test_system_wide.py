@@ -2,13 +2,13 @@ from django.urls import reverse
 from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import PostFactory
+from posts.factories import ArticleFactory
 
 
 class SystemWideIntegrationTest(BaseAPITestCase):
     def test_standardized_response_format_list(self):
-        PostFactory.create_batch(3)
-        url = reverse("posts:post-list")
+        ArticleFactory.create_batch(3)
+        url = reverse("posts:article-list")
         # Use HTTP_ACCEPT to trigger the renderer correctly if needed
         response = self.client.get(url, HTTP_ACCEPT="application/json")
 
@@ -19,8 +19,8 @@ class SystemWideIntegrationTest(BaseAPITestCase):
         self.assertIn("messagesList", response.data)
 
     def test_response_format_detail(self):
-        post = PostFactory()
-        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
+        article = ArticleFactory()
+        url = reverse("posts:article-detail", kwargs={"slug": article.translation.slug})
         # Use HTTP_ACCEPT to trigger the StandardResponseRenderer
         response = self.client.get(url, HTTP_ACCEPT="application/json")
 
@@ -36,7 +36,7 @@ class SystemWideIntegrationTest(BaseAPITestCase):
         # Detail response should NOT have pagination
         self.assertNotIn("pagination", data)
 
-        self.assertEqual(data["data"]["title"], post.translation.title)
+        self.assertEqual(data["data"]["title"], article.translation.title)
 
     def test_global_404_error_handling(self):
         url = "/api/does-not-exist/"
@@ -64,7 +64,7 @@ class SystemWideIntegrationTest(BaseAPITestCase):
 
     def test_validation_error_format(self):
         self._authenticate_as_staff()
-        url = reverse("posts:post-list")
+        url = reverse("posts:article-list")
         response = self.client.post(
             url, {}, format="json", HTTP_ACCEPT="application/json"
         )

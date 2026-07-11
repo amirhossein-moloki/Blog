@@ -6,80 +6,82 @@ from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
+    ArticleFactory,
     CategoryFactory,
     MediaFactory,
-    PostFactory,
     SeriesFactory,
     TagFactory,
     UserFactory,
 )
-from posts.models import AuthorProfile, Post
+from posts.models import Article, AuthorProfile
 
 
-class PostPermissionAPITest(BaseAPITestCase):
+class ArticlePermissionAPITest(BaseAPITestCase):
     def setUp(self):
         super().setUp()
-        self.url = reverse("posts:post-list")
-        self.post_data = {
-            "title": "Test Post by Author",
-            "slug": "test-post-by-author",
+        self.url = reverse("posts:article-list")
+        self.article_data = {
+            "title": "Test Article by Author",
+            "slug": "test-article-by-author",
             "excerpt": "An excerpt.",
             "content": "Some content.",
         }
 
-    def test_guest_user_can_list_posts(self):
-        PostFactory.create_batch(3)
+    def test_guest_user_can_list_articles(self):
+        ArticleFactory.create_batch(3)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 3)
 
-    def test_guest_user_cannot_create_post(self):
-        response = self.client.post(self.url, self.post_data, format="json")
+    def test_guest_user_cannot_create_article(self):
+        response = self.client.post(self.url, self.article_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_authenticated_user_without_author_profile_cannot_create_post(self):
+    def test_authenticated_user_without_author_profile_cannot_create_article(self):
         # Create a new user that doesn't have an author profile
         regular_user = UserFactory()
         AuthorProfile.objects.filter(
             user=regular_user
         ).delete()  # Ensure no profile exists
         self._authenticate(regular_user)
-        response = self.client.post(self.url, self.post_data, format="json")
+        response = self.client.post(self.url, self.article_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_author_user_can_create_post(self):
+    def test_author_user_can_create_article(self):
         # self.user from BaseAPITestCase needs an author profile explicitly created
         AuthorProfile.objects.get_or_create(
             user=self.user, display_name=self.user.username
         )
         self._authenticate(self.user)
-        response = self.client.post(self.url, self.post_data, format="json")
+        response = self.client.post(self.url, self.article_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            Post.objects.filter(translations__slug=self.post_data["slug"]).exists()
+            Article.objects.filter(
+                translations__slug=self.article_data["slug"]
+            ).exists()
         )
 
-    def test_staff_user_can_create_post(self):
+    def test_staff_user_can_create_article(self):
         self._authenticate_as_staff()
-        post_data = self.post_data.copy()
-        post_data["title"] = "Test Post by Staff"
-        post_data["slug"] = "test-post-by-staff"
-        response = self.client.post(self.url, post_data, format="json")
+        article_data = self.article_data.copy()
+        article_data["title"] = "Test Article by Staff"
+        article_data["slug"] = "test-article-by-staff"
+        response = self.client.post(self.url, article_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            Post.objects.filter(translations__slug=post_data["slug"]).exists()
+            Article.objects.filter(translations__slug=article_data["slug"]).exists()
         )
 
 
-class PostAPITest(BaseAPITestCase):
-    def test_create_post(self):
+class ArticleAPITest(BaseAPITestCase):
+    def test_create_article(self):
         self._authenticate_as_staff()
         category = CategoryFactory()
         tags = TagFactory.create_batch(2)
-        url = reverse("posts:post-list")
+        url = reverse("posts:article-list")
         data = {
-            "title": "New Post",
-            "slug": "new-post",
+            "title": "New Article",
+            "slug": "new-article",
             "excerpt": "An excerpt.",
             "content": "Some content.",
             "status": "draft",
@@ -90,50 +92,54 @@ class PostAPITest(BaseAPITestCase):
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Post.objects.filter(translations__slug="new-post").exists())
-        new_post = Post.objects.get(translations__slug="new-post")
-        self.assertEqual(new_post.tags.count(), 2)
-        self.assertIsNotNone(new_post.translation.reading_time_sec)
+        self.assertTrue(
+            Article.objects.filter(translations__slug="new-article").exists()
+        )
+        new_article = Article.objects.get(translations__slug="new-article")
+        self.assertEqual(new_article.tags.count(), 2)
+        self.assertIsNotNone(new_article.translation.reading_time_sec)
 
-    def test_list_posts(self):
-        PostFactory.create_batch(3)
-        url = reverse("posts:post-list")
+    def test_list_articles(self):
+        ArticleFactory.create_batch(3)
+        url = reverse("posts:article-list")
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 3)
 
     def test_default_ordering_is_latest_first(self):
-        older_post = PostFactory(published_at=timezone.now() - timedelta(days=3))
-        newest_post = PostFactory(published_at=timezone.now())
-        middle_post = PostFactory(published_at=timezone.now() - timedelta(days=1))
+        older_article = ArticleFactory(published_at=timezone.now() - timedelta(days=3))
+        newest_article = ArticleFactory(published_at=timezone.now())
+        middle_article = ArticleFactory(published_at=timezone.now() - timedelta(days=1))
 
-        url = reverse("posts:post-list")
+        url = reverse("posts:article-list")
         response = self.client.get(url, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        returned_ids = [post["id"] for post in response.data["data"]]
+        returned_ids = [article["id"] for article in response.data["data"]]
         self.assertEqual(
-            returned_ids[:3], [newest_post.id, middle_post.id, older_post.id]
+            returned_ids[:3], [newest_article.id, middle_article.id, older_article.id]
         )
 
-    def test_post_pagination(self):
-        PostFactory.create_batch(15)
-        url = reverse("posts:post-list")
+    def test_article_pagination(self):
+        ArticleFactory.create_batch(15)
+        url = reverse("posts:article-list")
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 10)
         self.assertIn("pagination", response.data)
         self.assertIsNotNone(response.data["pagination"])
 
-    def test_post_filtering(self):
+    def test_article_filtering(self):
         series = SeriesFactory()
         category = CategoryFactory()
         tag1 = TagFactory()
         tag2 = TagFactory()
 
-        PostFactory(series=series, visibility="private", category=category, tags=[tag1])
-        PostFactory.create_batch(2, visibility="public", tags=[tag2])
-        url = reverse("posts:post-list")
+        ArticleFactory(
+            series=series, visibility="private", category=category, tags=[tag1]
+        )
+        ArticleFactory.create_batch(2, visibility="public", tags=[tag2])
+        url = reverse("posts:article-list")
 
         # Filter by series
         response = self.client.get(url, {"series": series.pk}, format="json")
@@ -159,14 +165,20 @@ class PostAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 2)
 
-    def test_post_is_hot_filtering(self):
-        # Hot post: recent, high views
-        PostFactory(published_at=timezone.now() - timedelta(days=15), views_count=2000)
-        # Not hot post: old
-        PostFactory(published_at=timezone.now() - timedelta(days=45), views_count=2000)
-        # Not hot post: low views
-        PostFactory(published_at=timezone.now() - timedelta(days=15), views_count=500)
-        url = reverse("posts:post-list")
+    def test_article_is_hot_filtering(self):
+        # Hot article: recent, high views
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=15), views_count=2000
+        )
+        # Not hot article: old
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=45), views_count=2000
+        )
+        # Not hot article: low views
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=15), views_count=500
+        )
+        url = reverse("posts:article-list")
 
         # Filter by is_hot=True
         response = self.client.get(url, {"is_hot": "true"}, format="json")
@@ -178,10 +190,10 @@ class PostAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 2)
 
-    def test_post_date_filtering(self):
-        PostFactory(published_at=timezone.now() - timedelta(days=5))
-        PostFactory(published_at=timezone.now() - timedelta(days=15))
-        url = reverse("posts:post-list")
+    def test_article_date_filtering(self):
+        ArticleFactory(published_at=timezone.now() - timedelta(days=5))
+        ArticleFactory(published_at=timezone.now() - timedelta(days=15))
+        url = reverse("posts:article-list")
 
         # Filter by published_after
         after_date = (timezone.now() - timedelta(days=10)).isoformat()
@@ -194,37 +206,39 @@ class PostAPITest(BaseAPITestCase):
         author_profile.avatar = MediaFactory()
         author_profile.save()
 
-        post = PostFactory(status="published", author=author_profile)
+        article = ArticleFactory(status="published", author=author_profile)
 
-        url = reverse("posts:post-by-slug", kwargs={"slug": post.translation.slug})
+        url = reverse(
+            "posts:article-by-slug", kwargs={"slug": article.translation.slug}
+        )
         response = self.client.get(url, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], post.id)
+        self.assertEqual(response.data["id"], article.id)
         self.assertIn("author", response.data)
         self.assertEqual(
             response.data["author"]["display_name"], author_profile.display_name
         )
         self.assertIsNotNone(response.data["author"]["avatar"])
 
-    def test_retrieve_post(self):
+    def test_retrieve_article(self):
         yesterday = timezone.now() - timedelta(days=1)
-        cover_media = MediaFactory()
+        cover_image = MediaFactory()
         in_content_media = MediaFactory()
 
         content = f'<p>Some text</p><img src="/media/{in_content_media.storage_key}" />'
-        post = PostFactory(
+        article = ArticleFactory(
             status="published",
             published_at=yesterday,
-            cover_media=cover_media,
+            cover_image=cover_image,
             translation__content=content,
         )
-        post.translation.save()  # Trigger the media attachment logic
+        article.translation.save()  # Trigger the media attachment logic
 
-        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
+        url = reverse("posts:article-detail", kwargs={"slug": article.translation.slug})
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["title"], post.translation.title)
+        self.assertEqual(response.data["title"], article.translation.title)
 
         # Check for media attachments
         self.assertIn("media_attachments", response.data)
@@ -235,54 +249,56 @@ class PostAPITest(BaseAPITestCase):
         self.assertIn("cover", attachment_types)
         self.assertIn("in-content", attachment_types)
 
-    def test_update_post(self):
+    def test_update_article(self):
         self._authenticate_as_staff()
-        post = PostFactory(author=self.staff_author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
+        article = ArticleFactory(author=self.staff_author_profile)
+        url = reverse("posts:article-detail", kwargs={"slug": article.translation.slug})
         data = {"title": "Updated Title"}
         response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        post.refresh_from_db()
-        self.assertEqual(post.translation.title, "Updated Title")
+        article.refresh_from_db()
+        self.assertEqual(article.translation.title, "Updated Title")
 
-    def test_admin_can_update_other_users_post(self):
+    def test_admin_can_update_other_users_article(self):
         """
-        Ensures an admin can update a post they do not own.
+        Ensures an admin can update an article they do not own.
         """
         self._authenticate_as_staff()
         # self.user is the non-staff user, self.author_profile is their profile
-        post = PostFactory(author=self.author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
+        article = ArticleFactory(author=self.author_profile)
+        url = reverse("posts:article-detail", kwargs={"slug": article.translation.slug})
         data = {"title": "Admin Edited Title"}
         response = self.client.patch(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        post.refresh_from_db()
-        self.assertEqual(post.translation.title, "Admin Edited Title")
+        article.refresh_from_db()
+        self.assertEqual(article.translation.title, "Admin Edited Title")
 
-    def test_delete_post(self):
+    def test_delete_article(self):
         self._authenticate_as_staff()
-        post = PostFactory(author=self.staff_author_profile)
-        url = reverse("posts:post-detail", kwargs={"slug": post.translation.slug})
+        article = ArticleFactory(author=self.staff_author_profile)
+        url = reverse("posts:article-detail", kwargs={"slug": article.translation.slug})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Post.objects.filter(pk=post.pk).exists())
+        self.assertFalse(Article.objects.filter(pk=article.pk).exists())
 
-    def test_related_posts_pagination(self):
+    def test_related_articles_pagination(self):
         tag = TagFactory()
-        post = PostFactory(tags=[tag])
-        PostFactory.create_batch(15, tags=[tag])
-        url = reverse("posts:post-related", kwargs={"slug": post.translation.slug})
+        article = ArticleFactory(tags=[tag])
+        ArticleFactory.create_batch(15, tags=[tag])
+        url = reverse(
+            "posts:article-related", kwargs={"slug": article.translation.slug}
+        )
         response = self.client.get(url, {"page_size": 5})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 5)
         self.assertIn("pagination", response.data)
 
-    def test_same_category_posts_pagination(self):
+    def test_same_category_articles_pagination(self):
         category = CategoryFactory()
-        post = PostFactory(category=category)
-        PostFactory.create_batch(15, category=category)
+        article = ArticleFactory(category=category)
+        ArticleFactory.create_batch(15, category=category)
         url = reverse(
-            "posts:post-same-category", kwargs={"slug": post.translation.slug}
+            "posts:article-same-category", kwargs={"slug": article.translation.slug}
         )
         response = self.client.get(url, {"page_size": 7})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
