@@ -1,44 +1,44 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.factories import AuthorProfileFactory, CategoryFactory, PostFactory
-from posts.models import Post, PostTranslation
+from posts.factories import AuthorProfileFactory, CategoryFactory, ArticleFactory
+from posts.models import Article, ArticleTranslation
 
 User = get_user_model()
 
 
-class PostModelTests(TestCase):
-    def test_post_reading_time_calculation(self):
+class ArticleModelTests(TestCase):
+    def test_article_reading_time_calculation(self):
         # 200 words should be around 1 minute (60 seconds)
         content = "word " * 200
         author = AuthorProfileFactory()
-        post = Post.objects.create(author=author)
-        pt = PostTranslation.objects.create(
-            post=post,
+        article = Article.objects.create(author=author)
+        pt = ArticleTranslation.objects.create(
+            article=article,
             language_code="en",
-            title="Test Post",
-            slug="test-post",
+            title="Test Article",
+            slug="test-article",
             content=content,
             excerpt="Excerpt",
         )
         self.assertEqual(pt.reading_time_sec, 60)
 
-    def test_post_reading_time_empty_content(self):
+    def test_article_reading_time_empty_content(self):
         author = AuthorProfileFactory()
-        post = Post.objects.create(author=author)
-        pt = PostTranslation.objects.create(
-            post=post,
+        article = Article.objects.create(author=author)
+        pt = ArticleTranslation.objects.create(
+            article=article,
             language_code="en",
-            title="Test Post",
-            slug="test-post-empty",
+            title="Test Article",
+            slug="test-article-empty",
             content="",
             excerpt="Excerpt",
         )
         self.assertEqual(pt.reading_time_sec, 0)
 
-    def test_post_str(self):
-        post = PostFactory(translation__title="Unique Title")
-        self.assertEqual(str(post.translation), "Unique Title (en)")
+    def test_article_str(self):
+        article = ArticleFactory(translation__title="Unique Title")
+        self.assertEqual(str(article.translation), "Unique Title (en)")
 
 
 class AuthorProfileModelTests(TestCase):

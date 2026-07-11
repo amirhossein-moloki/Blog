@@ -16,51 +16,51 @@ from interactions.models import Comment
 from interactions.serializers import CommentListSerializer
 from users.permissions import IsOwnerOrAdmin
 
-from .filters import PostFilter
+from .filters import ArticleFilter
 from .models import (
+    Article,
     AuthorProfile,
     Category,
     GalleryItem,
     Podcast,
     PodcastCategory,
-    Post,
     Revision,
     Series,
     Tag,
 )
 from .serializers import (
+    ArticleCreateUpdateSerializer,
+    ArticleDetailSerializer,
+    ArticleListSerializer,
     AuthorProfileSerializer,
     CategorySerializer,
     GalleryItemSerializer,
     PodcastCategorySerializer,
     PodcastSerializer,
-    PostCreateUpdateSerializer,
-    PostDetailSerializer,
-    PostListSerializer,
     RevisionSerializer,
     SeriesSerializer,
     TagSerializer,
 )
 
 
-class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
+class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     """
     EN:
-    ViewSet for managing blog posts.
+    ViewSet for managing blog articles.
     Provides advanced filtering, searching, and dynamic field selection.
-    Handles complex queryset optimizations and access control for drafts/scheduled posts.
+    Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
     FA:
-    ViewSet برای مدیریت پست‌های بلاگ.
+    ViewSet برای مدیریت مقاله‌های بلاگ.
     فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-    بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+    بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
     """
 
-    queryset = Post.objects.all()
+    queryset = Article.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrAdminOrReadOnly]
     pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class = PostFilter
+    filterset_class = ArticleFilter
     search_fields = [
         "translations__title",
         "translations__content",
@@ -77,10 +77,10 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         FA: کلاس سریالایزر را بر اساس اکشن بازمی‌گرداند.
         """
         if self.action in ["create", "update", "partial_update"]:
-            return PostCreateUpdateSerializer
+            return ArticleCreateUpdateSerializer
         elif self.action == "retrieve":
-            return PostDetailSerializer
-        return PostListSerializer
+            return ArticleDetailSerializer
+        return ArticleListSerializer
 
     def get_queryset(self):
         """
@@ -94,7 +94,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         """
         lang = self.request.query_params.get("lang", "en")
         if self.action == "list":
-            queryset = Post.objects.with_translations(lang)
+            queryset = Article.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
             fields = (
                 {f.strip() for f in fields_query.split(",")} if fields_query else set()
@@ -110,7 +110,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                     "excerpt",
                     "author",
                     "category",
-                    "cover_media",
+                    "cover_image",
                     "tags",
                     "likes_count",
                     "comments_count",
@@ -120,8 +120,8 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 selects.add("author__avatar")
             if "category" in fields:
                 selects.add("category")
-            if "cover_media" in fields:
-                selects.add("cover_media")
+            if "cover_image" in fields:
+                selects.add("cover_image")
             if "tags" in fields:
                 prefetches.add("tags")
             if "likes_count" in fields:
@@ -142,7 +142,7 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 ).distinct()
             return queryset.filter(status="published", published_at__lte=timezone.now())
         else:
-            queryset = Post.objects.with_translations(lang)
+            queryset = Article.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
             fields = (
                 {f.strip() for f in fields_query.split(",")}
@@ -156,10 +156,11 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
             if all_fields or "author" in fields:
                 selects.add("author__avatar")
-            if all_fields or "category" in fields:
+            if_all_fields_or_category = all_fields or "category" in fields
+            if if_all_fields_or_category:
                 selects.add("category")
-            if all_fields or "cover_media" in fields:
-                selects.add("cover_media")
+            if all_fields or "cover_image" in fields:
+                selects.add("cover_image")
             if all_fields or "series" in fields:
                 selects.add("series")
             if all_fields or "og_image" in fields:
@@ -181,19 +182,19 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        EN: Associates the post with the author profile of the current user.
-        FA: پست را به پروفایل نویسندگی کاربر فعلی مرتبط می‌کند.
+        EN: Associates the article with the author profile of the current user.
+        FA: مقاله را به پروفایل نویسندگی کاربر فعلی مرتبط می‌کند.
         """
         try:
             author_profile = AuthorProfile.objects.get(user=self.request.user)
         except AuthorProfile.DoesNotExist:
-            raise PermissionDenied("You do not have permission to create a post.")
+            raise PermissionDenied("You do not have permission to create an article.")
         serializer.save(author=author_profile)
 
     def retrieve(self, request, *args, **kwargs):
         """
-        EN: Increments the view count and returns post details.
-        FA: تعداد بازدیدها را افزایش داده و جزئیات پست را بازمی‌گرداند.
+        EN: Increments the view count and returns article details.
+        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را بازمی‌گرداند.
         """
         obj = self.get_object()
         obj.views_count += 1
@@ -204,35 +205,35 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
         """
-        EN: Returns similar posts based on the category.
-        FA: پست‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
+        EN: Returns similar articles based on the category.
+        FA: مقاله‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
         """
         try:
-            current_post = self.get_object()
-        except Post.DoesNotExist:
-            raise NotFound("The requested post to find similar posts was not found.")
+            current_article = self.get_object()
+        except Article.DoesNotExist:
+            raise NotFound("The requested article to find similar articles was not found.")
 
-        if not current_post.category:
+        if not current_article.category:
             return Response([])
 
-        similar_posts = (
-            Post.objects.filter(status="published", category=current_post.category)
-            .exclude(pk=current_post.pk)
+        similar_articles = (
+            Article.objects.filter(status="published", category=current_article.category)
+            .exclude(pk=current_article.pk)
             .order_by("-published_at", "-id")[:5]
         )
 
-        serializer = PostListSerializer(similar_posts, many=True)
+        serializer = ArticleListSerializer(similar_articles, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=["get"], url_path="same-category")
     def same_category(self, request, slug=None):
         """
-        EN: Returns paginated posts from the same category.
-        FA: پست‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
+        EN: Returns paginated articles from the same category.
+        FA: مقاله‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
         """
-        current_post = self.get_object()
+        current_article = self.get_object()
 
-        if not current_post.category:
+        if not current_article.category:
             return Response(
                 {
                     "data": [],
@@ -249,67 +250,67 @@ class PostViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
         paginator = self.pagination_class()
 
-        category_posts = (
-            Post.objects.filter(
+        category_articles = (
+            Article.objects.filter(
                 status="published",
-                category=current_post.category,
+                category=current_article.category,
                 published_at__lte=timezone.now(),
             )
-            .exclude(pk=current_post.pk)
+            .exclude(pk=current_article.pk)
             .order_by("-published_at", "-id")
         )
 
-        paginated_posts = paginator.paginate_queryset(
-            category_posts, request, view=self
+        paginated_articles = paginator.paginate_queryset(
+            category_articles, request, view=self
         )
-        serializer = PostListSerializer(
-            paginated_posts, many=True, context=self.get_serializer_context()
+        serializer = ArticleListSerializer(
+            paginated_articles, many=True, context=self.get_serializer_context()
         )
         return paginator.get_paginated_response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")
     def by_slug(self, request, slug=None):
         """
-        EN: Endpoint to retrieve a single post by its slug and language.
-        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ و زبان آن.
+        EN: Endpoint to retrieve a single article by its slug and language.
+        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن.
         """
         lang = request.query_params.get("lang", "en")
         try:
             # EN: Filter by translation slug
             # FA: فیلتر بر اساس اسلاگ ترجمه
-            post = (
+            article = (
                 self.get_queryset()
                 .filter(translations__slug=slug, translations__language_code=lang)
                 .first()
             )
-            if not post:
+            if not article:
                 # EN: Fallback: Try default language if translation not found for requested lang
                 # FA: جایگزین: تلاش برای زبان پیش‌فرض اگر ترجمه برای زبان درخواستی یافت نشد
-                post = self.get_queryset().filter(translations__slug=slug).first()
+                article = self.get_queryset().filter(translations__slug=slug).first()
 
-            if not post:
-                raise Post.DoesNotExist
-        except Post.DoesNotExist:
-            raise NotFound("No post was found with this slug.")
+            if not article:
+                raise Article.DoesNotExist
+        except Article.DoesNotExist:
+            raise NotFound("No article was found with this slug.")
 
-        serializer = PostDetailSerializer(post, context=self.get_serializer_context())
+        serializer = ArticleDetailSerializer(article, context=self.get_serializer_context())
         return Response(serializer.data)
 
 
 @extend_schema(
     parameters=[
         OpenApiParameter(
-            name="post_slug",
+            name="article_slug",
             type=str,
             location=OpenApiParameter.PATH,
-            description="The slug of the post to get comments for.",
+            description="The slug of the article to get comments for.",
         )
     ]
 )
-class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
+class ArticleCommentViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    EN: ViewSet to list approved comments for a specific post.
-    FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
+    EN: ViewSet to list approved comments for a specific article.
+    FA: ViewSet برای لیست کردن نظرات تایید شده برای یک مقاله خاص.
     """
 
     serializer_class = CommentListSerializer
@@ -321,13 +322,13 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """
-        EN: Returns approved comments for the specified post, annotated with likes.
-        FA: نظرات تایید شده برای پست مشخص شده را به همراه تعداد لایک‌ها بازمی‌گرداند.
+        EN: Returns approved comments for the specified article, annotated with likes.
+        FA: نظرات تایید شده برای مقاله مشخص شده را به همراه تعداد لایک‌ها بازمی‌گرداند.
         """
-        post_slug = self.kwargs.get("post_slug")
+        article_slug = self.kwargs.get("article_slug")
         return (
             Comment.objects.filter(
-                post__translations__slug=post_slug, status="approved"
+                article__translations__slug=article_slug, status="approved"
             )
             .annotate(
                 likes_count=Count("reactions", filter=Q(reactions__reaction="like"))
@@ -338,71 +339,71 @@ class PostCommentViewSet(viewsets.ReadOnlyModelViewSet):
 
 @extend_schema(
     request=None,
-    responses={200: PostDetailSerializer},
-    description="Publish a draft or scheduled post.",
+    responses={200: ArticleDetailSerializer},
+    description="Publish a draft or scheduled article.",
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsOwnerOrAdmin])
-def publish_post(request, slug):
+def publish_article(request, slug):
     """
-    EN: API view to manually publish a draft or scheduled post.
-    FA: نمای API برای انتشار دستی یک پست پیش‌نویس یا زمان‌بندی شده.
+    EN: API view to manually publish a draft or scheduled article.
+    FA: نمای API برای انتشار دستی یک مقاله پیش‌نویس یا زمان‌بندی شده.
     """
     try:
-        post = Post.objects.get(translations__slug=slug)
-    except Post.DoesNotExist:
-        raise NotFound("No post was found with these specifications.")
+        article = Article.objects.get(translations__slug=slug)
+    except Article.DoesNotExist:
+        raise NotFound("No article was found with these specifications.")
 
-    if post.author.user != request.user and not request.user.is_staff:
-        raise PermissionDenied("You do not have permission to publish this post.")
+    if article.author.user != request.user and not request.user.is_staff:
+        raise PermissionDenied("You do not have permission to publish this article.")
 
-    if post.status not in ["draft", "scheduled"]:
+    if article.status not in ["draft", "scheduled"]:
         return Response(
-            {"detail": "Only draft or scheduled posts can be published."},
+            {"detail": "Only draft or scheduled articles can be published."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    post.status = "published"
-    post.published_at = timezone.now()
-    post.scheduled_at = None
-    post.save()
-    serializer = PostDetailSerializer(post)
+    article.status = "published"
+    article.published_at = timezone.now()
+    article.scheduled_at = None
+    article.save()
+    serializer = ArticleDetailSerializer(article)
     return Response(serializer.data)
 
 
 @extend_schema(
-    responses={200: PostListSerializer(many=True)},
-    description="Get related posts based on tags.",
+    responses={200: ArticleListSerializer(many=True)},
+    description="Get related articles based on tags.",
 )
 @api_view(["GET"])
-def related_posts(request, slug):
+def related_articles(request, slug):
     """
-    EN: Returns related posts sharing common tags with the specified post.
-    FA: پست‌های مرتبط که دارای برچسب‌های مشترک با پست مشخص شده هستند را بازمی‌گرداند.
+    EN: Returns related articles sharing common tags with the specified article.
+    FA: مقاله‌های مرتبط که دارای برچسب‌های مشترک با مقاله مشخص شده هستند را بازمی‌گرداند.
     """
     try:
-        current_post = Post.objects.get(translations__slug=slug)
-    except Post.DoesNotExist:
-        raise NotFound("The requested post to find related posts was not found.")
+        current_article = Article.objects.get(translations__slug=slug)
+    except Article.DoesNotExist:
+        raise NotFound("The requested article to find related articles was not found.")
 
     paginator = CustomPageNumberPagination()
-    tag_ids = current_post.tags.values_list("id", flat=True)
+    tag_ids = current_article.tags.values_list("id", flat=True)
 
     if not tag_ids:
-        related = Post.objects.none()
+        related = Article.objects.none()
     else:
         related = (
-            Post.objects.filter(status="published", tags__in=tag_ids)
-            .exclude(pk=current_post.pk)
+            Article.objects.filter(status="published", tags__in=tag_ids)
+            .exclude(pk=current_article.pk)
             .distinct()
         )
         related = related.annotate(
             common_tags=Count("tags", filter=Q(tags__in=tag_ids))
         ).order_by("-common_tags", "-published_at", "-id")
 
-    paginated_related_posts = paginator.paginate_queryset(related, request)
-    serializer = PostListSerializer(
-        paginated_related_posts, many=True, context={"request": request}
+    paginated_related_articles = paginator.paginate_queryset(related, request)
+    serializer = ArticleListSerializer(
+        paginated_related_articles, many=True, context={"request": request}
     )
     return paginator.get_paginated_response(serializer.data)
 
@@ -420,8 +421,8 @@ class AuthorProfileViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """
-    EN: ViewSet for managing post categories.
-    FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
+    EN: ViewSet for managing article categories.
+    FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
     """
 
     queryset = Category.objects.select_related("parent").all()
@@ -431,8 +432,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(viewsets.ModelViewSet):
     """
-    EN: ViewSet for managing post tags.
-    FA: ViewSet برای مدیریت برچسب‌های پست.
+    EN: ViewSet for managing article tags.
+    FA: ViewSet برای مدیریت برچسب‌های مقاله.
     """
 
     queryset = Tag.objects.all()
@@ -442,8 +443,8 @@ class TagViewSet(viewsets.ModelViewSet):
 
 class SeriesViewSet(viewsets.ModelViewSet):
     """
-    EN: ViewSet for managing post series.
-    FA: ViewSet برای مدیریت مجموعه‌های پست.
+    EN: ViewSet for managing article series.
+    FA: ViewSet برای مدیریت مجموعه‌های مقاله.
     """
 
     queryset = Series.objects.all()
@@ -453,8 +454,8 @@ class SeriesViewSet(viewsets.ModelViewSet):
 
 class RevisionViewSet(viewsets.ModelViewSet):
     """
-    EN: ViewSet for viewing post revisions.
-    FA: ViewSet برای مشاهده بازنگری‌های پست.
+    EN: ViewSet for viewing article revisions.
+    FA: ViewSet برای مشاهده بازنگری‌های مقاله.
     """
 
     queryset = Revision.objects.all()

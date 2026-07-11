@@ -5,17 +5,17 @@ from rest_framework import status
 
 from interactions.models import Comment
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, PostFactory
+from posts.factories import CommentFactory, ArticleFactory
 
 
 class CommentAPITest(BaseAPITestCase):
     @patch("interactions.tasks.notify_author_on_new_comment.delay")
     def test_create_comment(self, mock_task):
         self._authenticate()
-        post = PostFactory()
+        article = ArticleFactory()
         url = reverse("interactions:comment-list")
         data = {
-            "post": post.pk,
+            "article": article.pk,
             "author_name": "Test User",
             "author_email": "test@example.com",
             "content": "A test comment.",
@@ -23,7 +23,7 @@ class CommentAPITest(BaseAPITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            Comment.objects.filter(post=post, content="A test comment.").exists()
+            Comment.objects.filter(article=article, content="A test comment.").exists()
         )
         new_comment = Comment.objects.latest("id")
         mock_task.assert_called_once_with(new_comment.id)
@@ -34,7 +34,7 @@ class CommentAPITest(BaseAPITestCase):
         parent_comment = CommentFactory()
         url = reverse("interactions:comment-list")
         data = {
-            "post": parent_comment.post.pk,
+            "article": parent_comment.article.pk,
             "parent": parent_comment.pk,
             "author_name": "Reply User",
             "author_email": "reply@example.com",
@@ -46,9 +46,9 @@ class CommentAPITest(BaseAPITestCase):
 
     def test_list_comments_for_post(self):
         self._authenticate()
-        post = PostFactory()
-        CommentFactory.create_batch(3, post=post)
-        url = reverse("interactions:comment-list") + f"?post={post.pk}"
+        article = ArticleFactory()
+        CommentFactory.create_batch(3, article=article)
+        url = reverse("interactions:comment-list") + f"?article={article.pk}"
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)

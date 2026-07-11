@@ -55,35 +55,35 @@ class Media(BaseModel):
         return ""
 
 
-class PostMedia(BaseModel):
+class ArticleMedia(BaseModel):
     """
     EN:
-    Relationship model linking Media to Posts.
-    Specifies how a media file is used within a post (e.g., cover, in-content).
+    Relationship model linking Media to Articles.
+    Specifies how a media file is used within an article (e.g., cover, in-content).
 
     FA:
-    مدل رابط که رسانه را به پست‌ها پیوند می‌دهد.
-    مشخص می‌کند که یک فایل رسانه چگونه در یک پست استفاده شده است (مثلاً تصویر کاور یا داخل محتوا).
+    مدل رابط که رسانه را به مقاله‌ها پیوند می‌دهد.
+    مشخص می‌کند که یک فایل رسانه چگونه در یک مقاله استفاده شده است (مثلاً تصویر کاور یا داخل محتوا).
     """
 
-    post = models.ForeignKey(
-        "posts.Post", on_delete=models.CASCADE, related_name="media_attachments"
+    article = models.ForeignKey(
+        "posts.Article", on_delete=models.CASCADE, related_name="media_attachments"
     )
     media = models.ForeignKey(
-        Media, on_delete=models.CASCADE, related_name="post_attachments"
+        Media, on_delete=models.CASCADE, related_name="article_attachments"
     )
     attachment_type = models.CharField(
         max_length=50, default="in-content"
     )  # EN: e.g., 'in-content', 'cover', 'og-image'
 
     class Meta:
-        unique_together = ("post", "media", "attachment_type")
-        verbose_name = _("Post Media")
-        verbose_name_plural = _("Post Media")
+        unique_together = ("article", "media", "attachment_type")
+        verbose_name = _("Article Media")
+        verbose_name_plural = _("Article Media")
 
     def __str__(self):
         """
         EN: Returns a description of the attachment.
         FA: توضیحی در مورد پیوست رسانه بازمی‌گرداند.
         """
-        return f"{self.media.title} attached to post {self.post_id} as {self.attachment_type}"
+        return f"{self.media.title} attached to article {self.article_id} as {self.attachment_type}"

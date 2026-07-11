@@ -5,11 +5,11 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from posts.models import AuthorProfile, Category, Post, PostTranslation, Revision, Tag
+from posts.models import AuthorProfile, Category, Article, ArticleTranslation, Revision, Tag
 from users.models import User
 
 
-class PostViewSetTests(APITestCase):
+class ArticleViewSetTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="author", password="password")
         self.author_profile = AuthorProfile.objects.create(
@@ -20,24 +20,24 @@ class PostViewSetTests(APITestCase):
         )
         self.category = Category.objects.create(name="Tech", slug="tech")
         self.tag = Tag.objects.create(name="Django", slug="django")
-        self.post = Post.objects.create(
+        self.article = Article.objects.create(
             author=self.author_profile,
             category=self.category,
             status="published",
             published_at=timezone.now() - timedelta(days=1),
         )
-        PostTranslation.objects.create(
-            post=self.post,
+        ArticleTranslation.objects.create(
+            article=self.article,
             language_code="en",
-            title="Initial Post",
-            slug="initial-post",
+            title="Initial Article",
+            slug="initial-article",
             content="Some content",
             excerpt="Some excerpt",
         )
-        self.post.tags.add(self.tag)
-        self.list_url = reverse("posts:post-list")
+        self.article.tags.add(self.tag)
+        self.list_url = reverse("posts:article-list")
         self.detail_url = reverse(
-            "posts:post-detail", kwargs={"slug": self.post.translation.slug}
+            "posts:article-detail", kwargs={"slug": self.article.translation.slug}
         )
 
     def test_get_queryset_fields_select_related(self):
@@ -58,9 +58,9 @@ class PostViewSetTests(APITestCase):
         other_author = AuthorProfile.objects.create(
             user=other_user, display_name="Other"
         )
-        other_post = Post.objects.create(author=other_author, status="draft")
-        PostTranslation.objects.create(
-            post=other_post,
+        other_article = Article.objects.create(author=other_author, status="draft")
+        ArticleTranslation.objects.create(
+            article=other_article,
             language_code="en",
             title="Other Draft",
             slug="other-draft",
@@ -70,31 +70,31 @@ class PostViewSetTests(APITestCase):
 
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Should see self draft and published posts
+        # Should see self draft and published articles
 
     def test_perform_create_no_author_profile(self):
         user_no_profile = User.objects.create_user(
             username="noprofile", password="password"
         )
         self.client.force_authenticate(user=user_no_profile)
-        data = {"title": "New Post", "content": "Content", "status": "draft"}
+        data = {"title": "New Article", "content": "Content", "status": "draft"}
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_similar_posts(self):
-        url = reverse("posts:post-similar", kwargs={"slug": self.post.translation.slug})
-        # Post with same category
-        similar_post = Post.objects.create(
+    def test_similar_articles(self):
+        url = reverse("posts:article-similar", kwargs={"slug": self.article.translation.slug})
+        # Article with same category
+        similar_article = Article.objects.create(
             author=self.author_profile,
             category=self.category,
             status="published",
             published_at=timezone.now(),
         )
-        PostTranslation.objects.create(
-            post=similar_post,
+        ArticleTranslation.objects.create(
+            article=similar_article,
             language_code="en",
-            title="Similar Post",
-            slug="similar-post",
+            title="Similar Article",
+            slug="similar-article",
             excerpt="Excerpt",
             content="Content",
         )
@@ -103,20 +103,20 @@ class PostViewSetTests(APITestCase):
         data = response.data["data"] if "data" in response.data else response.data
         self.assertEqual(len(data), 1)
 
-    def test_similar_posts_no_category(self):
-        post_no_cat = Post.objects.create(
+    def test_similar_articles_no_category(self):
+        article_no_cat = Article.objects.create(
             author=self.author_profile,
             status="published",
         )
-        post_no_cat_trans = PostTranslation.objects.create(
-            post=post_no_cat,
+        article_no_cat_trans = ArticleTranslation.objects.create(
+            article=article_no_cat,
             language_code="en",
             title="No Cat",
             slug="no-cat",
             excerpt="Excerpt",
             content="Content",
         )
-        url = reverse("posts:post-similar", kwargs={"slug": post_no_cat_trans.slug})
+        url = reverse("posts:article-similar", kwargs={"slug": article_no_cat_trans.slug})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
@@ -125,7 +125,7 @@ class PostViewSetTests(APITestCase):
     def test_perform_create_success(self):
         self.client.force_authenticate(user=self.user)
         data = {
-            "title": "New Post 2",
+            "title": "New Article 2",
             "excerpt": "Excerpt",
             "content": "Content",
             "status": "draft",
@@ -135,7 +135,7 @@ class PostViewSetTests(APITestCase):
 
     def test_revision_list(self):
         Revision.objects.create(
-            post=self.post,
+            article=self.article,
             title="Old Title",
             excerpt="Old Excerpt",
             content="Old Content",
@@ -146,12 +146,12 @@ class PostViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_same_category_no_category(self):
-        post_no_cat = Post.objects.create(
+        article_no_cat = Article.objects.create(
             author=self.author_profile,
             status="published",
         )
-        post_no_cat_trans = PostTranslation.objects.create(
-            post=post_no_cat,
+        article_no_cat_trans = ArticleTranslation.objects.create(
+            article=article_no_cat,
             language_code="en",
             title="No Cat 2",
             slug="no-cat-2",
@@ -159,7 +159,7 @@ class PostViewSetTests(APITestCase):
             content="Content",
         )
         url = reverse(
-            "posts:post-same-category", kwargs={"slug": post_no_cat_trans.slug}
+            "posts:article-same-category", kwargs={"slug": article_no_cat_trans.slug}
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -167,92 +167,92 @@ class PostViewSetTests(APITestCase):
         self.assertEqual(data, [])
 
     def test_by_slug_not_found(self):
-        url = reverse("posts:post-by-slug", kwargs={"slug": "non-existent"})
+        url = reverse("posts:article-by-slug", kwargs={"slug": "non-existent"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_similar_not_found(self):
         # We need a slug that doesn't exist but matches the URL pattern
-        url = reverse("posts:post-similar", kwargs={"slug": "non-existent"})
+        url = reverse("posts:article-similar", kwargs={"slug": "non-existent"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_publish_post_not_found(self):
-        url = reverse("posts:post-publish", kwargs={"slug": "non-existent"})
+    def test_publish_article_not_found(self):
+        url = reverse("posts:article-publish", kwargs={"slug": "non-existent"})
         self.client.force_authenticate(user=self.admin)
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_related_posts_not_found(self):
-        url = reverse("posts:post-related", kwargs={"slug": "non-existent"})
+    def test_related_articles_not_found(self):
+        url = reverse("posts:article-related", kwargs={"slug": "non-existent"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_publish_post_api(self):
-        draft = Post.objects.create(author=self.author_profile, status="draft")
-        draft_trans = PostTranslation.objects.create(
-            post=draft,
+    def test_publish_article_api(self):
+        draft = Article.objects.create(author=self.author_profile, status="draft")
+        draft_trans = ArticleTranslation.objects.create(
+            article=draft,
             language_code="en",
             title="Draft",
-            slug="draft-post",
+            slug="draft-article",
             excerpt="Excerpt",
             content="Content",
         )
         self.client.force_authenticate(user=self.user)
-        url = reverse("posts:post-publish", kwargs={"slug": draft_trans.slug})
+        url = reverse("posts:article-publish", kwargs={"slug": draft_trans.slug})
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         draft.refresh_from_db()
         self.assertEqual(draft.status, "published")
 
-    def test_publish_post_api_unauthorized(self):
+    def test_publish_article_api_unauthorized(self):
         other_user = User.objects.create_user(username="other2", password="password")
-        draft = Post.objects.create(
+        draft = Article.objects.create(
             author=self.author_profile,
             status="draft",
         )
-        draft_trans = PostTranslation.objects.create(
-            post=draft,
+        draft_trans = ArticleTranslation.objects.create(
+            article=draft,
             language_code="en",
             title="Draft 2",
-            slug="draft-post-2",
+            slug="draft-article-2",
             excerpt="Excerpt",
             content="Content",
         )
         self.client.force_authenticate(user=other_user)
-        url = reverse("posts:post-publish", kwargs={"slug": draft_trans.slug})
+        url = reverse("posts:article-publish", kwargs={"slug": draft_trans.slug})
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_publish_post_api_invalid_status(self):
+    def test_publish_article_api_invalid_status(self):
         self.client.force_authenticate(user=self.user)
         url = reverse(
-            "posts:post-publish", kwargs={"slug": self.post.translation.slug}
+            "posts:article-publish", kwargs={"slug": self.article.translation.slug}
         )  # Already published
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_related_posts_no_tags(self):
-        post_no_tags = Post.objects.create(
+    def test_related_articles_no_tags(self):
+        article_no_tags = Article.objects.create(
             author=self.author_profile,
             status="published",
         )
-        post_no_tags_trans = PostTranslation.objects.create(
-            post=post_no_tags,
+        article_no_tags_trans = ArticleTranslation.objects.create(
+            article=article_no_tags,
             language_code="en",
             title="No Tags",
             slug="no-tags",
             excerpt="Excerpt",
             content="Content",
         )
-        url = reverse("posts:post-related", kwargs={"slug": post_no_tags_trans.slug})
+        url = reverse("posts:article-related", kwargs={"slug": article_no_tags_trans.slug})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
         self.assertEqual(data, [])
 
 
-class PostSerializerTests(APITestCase):
+class ArticleSerializerTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="author2", password="password")
         self.author_profile = AuthorProfile.objects.create(
@@ -263,41 +263,41 @@ class PostSerializerTests(APITestCase):
         )
 
     def test_handle_publication_date_scheduled(self):
-        from posts.serializers import PostCreateUpdateSerializer
+        from posts.serializers import ArticleCreateUpdateSerializer
 
         future_date = timezone.now() + timedelta(days=1)
         data = {
-            "title": "Scheduled Post",
+            "title": "Scheduled Article",
             "excerpt": "Excerpt",
             "content": "Content",
             "status": "published",
             "publish_at": future_date,
         }
-        serializer = PostCreateUpdateSerializer(data=data)
+        serializer = ArticleCreateUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=self.author_profile)
-        self.assertEqual(post.status, "scheduled")
-        self.assertEqual(post.scheduled_at, future_date)
+        article = serializer.save(author=self.author_profile)
+        self.assertEqual(article.status, "scheduled")
+        self.assertEqual(article.scheduled_at, future_date)
 
     def test_handle_publication_date_past(self):
-        from posts.serializers import PostCreateUpdateSerializer
+        from posts.serializers import ArticleCreateUpdateSerializer
 
         past_date = timezone.now() - timedelta(days=1)
         data = {
-            "title": "Past Post",
+            "title": "Past Article",
             "excerpt": "Excerpt",
             "content": "Content",
             "status": "published",
             "publish_at": past_date,
         }
-        serializer = PostCreateUpdateSerializer(data=data)
+        serializer = ArticleCreateUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=self.author_profile)
-        self.assertEqual(post.status, "published")
-        self.assertEqual(post.published_at, past_date)
+        article = serializer.save(author=self.author_profile)
+        self.assertEqual(article.status, "published")
+        self.assertEqual(article.published_at, past_date)
 
     def test_handle_publication_date_draft_future(self):
-        from posts.serializers import PostCreateUpdateSerializer
+        from posts.serializers import ArticleCreateUpdateSerializer
 
         future_date = timezone.now() + timedelta(days=1)
         data = {
@@ -307,14 +307,14 @@ class PostSerializerTests(APITestCase):
             "status": "draft",
             "publish_at": future_date,
         }
-        serializer = PostCreateUpdateSerializer(data=data)
+        serializer = ArticleCreateUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=self.author_profile)
-        self.assertEqual(post.status, "draft")
-        self.assertEqual(post.scheduled_at, future_date)
+        article = serializer.save(author=self.author_profile)
+        self.assertEqual(article.status, "draft")
+        self.assertEqual(article.scheduled_at, future_date)
 
     def test_handle_publication_date_draft_past(self):
-        from posts.serializers import PostCreateUpdateSerializer
+        from posts.serializers import ArticleCreateUpdateSerializer
 
         past_date = timezone.now() - timedelta(days=1)
         data = {
@@ -324,11 +324,11 @@ class PostSerializerTests(APITestCase):
             "status": "draft",
             "publish_at": past_date,
         }
-        serializer = PostCreateUpdateSerializer(data=data)
+        serializer = ArticleCreateUpdateSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        post = serializer.save(author=self.author_profile)
-        self.assertEqual(post.status, "draft")
-        self.assertIsNone(post.scheduled_at)
+        article = serializer.save(author=self.author_profile)
+        self.assertEqual(article.status, "draft")
+        self.assertIsNone(article.scheduled_at)
 
     def test_jalali_date_field_none(self):
         from posts.serializers import JalaliDateTimeField
@@ -381,11 +381,4 @@ class PostSerializerTests(APITestCase):
         url = reverse("ckeditor_upload")
         self.client.force_login(user=user_no_profile)
         response = self.client.post(url, {}, format="multipart")
-        # View has @login_required, but if already authenticated it returns 403 or 400.
-        # Actually in my previous run it returned 302 because of some reason?
-        # Oh, @login_required might redirect if it doesn't recognize the session.
-        # But I used force_authenticate.
-        # If it returned 302, it means @login_required didn't think it was logged in.
-        # This usually happens with session-based auth and APITestCase.
-        # Let's use a staff user and then a non-staff user with profile.
         self.assertIn(response.status_code, [403, 302])

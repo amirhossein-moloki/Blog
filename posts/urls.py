@@ -3,27 +3,27 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers
 
 from .views import (
+    ArticleCommentViewSet,
+    ArticleViewSet,
     AuthorProfileViewSet,
     CategoryViewSet,
     GalleryItemViewSet,
     PodcastCategoryViewSet,
     PodcastViewSet,
-    PostCommentViewSet,
-    PostViewSet,
     RevisionViewSet,
     SeriesViewSet,
     TagViewSet,
-    publish_post,
-    related_posts,
+    publish_article,
+    related_articles,
 )
 
 app_name = "posts"
 
 router = DefaultRouter()
-router.register(r"posts", PostViewSet, basename="post")
+router.register(r"articles", ArticleViewSet, basename="article")
 
-posts_router = routers.NestedSimpleRouter(router, r"posts", lookup="post")
-posts_router.register(r"comments", PostCommentViewSet, basename="post-comments")
+articles_router = routers.NestedSimpleRouter(router, r"articles", lookup="article")
+articles_router.register(r"comments", ArticleCommentViewSet, basename="article-comments")
 
 router.register(r"authors", AuthorProfileViewSet)
 router.register(r"categories", CategoryViewSet)
@@ -32,11 +32,11 @@ router.register(r"series", SeriesViewSet)
 router.register(r"revisions", RevisionViewSet)
 router.register(r"podcast-categories", PodcastCategoryViewSet)
 router.register(r"podcasts", PodcastViewSet)
-router.register(r"gallery-items", GalleryItemViewSet)
+router.register(r"gallery", GalleryItemViewSet, basename="galleryitem")
 
 urlpatterns = [
-    path("posts/<slug:slug>/publish/", publish_post, name="post-publish"),
-    path("posts/<slug:slug>/related/", related_posts, name="post-related"),
+    path("articles/<slug:slug>/publish/", publish_article, name="article-publish"),
+    path("articles/<slug:slug>/related/", related_articles, name="article-related"),
     path("", include(router.urls)),
-    path("", include(posts_router.urls)),
+    path("", include(articles_router.urls)),
 ]

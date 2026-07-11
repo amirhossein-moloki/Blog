@@ -40,11 +40,11 @@ class AuthorProfile(BaseModel):
 class Category(BaseModel):
     """
     EN:
-    Represents a category for posts, supporting a hierarchical structure.
+    Represents a category for articles, supporting a hierarchical structure.
     Categories can have parent and child categories.
 
     FA:
-    نشان‌دهنده دسته‌بندی برای پست‌ها، با پشتیبانی از ساختار سلسله‌مراتبی.
+    نشان‌دهنده دسته‌بندی برای مقاله‌ها، با پشتیبانی از ساختار سلسله‌مراتبی.
     دسته‌بندی‌ها می‌توانند دسته‌های والد و فرزند داشته باشند.
     """
 
@@ -74,8 +74,8 @@ class Category(BaseModel):
 
 class Tag(BaseModel):
     """
-    EN: Represents a tag used to label posts for better searchability.
-    FA: نشان‌دهنده برچسبی که برای برچسب‌گذاری پست‌ها جهت جستجوی بهتر استفاده می‌شود.
+    EN: Represents a tag used to label articles for better searchability.
+    FA: نشان‌دهنده برچسبی که برای برچسب‌گذاری مقاله‌ها جهت جستجوی بهتر استفاده می‌شود.
     """
 
     slug = models.SlugField(unique=True)
@@ -92,8 +92,8 @@ class Tag(BaseModel):
 
 class Series(BaseModel):
     """
-    EN: Represents a series of posts that belong together.
-    FA: نشان‌دهنده مجموعه‌ای از پست‌ها که به هم تعلق دارند.
+    EN: Represents a series of articles that belong together.
+    FA: نشان‌دهنده مجموعه‌ای از مقاله‌ها که به هم تعلق دارند.
     """
 
     ORDER_STRATEGY_CHOICES = (
@@ -122,13 +122,13 @@ class Series(BaseModel):
         EN: Returns the absolute URL for the series detail view.
         FA: آدرس مطلق برای نمای جزئیات مجموعه را بازمی‌گرداند.
         """
-        return reverse("posts:post-detail", kwargs={"slug": self.slug})
+        return reverse("posts:article-detail", kwargs={"slug": self.slug})
 
 
-class PostManager(models.Manager):
+class ArticleManager(models.Manager):
     """
-    EN: Custom manager for the Post model with optimized querysets.
-    FA: مدیر (Manager) سفارشی برای مدل پست با QuerySetهای بهینه‌سازی شده.
+    EN: Custom manager for the Article model with optimized querysets.
+    FA: مدیر (Manager) سفارشی برای مدل مقاله با QuerySetهای بهینه‌سازی شده.
     """
 
     def get_queryset(self):
@@ -156,8 +156,8 @@ class PostManager(models.Manager):
 
     def published(self):
         """
-        EN: Returns only the posts that have a 'published' status.
-        FA: فقط پست‌هایی که در وضعیت 'منتشر شده' (published) هستند را بازمی‌گرداند.
+        EN: Returns only the articles that have a 'published' status.
+        FA: فقط مقاله‌هایی که در وضعیت 'منتشر شده' (published) هستند را بازمی‌گرداند.
         """
         return self.get_queryset().filter(status="published")
 
@@ -171,28 +171,28 @@ class PostManager(models.Manager):
         return self.prefetch_related(
             Prefetch(
                 "translations",
-                queryset=PostTranslation.objects.filter(language_code=lang_code),
+                queryset=ArticleTranslation.objects.filter(language_code=lang_code),
                 to_attr="requested_translation",
             ),
             Prefetch(
                 "translations",
-                queryset=PostTranslation.objects.filter(language_code="en"),
+                queryset=ArticleTranslation.objects.filter(language_code="en"),
                 to_attr="default_translation",
             ),
         )
 
 
-class Post(BaseModel):
+class Article(BaseModel):
     """
     EN:
-    Core model representing a blog post.
+    Core model representing a blog article.
     Handles status, scheduling, and various relations.
-    Content is moved to PostTranslation model for localization.
+    Content is moved to ArticleTranslation model for localization.
 
     FA:
-    مدل اصلی نشان‌دهنده یک پست بلاگ.
+    مدل اصلی نشان‌دهنده یک مقاله بلاگ.
     وضعیت، زمان‌بندی و روابط مختلف را مدیریت می‌کند.
-    محتوا برای بومی‌سازی به مدل PostTranslation منتقل شده است.
+    محتوا برای بومی‌سازی به مدل ArticleTranslation منتقل شده است.
     """
 
     STATUS_CHOICES = (
@@ -221,46 +221,46 @@ class Post(BaseModel):
         Category, on_delete=models.SET_NULL, null=True, blank=True
     )
     series = models.ForeignKey(Series, on_delete=models.SET_NULL, null=True, blank=True)
-    cover_media = models.ForeignKey(
+    cover_image = models.ForeignKey(
         "medias.Media",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="post_covers",
+        related_name="article_covers",
     )
     og_image = models.ForeignKey(
         "medias.Media",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="post_og_images",
+        related_name="article_og_images",
     )
     views_count = models.PositiveIntegerField(default=0)
-    tags = models.ManyToManyField(Tag, through="PostTag")
-    related_posts = models.ManyToManyField("self", blank=True, symmetrical=False)
+    tags = models.ManyToManyField(Tag, through="ArticleTag")
+    related_articles = models.ManyToManyField("self", blank=True, symmetrical=False)
     reactions = GenericRelation(
         "interactions.Reaction",
         object_id_field="object_id",
         content_type_field="content_type",
     )
 
-    objects = PostManager()
+    objects = ArticleManager()
 
     class Meta:
         ordering = ["-published_at", "-id"]
 
     def __str__(self):
         """
-        EN: Returns the ID and author of the post.
-        FA: شناسه و نویسنده پست را بازمی‌گرداند.
+        EN: Returns the ID and author of the article.
+        FA: شناسه و نویسنده مقاله را بازمی‌گرداند.
         """
-        return f"Post {self.id} by {self.author}"
+        return f"Article {self.id} by {self.author}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        from .services import sync_post_media
+        from .services import sync_article_media
 
-        sync_post_media(self)
+        sync_article_media(self)
 
     @property
     def translation(self):
@@ -278,14 +278,14 @@ class Post(BaseModel):
         )
 
 
-class PostTranslation(BaseModel):
+class ArticleTranslation(BaseModel):
     """
-    EN: Stores localized content for a Post.
-    FA: محتوای بومی‌سازی شده را برای یک پست ذخیره می‌کند.
+    EN: Stores localized content for an Article.
+    FA: محتوای بومی‌سازی شده را برای یک مقاله ذخیره می‌کند.
     """
 
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name="translations"
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name="translations"
     )
     language_code = models.CharField(max_length=10, db_index=True)
     slug = models.SlugField(max_length=255, allow_unicode=True)
@@ -298,7 +298,7 @@ class PostTranslation(BaseModel):
     seo_description = models.TextField(blank=True)
 
     class Meta:
-        unique_together = (("post", "language_code"), ("slug", "language_code"))
+        unique_together = (("article", "language_code"), ("slug", "language_code"))
         indexes = [
             models.Index(fields=["language_code", "slug"]),
         ]
@@ -326,34 +326,34 @@ class PostTranslation(BaseModel):
             self.reading_time_sec = 0
 
         super().save(*args, **kwargs)
-        from .services import sync_post_media
+        from .services import sync_article_media
 
         # EN: Synchronize media mentioned in the content.
         # FA: همگام‌سازی رسانه‌های ذکر شده در محتوا.
-        sync_post_media(self.post)  # Sync cover/OG images
-        sync_post_media(self)  # Sync in-content media
+        sync_article_media(self.article)  # Sync cover/OG images
+        sync_article_media(self)  # Sync in-content media
 
 
-class PostTag(BaseModel):
+class ArticleTag(BaseModel):
     """
-    EN: Through model for the many-to-many relationship between Post and Tag.
-    FA: مدل میانی برای رابطه چند‌به‌چند بین پست و برچسب.
+    EN: Through model for the many-to-many relationship between Article and Tag.
+    FA: مدل میانی برای رابطه چند‌به‌چند بین مقاله و برچسب.
     """
 
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ("post", "tag")
+        unique_together = ("article", "tag")
 
 
 class Revision(BaseModel):
     """
-    EN: Stores a historical revision of a post's content and metadata per language.
-    FA: یک نسخه تاریخی از محتوا و متادیتای یک پست را به ازای هر زبان ذخیره می‌کند.
+    EN: Stores a historical revision of an article's content and metadata per language.
+    FA: یک نسخه تاریخی از محتوا و متادیتای یک مقاله را به ازای هر زبان ذخیره می‌کند.
     """
 
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
     language_code = models.CharField(max_length=10, default="en")
     editor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     content = CKEditor5Field(config_name="default")
@@ -363,11 +363,11 @@ class Revision(BaseModel):
 
     def __str__(self):
         """
-        EN: Returns a string representation identifying the post, language and the revision date.
-        FA: نمایشی رشته‌ای شامل شناسایی پست، زبان و تاریخ بازنگری را بازمی‌گرداند.
+        EN: Returns a string representation identifying the article, language and the revision date.
+        FA: نمایشی رشته‌ای شامل شناسایی مقاله، زبان و تاریخ بازنگری را بازمی‌گرداند.
         """
         return (
-            f"Revision for {self.post.id} ({self.language_code}) at {self.created_at}"
+            f"Revision for {self.article.id} ({self.language_code}) at {self.created_at}"
         )
 
 

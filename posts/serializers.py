@@ -7,15 +7,16 @@ from markdownify import markdownify as html_to_markdown
 from rest_framework import serializers
 
 from common.mixins import DynamicFieldsMixin
-from medias.serializers import MediaDetailSerializer, PostMediaSerializer
+from medias.serializers import MediaDetailSerializer, ArticleMediaSerializer
 
 from .models import (
+    Article,
+    ArticleTranslation,
     AuthorProfile,
     Category,
     GalleryItem,
     Podcast,
     PodcastCategory,
-    Post,
     Revision,
     Series,
     Tag,
@@ -87,10 +88,10 @@ class AuthorProfileSerializer(serializers.ModelSerializer):
         fields = ("user", "display_name", "bio", "avatar")
 
 
-class AuthorForPostSerializer(serializers.ModelSerializer):
+class AuthorForArticleSerializer(serializers.ModelSerializer):
     """
-    EN: Minimal author serializer for inclusion in Post representation.
-    FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش پست.
+    EN: Minimal author serializer for inclusion in Article representation.
+    FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش مقاله.
     """
 
     avatar = MediaDetailSerializer(read_only=True)
@@ -147,15 +148,15 @@ class SeriesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
+class ArticleListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     """
-    EN: Optimized serializer for listing Posts with essential fields.
-    FA: سریالایزر بهینه‌سازی شده برای لیست کردن پست‌ها با فیلدهای ضروری.
+    EN: Optimized serializer for listing Articles with essential fields.
+    FA: سریالایزر بهینه‌سازی شده برای لیست کردن مقاله‌ها با فیلدهای ضروری.
     """
 
-    author = AuthorForPostSerializer(read_only=True)
+    author = AuthorForArticleSerializer(read_only=True)
     category = serializers.StringRelatedField()
-    cover_media = MediaDetailSerializer(read_only=True)
+    cover_image = MediaDetailSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
@@ -172,7 +173,7 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     )
 
     class Meta:
-        model = Post
+        model = Article
         fields = (
             "id",
             "slug",
@@ -185,7 +186,7 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             "published_at",
             "author",
             "category",
-            "cover_media",
+            "cover_image",
             "views_count",
             "likes_count",
             "comments_count",
@@ -193,10 +194,10 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
-class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
+class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     """
-    EN: Comprehensive serializer for detailed Post view, including content and attachments.
-    FA: سریالایزر جامع برای نمای جزئیات پست، شامل محتوا و پیوست‌ها.
+    EN: Comprehensive serializer for detailed Article view, including content and attachments.
+    FA: سریالایزر جامع برای نمای جزئیات مقاله، شامل محتوا و پیوست‌ها.
     """
 
     series = SeriesSerializer(read_only=True)
@@ -207,10 +208,10 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
         source="translation.seo_description", read_only=True
     )
     media_attachments = serializers.SerializerMethodField()
-    related_posts = PostListSerializer(many=True, read_only=True)
+    related_articles = ArticleListSerializer(many=True, read_only=True)
 
-    class Meta(PostListSerializer.Meta):
-        fields = PostListSerializer.Meta.fields + (
+    class Meta(ArticleListSerializer.Meta):
+        fields = ArticleListSerializer.Meta.fields + (
             "content",
             "canonical_url",
             "series",
@@ -218,24 +219,24 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
             "seo_description",
             "og_image",
             "media_attachments",
-            "related_posts",
+            "related_articles",
         )
 
-    @extend_schema_field(PostMediaSerializer(many=True))
+    @extend_schema_field(ArticleMediaSerializer(many=True))
     def get_media_attachments(self, obj):
         """
-        EN: Retrieves media attachments related to the post.
-        FA: پیوست‌های رسانه‌ای مرتبط با پست را واکشی می‌کند.
+        EN: Retrieves media attachments related to the article.
+        FA: پیوست‌های رسانه‌ای مرتبط با مقاله را واکشی می‌کند.
         """
-        return PostMediaSerializer(obj.media_attachments.all(), many=True).data
+        return ArticleMediaSerializer(obj.media_attachments.all(), many=True).data
 
 
-class PostCreateUpdateSerializer(
+class ArticleCreateUpdateSerializer(
     ContentNormalizationMixin, serializers.ModelSerializer
 ):
     """
-    EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
-    FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
+    EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.
+    FA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
     """
 
     language_code = serializers.CharField(write_only=True, default="en")
@@ -264,9 +265,9 @@ class PostCreateUpdateSerializer(
         required=False,
         write_only=True,
     )
-    cover_media_id = serializers.PrimaryKeyRelatedField(
+    cover_image_id = serializers.PrimaryKeyRelatedField(
         queryset=apps.get_model("medias", "Media").objects.all(),
-        source="cover_media",
+        source="cover_image",
         required=False,
         allow_null=True,
         write_only=True,
@@ -278,15 +279,15 @@ class PostCreateUpdateSerializer(
         allow_null=True,
         write_only=True,
     )
-    related_post_ids = serializers.PrimaryKeyRelatedField(
+    related_article_ids = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=Post.objects.all(),
-        source="related_posts",
+        queryset=Article.objects.all(),
+        source="related_articles",
         required=False,
         write_only=True,
     )
 
-    cover_media = MediaDetailSerializer(read_only=True)
+    cover_image = MediaDetailSerializer(read_only=True)
     og_image = MediaDetailSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -295,10 +296,10 @@ class PostCreateUpdateSerializer(
     publish_at = serializers.DateTimeField(
         write_only=True, required=False, allow_null=True
     )
-    related_posts = PostListSerializer(many=True, read_only=True)
+    related_articles = ArticleListSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Post
+        model = Article
         fields = (
             "id",
             "language_code",
@@ -313,7 +314,7 @@ class PostCreateUpdateSerializer(
             "scheduled_at",
             "category",
             "series",
-            "cover_media",
+            "cover_image",
             "seo_title",
             "seo_description",
             "og_image",
@@ -323,10 +324,10 @@ class PostCreateUpdateSerializer(
             "views_count",
             "tag_ids",
             "category_id",
-            "cover_media_id",
+            "cover_image_id",
             "og_image_id",
-            "related_post_ids",
-            "related_posts",
+            "related_article_ids",
+            "related_articles",
             "publish_at",
         )
         read_only_fields = ("views_count",)
@@ -371,12 +372,12 @@ class PostCreateUpdateSerializer(
 
     def create(self, validated_data):
         """
-        EN: Handles post and translation creation with publication date processing.
-        FA: ایجاد پست و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
+        EN: Handles article and translation creation with publication date processing.
+        FA: ایجاد مقاله و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
         """
         from django.db import transaction
 
-        from .models import PostTranslation
+        from .models import ArticleTranslation
 
         translation_data = {
             "language_code": validated_data.pop("language_code", "en"),
@@ -396,19 +397,19 @@ class PostCreateUpdateSerializer(
         validated_data = self._handle_publication_date(validated_data)
 
         with transaction.atomic():
-            post = super().create(validated_data)
-            PostTranslation.objects.create(post=post, **translation_data)
+            article = super().create(validated_data)
+            ArticleTranslation.objects.create(article=article, **translation_data)
 
-        return post
+        return article
 
     def update(self, instance, validated_data):
         """
-        EN: Handles post and translation update with publication date processing.
-        FA: به‌روزرسانی پست و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
+        EN: Handles article and translation update with publication date processing.
+        FA: به‌روزرسانی مقاله و ترجمه را به همراه پردازش تاریخ انتشار مدیریت می‌کند.
         """
         from django.db import transaction
 
-        from .models import PostTranslation
+        from .models import ArticleTranslation
 
         language_code = validated_data.pop("language_code", "en")
         translation_fields = [
@@ -428,19 +429,19 @@ class PostCreateUpdateSerializer(
         validated_data = self._handle_publication_date(validated_data)
 
         with transaction.atomic():
-            post = super().update(instance, validated_data)
+            article = super().update(instance, validated_data)
             if translation_data:
-                PostTranslation.objects.update_or_create(
-                    post=post, language_code=language_code, defaults=translation_data
+                ArticleTranslation.objects.update_or_create(
+                    article=article, language_code=language_code, defaults=translation_data
                 )
 
-        return post
+        return article
 
 
 class RevisionSerializer(serializers.ModelSerializer):
     """
-    EN: Serializer for Post Revisions.
-    FA: سریالایزر برای بازنگری‌های پست.
+    EN: Serializer for Article Revisions.
+    FA: سریالایزر برای بازنگری‌های مقاله.
     """
 
     class Meta:

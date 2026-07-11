@@ -4,29 +4,29 @@ from rest_framework import status
 
 from interactions.models import Comment
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, PostFactory, RevisionFactory
-from posts.models import Post
+from posts.factories import CommentFactory, ArticleFactory, RevisionFactory
+from posts.models import Article
 
 
 class RevisionAPITest(BaseAPITestCase):
-    def test_list_revisions_for_post(self):
-        post = PostFactory()
-        RevisionFactory.create_batch(3, post=post)
-        url = reverse("posts:revision-list") + f"?post={post.pk}"
+    def test_list_revisions_for_article(self):
+        article = ArticleFactory()
+        RevisionFactory.create_batch(3, article=article)
+        url = reverse("posts:revision-list") + f"?article={article.pk}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
 
 class ReactionAPITest(BaseAPITestCase):
-    def test_create_reaction_for_post(self):
+    def test_create_reaction_for_article(self):
         self._authenticate()
-        post = PostFactory()
+        article = ArticleFactory()
         url = reverse("interactions:reaction-list")
-        content_type = ContentType.objects.get_for_model(Post)
+        content_type = ContentType.objects.get_for_model(Article)
         data = {
             "content_type": content_type.pk,
-            "object_id": post.pk,
+            "object_id": article.pk,
             "reaction": "like",
         }
         response = self.client.post(url, data, format="json")

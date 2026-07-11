@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from common.validators import validate_file
 
-from .models import Media, PostMedia
+from .models import Media, ArticleMedia
 from .services import create_media_from_file
 
 
@@ -72,14 +72,14 @@ class MediaCreateSerializer(serializers.ModelSerializer):
         return create_media_from_file(file, uploaded_by, **validated_data)
 
 
-class PostMediaSerializer(serializers.ModelSerializer):
+class ArticleMediaSerializer(serializers.ModelSerializer):
     """
-    EN: Serializer for the relationship between Posts and Media.
-    FA: سریالایزر برای رابطه بین پست‌ها و رسانه‌ها.
+    EN: Serializer for the relationship between Articles and Media.
+    FA: سریالایزر برای رابطه بین مقاله‌ها و رسانه‌ها.
     """
 
     media = MediaDetailSerializer(read_only=True)
 
     class Meta:
-        model = PostMedia
+        model = ArticleMedia
         fields = ("media", "attachment_type")

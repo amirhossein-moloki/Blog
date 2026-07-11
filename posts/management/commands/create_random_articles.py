@@ -8,7 +8,7 @@ from django.db import transaction
 from faker import Faker
 
 from medias.models import Media
-from posts.models import AuthorProfile, Category, Post, PostTranslation, Tag
+from posts.models import AuthorProfile, Category, Article, ArticleTranslation, Tag
 
 User = get_user_model()
 
@@ -16,29 +16,29 @@ User = get_user_model()
 class Command(BaseCommand):
     """
     EN:
-    Management command to generate random posts using the Faker library.
+    Management command to generate random articles using the Faker library.
     Useful for populating the database during development and testing.
 
     FA:
-    دستور مدیریتی برای تولید پست‌های تصادفی با استفاده از کتابخانه Faker.
+    دستور مدیریتی برای تولید مقاله‌های تصادفی با استفاده از کتابخانه Faker.
     مفید برای پر کردن پایگاه داده در طول توسعه و تست.
     """
 
-    help = "Creates a specified number of random posts for testing and development."
+    help = "Creates a specified number of random articles for testing and development."
 
     def add_arguments(self, parser):
         """
-        EN: Defines the 'count' argument to specify how many posts to create.
-        FA: آرگومان 'count' را برای مشخص کردن تعداد پست‌های ایجاد شونده تعریف می‌کند.
+        EN: Defines the 'count' argument to specify how many articles to create.
+        FA: آرگومان 'count' را برای مشخص کردن تعداد مقاله‌های ایجاد شونده تعریف می‌کند.
         """
         parser.add_argument(
-            "count", type=int, help="The number of random posts to create."
+            "count", type=int, help="The number of random articles to create."
         )
 
     def handle(self, *args, **options):
         """
-        EN: Main logic to create random posts along with necessary dependencies (users, categories, tags).
-        FA: منطق اصلی برای ایجاد پست‌های تصادفی به همراه نیازمندی‌های لازم (کاربران، دسته‌بندی‌ها، برچسب‌ها).
+        EN: Main logic to create random articles along with necessary dependencies (users, categories, tags).
+        FA: منطق اصلی برای ایجاد مقاله‌های تصادفی به همراه نیازمندی‌های لازم (کاربران، دسته‌بندی‌ها، برچسب‌ها).
         """
         count = options["count"]
         fake = Faker()
@@ -92,29 +92,29 @@ class Command(BaseCommand):
         for i in range(count):
             # EN: Create Media instances for cover and OG image
             # FA: ایجاد نمونه‌های رسانه برای کاور و تصویر OG
-            cover_media = self._create_dummy_media(fake)
+            cover_image = self._create_dummy_media(fake)
             og_image = self._create_dummy_media(fake)
 
             with transaction.atomic():
-                post = Post.objects.create(
+                article = Article.objects.create(
                     status=random.choice(["draft", "published"]),
                     author=random.choice(authors),
                     category=random.choice(categories),
-                    cover_media=cover_media,
+                    cover_image=cover_image,
                     og_image=og_image,
                 )
-                PostTranslation.objects.create(
-                    post=post,
+                ArticleTranslation.objects.create(
+                    article=article,
                     language_code="en",
                     title=fake.sentence(nb_words=6),
-                    slug=f"{fake.slug()}-{post.id}",
+                    slug=f"{fake.slug()}-{article.id}",
                     excerpt=fake.paragraph(nb_sentences=2),
                     content=" ".join(fake.paragraphs(nb=5)),
                 )
-                post.tags.set(random.sample(tags, k=random.randint(1, 4)))
+                article.tags.set(random.sample(tags, k=random.randint(1, 4)))
 
         self.stdout.write(
-            self.style.SUCCESS(f"Successfully created {count} random posts.")
+            self.style.SUCCESS(f"Successfully created {count} random articles.")
         )
 
     def _create_dummy_media(self, fake):

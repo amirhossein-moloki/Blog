@@ -2,13 +2,13 @@ from datetime import datetime
 
 from django.contrib.sitemaps import Sitemap
 
-from posts.models import Post
+from posts.models import Article
 
 
-class PostSitemap(Sitemap):
+class ArticleSitemap(Sitemap):
     """
-    EN: Sitemap generator for published blog posts.
-    FA: تولیدکننده نقشه سایت (Sitemap) برای پست‌های منتشر شده بلاگ.
+    EN: Sitemap generator for published blog articles.
+    FA: تولیدکننده نقشه سایت (Sitemap) برای مقاله‌های منتشر شده بلاگ.
     """
 
     changefreq = "weekly"
@@ -16,24 +16,24 @@ class PostSitemap(Sitemap):
 
     def items(self):
         """
-        EN: Returns the list of published posts to include in the sitemap.
-        FA: لیستی از پست‌های منتشر شده را برای درج در نقشه سایت بازمی‌گرداند.
+        EN: Returns the list of published articles to include in the sitemap.
+        FA: لیستی از مقاله‌های منتشر شده را برای درج در نقشه سایت بازمی‌گرداند.
         """
-        return Post.objects.published()
+        return Article.objects.published()
 
     def lastmod(self, obj):
         """
-        EN: Returns the last modification date (publication date) of a post.
-        FA: تاریخ آخرین تغییر (تاریخ انتشار) یک پست را بازمی‌گرداند.
+        EN: Returns the last modification date (publication date) of an article.
+        FA: تاریخ آخرین تغییر (تاریخ انتشار) یک مقاله را بازمی‌گرداند.
         """
         return obj.published_at
 
     def location(self, obj):
         """
-        EN: Returns the URL location for a specific post.
-        FA: آدرس URL را برای یک پست خاص بازمی‌گرداند.
+        EN: Returns the URL location for a specific article.
+        FA: آدرس URL را برای یک مقاله خاص بازمی‌گرداند.
         """
-        return f"/posts/{obj.slug}"
+        return f"/articles/{obj.slug}"
 
 
 class StaticViewSitemap(Sitemap):

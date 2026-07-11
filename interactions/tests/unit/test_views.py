@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from interactions.models import Comment, Reaction
-from posts.models import AuthorProfile, Post, PostTranslation
+from posts.models import AuthorProfile, Article, ArticleTranslation
 from users.models import User
 
 
@@ -19,20 +19,20 @@ class InteractionsViewSetTests(APITestCase):
         self.author_profile = AuthorProfile.objects.create(
             user=self.admin, display_name="Admin Author"
         )
-        self.post = Post.objects.create(author=self.author_profile)
-        PostTranslation.objects.create(
-            post=self.post,
+        self.article = Article.objects.create(author=self.author_profile)
+        ArticleTranslation.objects.create(
+            article=self.article,
             language_code="en",
-            title="Test Post",
-            slug="test-post",
+            title="Test Article",
+            slug="test-article",
             excerpt="Excerpt",
             content="Content",
         )
         self.comment = Comment.objects.create(
-            post=self.post, user=self.user, content="Comment", status="approved"
+            article=self.article, user=self.user, content="Comment", status="approved"
         )
         self.comment_pending = Comment.objects.create(
-            post=self.post, user=self.user, content="Pending", status="pending"
+            article=self.article, user=self.user, content="Pending", status="pending"
         )
         self.comment_url = reverse("interactions:comment-list")
         self.reaction_url = reverse("interactions:reaction-list")
@@ -54,15 +54,15 @@ class InteractionsViewSetTests(APITestCase):
     @patch("interactions.views.notify_author_on_new_comment.delay")
     def test_comment_create_mocks_celery(self, mock_notify):
         self.client.force_authenticate(user=self.user)
-        data = {"post": self.post.id, "content": "New Comment"}
+        data = {"article": self.article.id, "content": "New Comment"}
         response = self.client.post(self.comment_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_notify.assert_called_once()
 
     def test_reaction_queryset_staff(self):
-        ct = ContentType.objects.get_for_model(Post)
+        ct = ContentType.objects.get_for_model(Article)
         Reaction.objects.create(
-            user=self.user, content_type=ct, object_id=self.post.id, reaction="like"
+            user=self.user, content_type=ct, object_id=self.article.id, reaction="like"
         )
         self.client.force_authenticate(user=self.admin)
         response = self.client.get(self.reaction_url)
@@ -72,12 +72,12 @@ class InteractionsViewSetTests(APITestCase):
 
     def test_reaction_queryset_regular(self):
         other_user = User.objects.create_user(username="other3", password="password")
-        ct = ContentType.objects.get_for_model(Post)
+        ct = ContentType.objects.get_for_model(Article)
         Reaction.objects.create(
-            user=self.user, content_type=ct, object_id=self.post.id, reaction="like"
+            user=self.user, content_type=ct, object_id=self.article.id, reaction="like"
         )
         Reaction.objects.create(
-            user=other_user, content_type=ct, object_id=self.post.id, reaction="like"
+            user=other_user, content_type=ct, object_id=self.article.id, reaction="like"
         )
 
         self.client.force_authenticate(user=self.user)

@@ -2,19 +2,19 @@ from .models import Comment, Reaction
 from .tasks import notify_author_on_new_comment
 
 
-def create_comment(user, post, content, parent=None, ip=None, user_agent=""):
+def create_comment(user, article, content, parent=None, ip=None, user_agent=""):
     """
     EN:
     Service to handle comment creation.
-    Triggers a notification to the post author.
+    Triggers a notification to the article author.
 
     FA:
     سرویسی برای مدیریت ایجاد نظر.
-    یک اعلان برای نویسنده پست ارسال می‌کند.
+    یک اعلان برای نویسنده مقاله ارسال می‌کند.
     """
     comment = Comment.objects.create(
         user=user,
-        post=post,
+        article=article,
         content=content,
         parent=parent,
         ip=ip,

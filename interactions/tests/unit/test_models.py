@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from interactions.models import Comment, Reaction
-from posts.factories import CommentFactory, PostFactory, UserFactory
+from posts.factories import CommentFactory, ArticleFactory, UserFactory
 
 
 class CommentModelTest(TestCase):
@@ -17,16 +17,16 @@ class CommentModelTest(TestCase):
 
     def test_comment_replies(self):
         parent = CommentFactory()
-        CommentFactory(parent=parent, post=parent.post)
+        CommentFactory(parent=parent, article=parent.article)
         self.assertEqual(parent.replies.count(), 1)
 
 
 class ReactionModelTest(TestCase):
     def test_reaction_creation(self):
-        post = PostFactory()
+        article = ArticleFactory()
         user = UserFactory()
-        ct = ContentType.objects.get_for_model(post)
+        ct = ContentType.objects.get_for_model(article)
         reaction = Reaction.objects.create(
-            user=user, content_type=ct, object_id=post.id, reaction="like"
+            user=user, content_type=ct, object_id=article.id, reaction="like"
         )
         self.assertEqual(reaction.reaction, "like")

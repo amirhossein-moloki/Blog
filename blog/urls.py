@@ -20,7 +20,7 @@ from posts.ckeditor_views import ckeditor_upload_view
 
 from .ckeditor_views import ckeditor5_upload
 from .sitemaps import (
-    PostSitemap,
+    ArticleSitemap,
     StaticViewSitemap,
 )
 from .views import page_not_found_view
@@ -30,7 +30,7 @@ from .views import page_not_found_view
 handler404 = page_not_found_view
 
 sitemaps = {
-    "posts": PostSitemap,
+    "articles": ArticleSitemap,
     "static": StaticViewSitemap,
 }
 

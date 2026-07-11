@@ -6,25 +6,20 @@ from rest_framework import status
 
 from interactions.models import Comment, Reaction
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, PostFactory
+from posts.factories import CommentFactory, ArticleFactory
 
 
 class EngagementFlowIntegrationTest(BaseAPITestCase):
     @patch("interactions.views.notify_author_on_new_comment.delay")
     def test_commenting_and_reply_flow(self, mock_notify):
         self._authenticate()
-        post = PostFactory()
+        article = ArticleFactory()
 
         # 1. Post a comment
         url = reverse("interactions:comment-list")
-        comment_data = {"post": post.id, "content": "Great post!"}
+        comment_data = {"article": article.id, "content": "Great article!"}
         response = self.client.post(url, comment_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # Success responses are NOT always wrapped by StandardResponseRenderer in test client
-        # unless it goes through the full middleware/renderer stack with JSON accept header.
-        # But wait, PostAPITest in test_posts.py expects response.data['data']?
-        # Let's re-examine test_posts.py.
 
         if "data" in response.data:
             comment_id = response.data["data"]["id"]
@@ -32,14 +27,14 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
             comment_id = response.data["id"]
 
         self.assertTrue(
-            Comment.objects.filter(id=comment_id, user=self.user, post=post).exists()
+            Comment.objects.filter(id=comment_id, user=self.user, article=article).exists()
         )
 
         # Verify notification task was called
         mock_notify.assert_called_once()
 
         # 2. Reply to the comment
-        reply_data = {"post": post.id, "content": "I agree!", "parent": comment_id}
+        reply_data = {"article": article.id, "content": "I agree!", "parent": comment_id}
         response = self.client.post(url, reply_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -52,15 +47,15 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
             Comment.objects.filter(id=reply_id, parent_id=comment_id).exists()
         )
 
-    def test_reaction_on_post(self):
+    def test_reaction_on_article(self):
         self._authenticate()
-        post = PostFactory()
+        article = ArticleFactory()
         url = reverse("interactions:reaction-list")
 
-        content_type = ContentType.objects.get_for_model(post)
+        content_type = ContentType.objects.get_for_model(article)
         reaction_data = {
             "content_type": content_type.id,
-            "object_id": post.id,
+            "object_id": article.id,
             "reaction": "like",
         }
 
@@ -69,7 +64,7 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
             Reaction.objects.filter(
-                user=self.user, object_id=post.id, reaction="like"
+                user=self.user, object_id=article.id, reaction="like"
             ).exists()
         )
 

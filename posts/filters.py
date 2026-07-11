@@ -4,21 +4,21 @@ from django.db.models import Q
 from django.utils import timezone
 from django_filters import rest_framework as filters
 
-from .models import Post, Tag
+from .models import Article, Tag
 
-HOT_POST_MAX_AGE_DAYS = 30
-HOT_POST_MIN_VIEWS = 1000
+HOT_ARTICLE_MAX_AGE_DAYS = 30
+HOT_ARTICLE_MIN_VIEWS = 1000
 
 
-class PostFilter(filters.FilterSet):
+class ArticleFilter(filters.FilterSet):
     """
     EN:
-    Custom filter set for the Post model.
-    Allows filtering by publication date range, category, tags, and a custom 'hot' post logic.
+    Custom filter set for the Article model.
+    Allows filtering by publication date range, category, tags, and a custom 'hot' article logic.
 
     FA:
-    فیلتر ست سفارشی برای مدل پست.
-    امکان فیلتر بر اساس بازه تاریخ انتشار، دسته‌بندی، برچسب‌ها و منطق سفارشی پست‌های 'داغ' (hot) را فراهم می‌کند.
+    فیلتر ست سفارشی برای مدل مقاله.
+    امکان فیلتر بر اساس بازه تاریخ انتشار، دسته‌بندی، برچسب‌ها و منطق سفارشی مقاله‌های 'داغ' (hot) را فراهم می‌کند.
     """
 
     published_after = filters.DateTimeFilter(
@@ -38,20 +38,20 @@ class PostFilter(filters.FilterSet):
 
     def filter_is_hot(self, queryset, name, value):
         """
-        EN: Filters posts based on 'hot' criteria: published recently and has high view count.
-        FA: پست‌ها را بر اساس معیارهای 'داغ' بودن فیلتر می‌کند: اخیراً منتشر شده و تعداد بازدید بالایی دارد.
+        EN: Filters articles based on 'hot' criteria: published recently and has high view count.
+        FA: مقاله‌ها را بر اساس معیارهای 'داغ' بودن فیلتر می‌کند: اخیراً منتشر شده و تعداد بازدید بالایی دارد.
         """
-        hot_post_criteria = Q(
-            published_at__gte=timezone.now() - timedelta(days=HOT_POST_MAX_AGE_DAYS),
-            views_count__gt=HOT_POST_MIN_VIEWS,
+        hot_article_criteria = Q(
+            published_at__gte=timezone.now() - timedelta(days=HOT_ARTICLE_MAX_AGE_DAYS),
+            views_count__gt=HOT_ARTICLE_MIN_VIEWS,
         )
         if value:
-            return queryset.filter(hot_post_criteria)
+            return queryset.filter(hot_article_criteria)
         else:
-            return queryset.exclude(hot_post_criteria)
+            return queryset.exclude(hot_article_criteria)
 
     class Meta:
-        model = Post
+        model = Article
         fields = [
             "series",
             "visibility",

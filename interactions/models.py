@@ -12,11 +12,11 @@ User = get_user_model()
 class Comment(BaseModel):
     """
     EN:
-    Represents a user comment on a post.
+    Represents a user comment on an article.
     Supports nested replies and moderation statuses.
 
     FA:
-    نشان‌دهنده نظر یک کاربر روی یک پست.
+    نشان‌دهنده نظر یک کاربر روی یک مقاله.
     از پاسخ‌های تو در تو و وضعیت‌های نظارت (Moderation) پشتیبانی می‌کند.
     """
 
@@ -29,8 +29,8 @@ class Comment(BaseModel):
         ("spam", "Spam"),
         ("removed", "Removed"),
     )
-    post = models.ForeignKey(
-        "posts.Post", on_delete=models.CASCADE, related_name="comments"
+    article = models.ForeignKey(
+        "posts.Article", on_delete=models.CASCADE, related_name="comments"
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     parent = models.ForeignKey(
@@ -46,21 +46,21 @@ class Comment(BaseModel):
 
     def __str__(self):
         """
-        EN: Returns a string representation of the comment creator and the post ID.
-        FA: نمایشی رشته‌ای از ایجادکننده نظر و شناسه پست را بازمی‌گرداند.
+        EN: Returns a string representation of the comment creator and the article ID.
+        FA: نمایشی رشته‌ای از ایجادکننده نظر و شناسه مقاله را بازمی‌گرداند.
         """
-        return f"Comment by {self.user} on {self.post_id}"
+        return f"Comment by {self.user} on {self.article_id}"
 
 
 class Reaction(BaseModel):
     """
     EN:
     Represents a user reaction (e.g., like, emoji) to any content type.
-    Uses Generic Foreign Key to relate to Posts, Comments, or other models.
+    Uses Generic Foreign Key to relate to Articles, Comments, or other models.
 
     FA:
     نشان‌دهنده واکنش کاربر (مانند لایک، اموجی) به هر نوع محتوایی.
-    از Generic Foreign Key برای ارتباط با پست‌ها، نظرات یا مدل‌های دیگر استفاده می‌کند.
+    از Generic Foreign Key برای ارتباط با مقاله‌ها، نظرات یا مدل‌های دیگر استفاده می‌کند.
     """
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
