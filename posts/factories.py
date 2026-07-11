@@ -13,13 +13,13 @@ from pages.models import Page
 from posts.models import (
     AuthorProfile,
     Category,
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
     Post,
     Revision,
     Series,
     Tag,
-    PodcastCategory,
-    Podcast,
-    GalleryItem,
 )
 
 fake = Faker()

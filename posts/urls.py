@@ -5,6 +5,9 @@ from rest_framework_nested import routers
 from .views import (
     AuthorProfileViewSet,
     CategoryViewSet,
+    GalleryItemViewSet,
+    PodcastCategoryViewSet,
+    PodcastViewSet,
     PostCommentViewSet,
     PostViewSet,
     RevisionViewSet,
@@ -12,9 +15,6 @@ from .views import (
     TagViewSet,
     publish_post,
     related_posts,
-    PodcastCategoryViewSet,
-    PodcastViewSet,
-    GalleryItemViewSet,
 )
 
 app_name = "posts"

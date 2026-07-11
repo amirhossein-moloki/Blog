@@ -20,26 +20,26 @@ from .filters import PostFilter
 from .models import (
     AuthorProfile,
     Category,
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
     Post,
     Revision,
     Series,
     Tag,
-    PodcastCategory,
-    Podcast,
-    GalleryItem,
 )
 from .serializers import (
     AuthorProfileSerializer,
     CategorySerializer,
+    GalleryItemSerializer,
+    PodcastCategorySerializer,
+    PodcastSerializer,
     PostCreateUpdateSerializer,
     PostDetailSerializer,
     PostListSerializer,
     RevisionSerializer,
     SeriesSerializer,
     TagSerializer,
-    PodcastCategorySerializer,
-    PodcastSerializer,
-    GalleryItemSerializer,
 )
 
 

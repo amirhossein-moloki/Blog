@@ -6,15 +6,15 @@ from medias.models import PostMedia
 from .models import (
     AuthorProfile,
     Category,
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
     Post,
     PostTag,
     PostTranslation,
     Revision,
     Series,
     Tag,
-    PodcastCategory,
-    Podcast,
-    GalleryItem,
 )
 
 
@@ -223,7 +223,10 @@ class PodcastAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     search_fields = ("title", "slug", "description")
     filter_horizontal = ("related_podcasts",)
     fieldsets = (
-        (None, {"fields": ("title", "slug", "category", "episode_number", "is_active")}),
+        (
+            None,
+            {"fields": ("title", "slug", "category", "episode_number", "is_active")},
+        ),
         (
             "Media & Content",
             {

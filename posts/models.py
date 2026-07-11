@@ -379,7 +379,9 @@ class PodcastCategory(BaseModel):
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    icon = models.FileField(upload_to="podcasts/categories/icons/", null=True, blank=True)
+    icon = models.FileField(
+        upload_to="podcasts/categories/icons/", null=True, blank=True
+    )
 
     class Meta:
         verbose_name_plural = "Podcast Categories"

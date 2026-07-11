@@ -12,13 +12,13 @@ from medias.serializers import MediaDetailSerializer, PostMediaSerializer
 from .models import (
     AuthorProfile,
     Category,
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
     Post,
     Revision,
     Series,
     Tag,
-    PodcastCategory,
-    Podcast,
-    GalleryItem,
 )
 
 User = get_user_model()
@@ -242,7 +242,9 @@ class PostCreateUpdateSerializer(
     title = serializers.CharField(write_only=True)
     slug = serializers.SlugField(write_only=True, required=False)
     excerpt = serializers.CharField(write_only=True)
-    short_description = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
+    short_description = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, allow_null=True
+    )
     content = serializers.CharField(write_only=True)
     seo_title = serializers.CharField(write_only=True, required=False, allow_blank=True)
     seo_description = serializers.CharField(

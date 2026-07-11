@@ -1,14 +1,19 @@
 from django.urls import reverse
 from rest_framework import status
+
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
     CategoryFactory,
-    PostFactory,
+    GalleryItemFactory,
     PodcastCategoryFactory,
     PodcastFactory,
-    GalleryItemFactory,
+    PostFactory,
 )
-from posts.models import Category, Post, PodcastCategory, Podcast, GalleryItem, PostTranslation
+from posts.models import (
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
+)
 
 
 class NewContentModelsAPITest(BaseAPITestCase):
@@ -41,18 +46,23 @@ class NewContentModelsAPITest(BaseAPITestCase):
             "excerpt": "My excerpt",
             "short_description": "My short description text for SEO card.",
             "content": "<p>Content with rich text</p>",
-            "related_post_ids": [post1.pk, post2.pk]
+            "related_post_ids": [post1.pk, post2.pk],
         }
 
         response = self.client.post(reverse("posts:post-list"), payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post_id = response.data["id"]
+        self.assertIsNotNone(response.data["id"])
 
         # Retrieve detailed post to check short_description and related_posts
-        detail_url = reverse("posts:post-detail", kwargs={"slug": "new-post-with-short-desc"})
+        detail_url = reverse(
+            "posts:post-detail", kwargs={"slug": "new-post-with-short-desc"}
+        )
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["short_description"], "My short description text for SEO card.")
+        self.assertEqual(
+            response.data["short_description"],
+            "My short description text for SEO card.",
+        )
         self.assertEqual(len(response.data["related_posts"]), 2)
 
     def test_podcast_category_api(self):
@@ -65,24 +75,25 @@ class NewContentModelsAPITest(BaseAPITestCase):
 
         # Authenticated (as staff) create
         self._authenticate_as_staff()
-        payload = {
-            "title": "New Pod Cat",
-            "slug": "new-pod-cat"
-        }
-        response = self.client.post(self.podcast_cat_list_url, payload, format="multipart")
+        payload = {"title": "New Pod Cat", "slug": "new-pod-cat"}
+        response = self.client.post(
+            self.podcast_cat_list_url, payload, format="multipart"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(PodcastCategory.objects.filter(slug="new-pod-cat").exists())
 
     def test_podcast_api(self):
         """Test Podcast API endpoints including retrieval view_count increment."""
         category = PodcastCategoryFactory()
-        podcast = PodcastFactory(category=category, title="Initial Pod Title", slug="initial-pod")
+        podcast = PodcastFactory(
+            category=category, title="Initial Pod Title", slug="initial-pod"
+        )
 
         # Guest user retrieve
         detail_url = reverse("posts:podcast-detail", kwargs={"slug": "initial-pod"})
         response = self.client.get(detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["view_count"], 1) # incremented on retrieve
+        self.assertEqual(response.data["view_count"], 1)  # incremented on retrieve
 
         # Test listing
         response = self.client.get(self.podcast_list_url)
@@ -100,7 +111,7 @@ class NewContentModelsAPITest(BaseAPITestCase):
             "media_type": "audio",
             "description": "<p>A detailed podcast episode description with bullet points.</p>",
             "duration": 30,
-            "published_date": "2026-07-11T12:00:00Z"
+            "published_date": "2026-07-11T12:00:00Z",
         }
         response = self.client.post(self.podcast_list_url, payload, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -121,8 +132,10 @@ class NewContentModelsAPITest(BaseAPITestCase):
             "caption": "Beautiful Polaroid Caption",
             "order": 5,
             "image": item.image,
-            "link": "https://example.com/some-article"
+            "link": "https://example.com/some-article",
         }
         response = self.client.post(self.gallery_list_url, payload, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(GalleryItem.objects.filter(caption="Beautiful Polaroid Caption").exists())
+        self.assertTrue(
+            GalleryItem.objects.filter(caption="Beautiful Polaroid Caption").exists()
+        )
