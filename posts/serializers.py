@@ -11,7 +11,6 @@ from medias.serializers import ArticleMediaSerializer, MediaDetailSerializer
 
 from .models import (
     Article,
-    ArticleTranslation,
     AuthorProfile,
     Category,
     GalleryItem,

@@ -12,7 +12,6 @@ from navigation.models import Menu, MenuItem
 from pages.models import Page
 from posts.models import (
     Article,
-    ArticleTranslation,
     AuthorProfile,
     Category,
     GalleryItem,
