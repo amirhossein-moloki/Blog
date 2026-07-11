@@ -59,6 +59,7 @@ class Category(BaseModel):
     )
     description = models.TextField(blank=True)
     order = models.IntegerField(default=0)
+    icon = models.FileField(upload_to="categories/icons/", null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -236,6 +237,7 @@ class Post(BaseModel):
     )
     views_count = models.PositiveIntegerField(default=0)
     tags = models.ManyToManyField(Tag, through="PostTag")
+    related_posts = models.ManyToManyField("self", blank=True, symmetrical=False)
     reactions = GenericRelation(
         "interactions.Reaction",
         object_id_field="object_id",
@@ -289,6 +291,7 @@ class PostTranslation(BaseModel):
     slug = models.SlugField(max_length=255, allow_unicode=True)
     title = models.CharField(max_length=255)
     excerpt = models.TextField()
+    short_description = models.TextField(blank=True, null=True)
     content = CKEditor5Field(config_name="default")
     reading_time_sec = models.PositiveIntegerField(default=0)
     seo_title = models.CharField(max_length=255, blank=True)
@@ -366,3 +369,76 @@ class Revision(BaseModel):
         return (
             f"Revision for {self.post.id} ({self.language_code}) at {self.created_at}"
         )
+
+
+class PodcastCategory(BaseModel):
+    """
+    EN: Category for podcasts.
+    FA: دسته‌بندی برای پادکست‌ها.
+    """
+
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    icon = models.FileField(
+        upload_to="podcasts/categories/icons/", null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name_plural = "Podcast Categories"
+
+    def __str__(self):
+        return self.title
+
+
+class Podcast(BaseModel):
+    """
+    EN: Core model representing a podcast episode (audio or video).
+    FA: مدل اصلی نشان‌دهنده یک اپیزود پادکست (صوتی یا ویدیویی).
+    """
+
+    MEDIA_TYPE_CHOICES = (
+        ("audio", "Audio"),
+        ("video", "Video"),
+    )
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    category = models.ForeignKey(
+        PodcastCategory, on_delete=models.CASCADE, related_name="podcasts"
+    )
+    episode_number = models.PositiveIntegerField()
+    cover_image = models.ImageField(upload_to="podcasts/covers/")
+    audio_file = models.FileField(upload_to="podcasts/audio/", null=True, blank=True)
+    media_type = models.CharField(
+        max_length=10, choices=MEDIA_TYPE_CHOICES, default="audio"
+    )
+    video_file = models.FileField(upload_to="podcasts/video/", null=True, blank=True)
+    video_url = models.URLField(blank=True, null=True)
+    description = CKEditor5Field(config_name="default", blank=True)
+    duration = models.PositiveIntegerField(help_text="Duration in minutes")
+    published_date = models.DateTimeField()
+    view_count = models.PositiveIntegerField(default=0)
+    related_podcasts = models.ManyToManyField("self", blank=True, symmetrical=False)
+
+    class Meta:
+        ordering = ["-published_date", "-id"]
+
+    def __str__(self):
+        return f"Episode {self.episode_number}: {self.title}"
+
+
+class GalleryItem(BaseModel):
+    """
+    EN: Represents an image item in a slider/list with Polaroid styling.
+    FA: نشان‌دهنده یک آیتم تصویری در اسلایدر/لیست با استایل پولاروید.
+    """
+
+    image = models.ImageField(upload_to="gallery/")
+    caption = models.CharField(max_length=255)
+    order = models.PositiveIntegerField(default=0)
+    link = models.URLField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["order", "-id"]
+
+    def __str__(self):
+        return self.caption

@@ -6,6 +6,9 @@ from medias.models import PostMedia
 from .models import (
     AuthorProfile,
     Category,
+    GalleryItem,
+    Podcast,
+    PodcastCategory,
     Post,
     PostTag,
     PostTranslation,
@@ -33,9 +36,10 @@ class CategoryAdmin(admin.ModelAdmin):
     FA: رابط کاربری ادمین برای دسته‌بندی‌ها.
     """
 
-    list_display = ("name", "slug", "parent", "order")
+    list_display = ("name", "slug", "parent", "order", "icon")
     list_filter = ("parent",)
     search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(Tag)
@@ -131,10 +135,11 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ("status", "visibility", "category", "author", "is_hot")
     search_fields = ("translations__title", "translations__content")
     autocomplete_fields = ("cover_media", "og_image")
+    filter_horizontal = ("related_posts",)
     inlines = [PostTranslationInline, PostTagInline, PostMediaInline]
     fieldsets = (
         (None, {"fields": ("author",)}),
-        ("Metadata", {"fields": ("category", "series")}),
+        ("Metadata", {"fields": ("category", "series", "related_posts")}),
         ("Media", {"fields": ("cover_media", "og_image")}),
         (
             "Status & Visibility",
@@ -183,3 +188,73 @@ class RevisionAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     list_display = ("post", "editor", "created_at")
     list_filter = ("editor",)
     search_fields = ("post__id",)
+
+
+@admin.register(PodcastCategory)
+class PodcastCategoryAdmin(admin.ModelAdmin):
+    """
+    EN: Admin interface for Podcast Categories.
+    FA: رابط کاربری ادمین برای دسته‌بندی‌های پادکست.
+    """
+
+    list_display = ("title", "slug", "is_active", "icon")
+    search_fields = ("title", "slug")
+    prepopulated_fields = {"slug": ("title",)}
+
+
+@admin.register(Podcast)
+class PodcastAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
+    """
+    EN: Admin interface for Podcasts.
+    FA: رابط کاربری ادمین برای پادکست‌ها.
+    """
+
+    list_display = (
+        "episode_number",
+        "title",
+        "category",
+        "media_type",
+        "published_date",
+        "view_count",
+        "is_active",
+    )
+    list_filter = ("category", "media_type", "is_active")
+    prepopulated_fields = {"slug": ("title",)}
+    search_fields = ("title", "slug", "description")
+    filter_horizontal = ("related_podcasts",)
+    fieldsets = (
+        (
+            None,
+            {"fields": ("title", "slug", "category", "episode_number", "is_active")},
+        ),
+        (
+            "Media & Content",
+            {
+                "fields": (
+                    "cover_image",
+                    "audio_file",
+                    "media_type",
+                    "video_file",
+                    "video_url",
+                    "description",
+                    "duration",
+                )
+            },
+        ),
+        (
+            "Statistics & Dates",
+            {"fields": ("published_date", "view_count", "related_podcasts")},
+        ),
+    )
+
+
+@admin.register(GalleryItem)
+class GalleryItemAdmin(admin.ModelAdmin):
+    """
+    EN: Admin interface for Gallery Items.
+    FA: رابط کاربری ادمین برای گالری تصاویر.
+    """
+
+    list_display = ("caption", "order", "is_active", "link")
+    list_editable = ("order", "is_active")
+    search_fields = ("caption",)
