@@ -10,7 +10,17 @@ from interactions.models import Comment, Reaction
 from medias.models import Media
 from navigation.models import Menu, MenuItem
 from pages.models import Page
-from posts.models import AuthorProfile, Category, Post, Revision, Series, Tag
+from posts.models import (
+    AuthorProfile,
+    Category,
+    Post,
+    Revision,
+    Series,
+    Tag,
+    PodcastCategory,
+    Podcast,
+    GalleryItem,
+)
 
 fake = Faker()
 User = get_user_model()
@@ -47,6 +57,57 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     name = factory.LazyAttribute(lambda _: fake.word())
     slug = factory.Sequence(lambda n: f"{fake.slug()}-{n}")
     description = factory.LazyAttribute(lambda _: fake.sentence())
+
+
+class PodcastCategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PodcastCategory
+
+    title = factory.LazyAttribute(lambda _: fake.word())
+    slug = factory.Sequence(lambda n: f"podcast-cat-{n}")
+    icon = factory.LazyAttribute(
+        lambda _: SimpleUploadedFile(
+            name="icon.svg",
+            content=b"<svg></svg>",
+            content_type="image/svg+xml",
+        )
+    )
+
+
+class PodcastFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Podcast
+
+    title = factory.LazyAttribute(lambda _: fake.sentence())
+    slug = factory.Sequence(lambda n: f"podcast-{n}")
+    category = factory.SubFactory(PodcastCategoryFactory)
+    episode_number = factory.Sequence(lambda n: n + 1)
+    cover_image = factory.LazyAttribute(
+        lambda _: SimpleUploadedFile(
+            name="cover.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b",
+            content_type="image/jpeg",
+        )
+    )
+    media_type = "audio"
+    duration = 45
+    published_date = factory.LazyAttribute(lambda _: timezone.now())
+    view_count = 0
+
+
+class GalleryItemFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = GalleryItem
+
+    image = factory.LazyAttribute(
+        lambda _: SimpleUploadedFile(
+            name="photo.jpg",
+            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b",
+            content_type="image/jpeg",
+        )
+    )
+    caption = factory.LazyAttribute(lambda _: fake.sentence())
+    order = factory.Sequence(lambda n: n)
 
 
 class SeriesFactory(factory.django.DjangoModelFactory):

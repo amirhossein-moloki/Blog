@@ -9,7 +9,17 @@ from rest_framework import serializers
 from common.mixins import DynamicFieldsMixin
 from medias.serializers import MediaDetailSerializer, PostMediaSerializer
 
-from .models import AuthorProfile, Category, Post, Revision, Series, Tag
+from .models import (
+    AuthorProfile,
+    Category,
+    Post,
+    Revision,
+    Series,
+    Tag,
+    PodcastCategory,
+    Podcast,
+    GalleryItem,
+)
 
 User = get_user_model()
 
@@ -98,7 +108,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ("id", "slug", "name", "parent")
+        fields = ("id", "slug", "name", "parent", "icon")
 
     def to_representation(self, instance):
         """
@@ -154,6 +164,9 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     slug = serializers.CharField(source="translation.slug", read_only=True)
     title = serializers.CharField(source="translation.title", read_only=True)
     excerpt = serializers.CharField(source="translation.excerpt", read_only=True)
+    short_description = serializers.CharField(
+        source="translation.short_description", read_only=True
+    )
     reading_time_sec = serializers.IntegerField(
         source="translation.reading_time_sec", read_only=True
     )
@@ -165,6 +178,7 @@ class PostListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             "slug",
             "title",
             "excerpt",
+            "short_description",
             "reading_time_sec",
             "status",
             "is_hot",
@@ -193,6 +207,7 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
         source="translation.seo_description", read_only=True
     )
     media_attachments = serializers.SerializerMethodField()
+    related_posts = PostListSerializer(many=True, read_only=True)
 
     class Meta(PostListSerializer.Meta):
         fields = PostListSerializer.Meta.fields + (
@@ -203,6 +218,7 @@ class PostDetailSerializer(ContentNormalizationMixin, PostListSerializer):
             "seo_description",
             "og_image",
             "media_attachments",
+            "related_posts",
         )
 
     @extend_schema_field(PostMediaSerializer(many=True))
@@ -226,6 +242,7 @@ class PostCreateUpdateSerializer(
     title = serializers.CharField(write_only=True)
     slug = serializers.SlugField(write_only=True, required=False)
     excerpt = serializers.CharField(write_only=True)
+    short_description = serializers.CharField(write_only=True, required=False, allow_blank=True, allow_null=True)
     content = serializers.CharField(write_only=True)
     seo_title = serializers.CharField(write_only=True, required=False, allow_blank=True)
     seo_description = serializers.CharField(
@@ -259,6 +276,13 @@ class PostCreateUpdateSerializer(
         allow_null=True,
         write_only=True,
     )
+    related_post_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Post.objects.all(),
+        source="related_posts",
+        required=False,
+        write_only=True,
+    )
 
     cover_media = MediaDetailSerializer(read_only=True)
     og_image = MediaDetailSerializer(read_only=True)
@@ -269,6 +293,7 @@ class PostCreateUpdateSerializer(
     publish_at = serializers.DateTimeField(
         write_only=True, required=False, allow_null=True
     )
+    related_posts = PostListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
@@ -277,6 +302,7 @@ class PostCreateUpdateSerializer(
             "language_code",
             "title",
             "excerpt",
+            "short_description",
             "content",
             "status",
             "visibility",
@@ -297,6 +323,8 @@ class PostCreateUpdateSerializer(
             "category_id",
             "cover_media_id",
             "og_image_id",
+            "related_post_ids",
+            "related_posts",
             "publish_at",
         )
         read_only_fields = ("views_count",)
@@ -353,6 +381,7 @@ class PostCreateUpdateSerializer(
             "title": validated_data.pop("title"),
             "slug": validated_data.pop("slug", ""),
             "excerpt": validated_data.pop("excerpt"),
+            "short_description": validated_data.pop("short_description", ""),
             "content": validated_data.pop("content"),
             "seo_title": validated_data.pop("seo_title", ""),
             "seo_description": validated_data.pop("seo_description", ""),
@@ -384,6 +413,7 @@ class PostCreateUpdateSerializer(
             "title",
             "slug",
             "excerpt",
+            "short_description",
             "content",
             "seo_title",
             "seo_description",
@@ -414,3 +444,60 @@ class RevisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Revision
         fields = "__all__"
+
+
+class PodcastCategorySerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for PodcastCategory model.
+    FA: سریالایزر برای مدل دسته‌بندی پادکست.
+    """
+
+    class Meta:
+        model = PodcastCategory
+        fields = ("id", "title", "slug", "icon", "is_active")
+
+
+class PodcastSerializer(ContentNormalizationMixin, serializers.ModelSerializer):
+    """
+    EN: Serializer for Podcast model.
+    FA: سریالایزر برای مدل پادکست.
+    """
+
+    content_field_name = "description"
+    category_detail = PodcastCategorySerializer(source="category", read_only=True)
+    published_date_jalali = JalaliDateTimeField(source="published_date", read_only=True)
+
+    class Meta:
+        model = Podcast
+        fields = (
+            "id",
+            "title",
+            "slug",
+            "category",
+            "category_detail",
+            "episode_number",
+            "cover_image",
+            "audio_file",
+            "media_type",
+            "video_file",
+            "video_url",
+            "description",
+            "duration",
+            "published_date",
+            "published_date_jalali",
+            "view_count",
+            "related_podcasts",
+            "is_active",
+        )
+        read_only_fields = ("view_count",)
+
+
+class GalleryItemSerializer(serializers.ModelSerializer):
+    """
+    EN: Serializer for GalleryItem model.
+    FA: سریالایزر برای مدل گالری تصاویر.
+    """
+
+    class Meta:
+        model = GalleryItem
+        fields = ("id", "image", "caption", "order", "link", "is_active")

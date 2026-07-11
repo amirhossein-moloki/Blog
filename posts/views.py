@@ -17,7 +17,17 @@ from interactions.serializers import CommentListSerializer
 from users.permissions import IsOwnerOrAdmin
 
 from .filters import PostFilter
-from .models import AuthorProfile, Category, Post, Revision, Series, Tag
+from .models import (
+    AuthorProfile,
+    Category,
+    Post,
+    Revision,
+    Series,
+    Tag,
+    PodcastCategory,
+    Podcast,
+    GalleryItem,
+)
 from .serializers import (
     AuthorProfileSerializer,
     CategorySerializer,
@@ -27,6 +37,9 @@ from .serializers import (
     RevisionSerializer,
     SeriesSerializer,
     TagSerializer,
+    PodcastCategorySerializer,
+    PodcastSerializer,
+    GalleryItemSerializer,
 )
 
 
@@ -447,3 +460,56 @@ class RevisionViewSet(viewsets.ModelViewSet):
     queryset = Revision.objects.all()
     serializer_class = RevisionSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
+
+
+class PodcastCategoryViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing podcast categories.
+    FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+    """
+
+    queryset = PodcastCategory.objects.all()
+    serializer_class = PodcastCategorySerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ["is_active"]
+    search_fields = ["title", "slug"]
+
+
+class PodcastViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing podcasts.
+    FA: ViewSet برای مدیریت پادکست‌ها.
+    """
+
+    queryset = Podcast.objects.select_related("category").all()
+    serializer_class = PodcastSerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["category", "media_type", "is_active"]
+    search_fields = ["title", "description"]
+    ordering_fields = ["published_date", "view_count", "episode_number", "id"]
+    ordering = ["-published_date", "-id"]
+    lookup_field = "slug"
+
+    def retrieve(self, request, *args, **kwargs):
+        obj = self.get_object()
+        obj.view_count += 1
+        obj.save(update_fields=["view_count"])
+        serializer = self.get_serializer(obj)
+        return Response(serializer.data)
+
+
+class GalleryItemViewSet(viewsets.ModelViewSet):
+    """
+    EN: ViewSet for managing gallery items.
+    FA: ViewSet برای مدیریت گالری تصاویر.
+    """
+
+    queryset = GalleryItem.objects.all()
+    serializer_class = GalleryItemSerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["is_active"]
+    ordering_fields = ["order", "id"]
+    ordering = ["order", "-id"]

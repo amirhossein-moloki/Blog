@@ -12,6 +12,9 @@ from .views import (
     TagViewSet,
     publish_post,
     related_posts,
+    PodcastCategoryViewSet,
+    PodcastViewSet,
+    GalleryItemViewSet,
 )
 
 app_name = "posts"
@@ -27,6 +30,9 @@ router.register(r"categories", CategoryViewSet)
 router.register(r"tags", TagViewSet)
 router.register(r"series", SeriesViewSet)
 router.register(r"revisions", RevisionViewSet)
+router.register(r"podcast-categories", PodcastCategoryViewSet)
+router.register(r"podcasts", PodcastViewSet)
+router.register(r"gallery-items", GalleryItemViewSet)
 
 urlpatterns = [
     path("posts/<slug:slug>/publish/", publish_post, name="post-publish"),
