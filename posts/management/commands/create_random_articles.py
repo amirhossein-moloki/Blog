@@ -8,7 +8,7 @@ from django.db import transaction
 from faker import Faker
 
 from medias.models import Media
-from posts.models import AuthorProfile, Category, Article, ArticleTranslation, Tag
+from posts.models import Article, ArticleTranslation, AuthorProfile, Category, Tag
 
 User = get_user_model()
 

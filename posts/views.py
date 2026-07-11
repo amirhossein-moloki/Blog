@@ -211,13 +211,17 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         try:
             current_article = self.get_object()
         except Article.DoesNotExist:
-            raise NotFound("The requested article to find similar articles was not found.")
+            raise NotFound(
+                "The requested article to find similar articles was not found."
+            )
 
         if not current_article.category:
             return Response([])
 
         similar_articles = (
-            Article.objects.filter(status="published", category=current_article.category)
+            Article.objects.filter(
+                status="published", category=current_article.category
+            )
             .exclude(pk=current_article.pk)
             .order_by("-published_at", "-id")[:5]
         )
@@ -293,7 +297,9 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         except Article.DoesNotExist:
             raise NotFound("No article was found with this slug.")
 
-        serializer = ArticleDetailSerializer(article, context=self.get_serializer_context())
+        serializer = ArticleDetailSerializer(
+            article, context=self.get_serializer_context()
+        )
         return Response(serializer.data)
 
 

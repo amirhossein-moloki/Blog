@@ -6,7 +6,7 @@ from rest_framework import status
 
 from interactions.models import Comment, Reaction
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, ArticleFactory
+from posts.factories import ArticleFactory, CommentFactory
 
 
 class EngagementFlowIntegrationTest(BaseAPITestCase):
@@ -27,14 +27,20 @@ class EngagementFlowIntegrationTest(BaseAPITestCase):
             comment_id = response.data["id"]
 
         self.assertTrue(
-            Comment.objects.filter(id=comment_id, user=self.user, article=article).exists()
+            Comment.objects.filter(
+                id=comment_id, user=self.user, article=article
+            ).exists()
         )
 
         # Verify notification task was called
         mock_notify.assert_called_once()
 
         # 2. Reply to the comment
-        reply_data = {"article": article.id, "content": "I agree!", "parent": comment_id}
+        reply_data = {
+            "article": article.id,
+            "content": "I agree!",
+            "parent": comment_id,
+        }
         response = self.client.post(url, reply_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 

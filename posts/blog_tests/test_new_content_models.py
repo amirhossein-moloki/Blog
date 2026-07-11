@@ -3,11 +3,11 @@ from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
+    ArticleFactory,
     CategoryFactory,
     GalleryItemFactory,
     PodcastCategoryFactory,
     PodcastFactory,
-    ArticleFactory,
 )
 from posts.models import (
     GalleryItem,
@@ -49,7 +49,9 @@ class NewContentModelsAPITest(BaseAPITestCase):
             "related_article_ids": [article1.pk, article2.pk],
         }
 
-        response = self.client.post(reverse("posts:article-list"), payload, format="json")
+        response = self.client.post(
+            reverse("posts:article-list"), payload, format="json"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data["id"])
 

@@ -23,7 +23,9 @@ router = DefaultRouter()
 router.register(r"articles", ArticleViewSet, basename="article")
 
 articles_router = routers.NestedSimpleRouter(router, r"articles", lookup="article")
-articles_router.register(r"comments", ArticleCommentViewSet, basename="article-comments")
+articles_router.register(
+    r"comments", ArticleCommentViewSet, basename="article-comments"
+)
 
 router.register(r"authors", AuthorProfileViewSet)
 router.register(r"categories", CategoryViewSet)

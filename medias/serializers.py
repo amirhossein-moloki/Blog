@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from common.validators import validate_file
 
-from .models import Media, ArticleMedia
+from .models import ArticleMedia, Media
 from .services import create_media_from_file
 
 

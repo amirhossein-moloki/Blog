@@ -7,7 +7,7 @@ from markdownify import markdownify as html_to_markdown
 from rest_framework import serializers
 
 from common.mixins import DynamicFieldsMixin
-from medias.serializers import MediaDetailSerializer, ArticleMediaSerializer
+from medias.serializers import ArticleMediaSerializer, MediaDetailSerializer
 
 from .models import (
     Article,
@@ -432,7 +432,9 @@ class ArticleCreateUpdateSerializer(
             article = super().update(instance, validated_data)
             if translation_data:
                 ArticleTranslation.objects.update_or_create(
-                    article=article, language_code=language_code, defaults=translation_data
+                    article=article,
+                    language_code=language_code,
+                    defaults=translation_data,
                 )
 
         return article

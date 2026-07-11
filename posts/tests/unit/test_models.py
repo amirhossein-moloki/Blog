@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from posts.factories import AuthorProfileFactory, CategoryFactory, ArticleFactory
+from posts.factories import ArticleFactory, AuthorProfileFactory, CategoryFactory
 from posts.models import Article, ArticleTranslation
 
 User = get_user_model()

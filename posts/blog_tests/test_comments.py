@@ -5,7 +5,7 @@ from rest_framework import status
 
 from interactions.models import Comment
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, ArticleFactory
+from posts.factories import ArticleFactory, CommentFactory
 
 
 class CommentAPITest(BaseAPITestCase):

@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from medias.models import Media
 from posts.factories import UserFactory
-from posts.models import AuthorProfile, Article
+from posts.models import Article, AuthorProfile
 
 User = get_user_model()
 

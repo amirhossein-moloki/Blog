@@ -5,7 +5,14 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from posts.models import AuthorProfile, Category, Article, ArticleTranslation, Revision, Tag
+from posts.models import (
+    Article,
+    ArticleTranslation,
+    AuthorProfile,
+    Category,
+    Revision,
+    Tag,
+)
 from users.models import User
 
 
@@ -82,7 +89,9 @@ class ArticleViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_similar_articles(self):
-        url = reverse("posts:article-similar", kwargs={"slug": self.article.translation.slug})
+        url = reverse(
+            "posts:article-similar", kwargs={"slug": self.article.translation.slug}
+        )
         # Article with same category
         similar_article = Article.objects.create(
             author=self.author_profile,
@@ -116,7 +125,9 @@ class ArticleViewSetTests(APITestCase):
             excerpt="Excerpt",
             content="Content",
         )
-        url = reverse("posts:article-similar", kwargs={"slug": article_no_cat_trans.slug})
+        url = reverse(
+            "posts:article-similar", kwargs={"slug": article_no_cat_trans.slug}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data
@@ -245,7 +256,9 @@ class ArticleViewSetTests(APITestCase):
             excerpt="Excerpt",
             content="Content",
         )
-        url = reverse("posts:article-related", kwargs={"slug": article_no_tags_trans.slug})
+        url = reverse(
+            "posts:article-related", kwargs={"slug": article_no_tags_trans.slug}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.data["data"] if "data" in response.data else response.data

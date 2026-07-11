@@ -366,9 +366,7 @@ class Revision(BaseModel):
         EN: Returns a string representation identifying the article, language and the revision date.
         FA: نمایشی رشته‌ای شامل شناسایی مقاله، زبان و تاریخ بازنگری را بازمی‌گرداند.
         """
-        return (
-            f"Revision for {self.article.id} ({self.language_code}) at {self.created_at}"
-        )
+        return f"Revision for {self.article.id} ({self.language_code}) at {self.created_at}"
 
 
 class PodcastCategory(BaseModel):

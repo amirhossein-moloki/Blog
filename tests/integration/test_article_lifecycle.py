@@ -6,7 +6,7 @@ from rest_framework import status
 
 from medias.models import ArticleMedia
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import MediaFactory, ArticleFactory
+from posts.factories import ArticleFactory, MediaFactory
 from posts.models import Article
 from posts.services import publish_scheduled_articles
 

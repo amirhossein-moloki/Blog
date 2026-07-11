@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from interactions.models import Comment, Reaction
-from posts.factories import CommentFactory, ArticleFactory, UserFactory
+from posts.factories import ArticleFactory, CommentFactory, UserFactory
 
 
 class CommentModelTest(TestCase):

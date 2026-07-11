@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils import timezone
 
-from medias.models import Media, ArticleMedia
+from medias.models import ArticleMedia, Media
 from posts.factories import ArticleFactory
 from posts.models import Article
 from posts.services import (
@@ -112,7 +112,9 @@ class ArticleServiceTests(TestCase):
                 type="image",
                 mime="image/jpeg",
             )
-            article = ArticleFactory(translation__content='<img src="/media/content.jpg">')
+            article = ArticleFactory(
+                translation__content='<img src="/media/content.jpg">'
+            )
             # Article.save calls sync_article_media
 
             self.assertTrue(

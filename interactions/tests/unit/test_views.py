@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from interactions.models import Comment, Reaction
-from posts.models import AuthorProfile, Article, ArticleTranslation
+from posts.models import Article, ArticleTranslation, AuthorProfile
 from users.models import User
 
 

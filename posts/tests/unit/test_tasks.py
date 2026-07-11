@@ -2,7 +2,10 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from posts.tasks import increment_article_view_count_task, publish_scheduled_articles_task
+from posts.tasks import (
+    increment_article_view_count_task,
+    publish_scheduled_articles_task,
+)
 
 
 class ArticleTaskTests(TestCase):

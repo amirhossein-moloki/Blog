@@ -4,7 +4,7 @@ from rest_framework import status
 
 from interactions.models import Comment
 from posts.blog_tests.base import BaseAPITestCase
-from posts.factories import CommentFactory, ArticleFactory, RevisionFactory
+from posts.factories import ArticleFactory, CommentFactory, RevisionFactory
 from posts.models import Article
 
 

@@ -33,7 +33,9 @@ def publish_scheduled_articles():
     FA: تمامی مقاله‌هایی که زمان زمان‌بندی آن‌ها فرا رسیده است را شناسایی و منتشر می‌کند.
     """
     now = timezone.now()
-    articles_to_publish = Article.objects.filter(status="scheduled", scheduled_at__lte=now)
+    articles_to_publish = Article.objects.filter(
+        status="scheduled", scheduled_at__lte=now
+    )
 
     if articles_to_publish.exists():
         num_published = articles_to_publish.update(

@@ -6,14 +6,14 @@ from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
+    ArticleFactory,
     CategoryFactory,
     MediaFactory,
-    ArticleFactory,
     SeriesFactory,
     TagFactory,
     UserFactory,
 )
-from posts.models import AuthorProfile, Article
+from posts.models import Article, AuthorProfile
 
 
 class ArticlePermissionAPITest(BaseAPITestCase):
@@ -56,7 +56,9 @@ class ArticlePermissionAPITest(BaseAPITestCase):
         response = self.client.post(self.url, self.article_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
-            Article.objects.filter(translations__slug=self.article_data["slug"]).exists()
+            Article.objects.filter(
+                translations__slug=self.article_data["slug"]
+            ).exists()
         )
 
     def test_staff_user_can_create_article(self):
@@ -90,7 +92,9 @@ class ArticleAPITest(BaseAPITestCase):
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(Article.objects.filter(translations__slug="new-article").exists())
+        self.assertTrue(
+            Article.objects.filter(translations__slug="new-article").exists()
+        )
         new_article = Article.objects.get(translations__slug="new-article")
         self.assertEqual(new_article.tags.count(), 2)
         self.assertIsNotNone(new_article.translation.reading_time_sec)
@@ -131,7 +135,9 @@ class ArticleAPITest(BaseAPITestCase):
         tag1 = TagFactory()
         tag2 = TagFactory()
 
-        ArticleFactory(series=series, visibility="private", category=category, tags=[tag1])
+        ArticleFactory(
+            series=series, visibility="private", category=category, tags=[tag1]
+        )
         ArticleFactory.create_batch(2, visibility="public", tags=[tag2])
         url = reverse("posts:article-list")
 
@@ -161,11 +167,17 @@ class ArticleAPITest(BaseAPITestCase):
 
     def test_article_is_hot_filtering(self):
         # Hot article: recent, high views
-        ArticleFactory(published_at=timezone.now() - timedelta(days=15), views_count=2000)
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=15), views_count=2000
+        )
         # Not hot article: old
-        ArticleFactory(published_at=timezone.now() - timedelta(days=45), views_count=2000)
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=45), views_count=2000
+        )
         # Not hot article: low views
-        ArticleFactory(published_at=timezone.now() - timedelta(days=15), views_count=500)
+        ArticleFactory(
+            published_at=timezone.now() - timedelta(days=15), views_count=500
+        )
         url = reverse("posts:article-list")
 
         # Filter by is_hot=True
@@ -196,7 +208,9 @@ class ArticleAPITest(BaseAPITestCase):
 
         article = ArticleFactory(status="published", author=author_profile)
 
-        url = reverse("posts:article-by-slug", kwargs={"slug": article.translation.slug})
+        url = reverse(
+            "posts:article-by-slug", kwargs={"slug": article.translation.slug}
+        )
         response = self.client.get(url, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -271,7 +285,9 @@ class ArticleAPITest(BaseAPITestCase):
         tag = TagFactory()
         article = ArticleFactory(tags=[tag])
         ArticleFactory.create_batch(15, tags=[tag])
-        url = reverse("posts:article-related", kwargs={"slug": article.translation.slug})
+        url = reverse(
+            "posts:article-related", kwargs={"slug": article.translation.slug}
+        )
         response = self.client.get(url, {"page_size": 5})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 5)
