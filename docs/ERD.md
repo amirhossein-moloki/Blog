@@ -51,5 +51,5 @@ erDiagram
 ---
 
 ## Junction Tables
-- **`PostTag`:** Connects `Post` and `Tag`.
-- **`PostMedia`:** Connects `Post` and `Media` with an `attachment_type` (cover, og-image, in-content).
+- **`ArticleTag`:** Connects `Article` and `Tag`.
+- **`ArticleMedia`:** Connects `Article` and `Media` with an `attachment_type` (cover, og-image, in-content).

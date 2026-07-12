@@ -54,7 +54,7 @@ A hybrid permission model is used:
 ## Signals
 Signals are used for decoupled side effects:
 - **`user_post_save` / `user_post_delete`:** Automatically invalidates user-specific dashboard caches.
-- **`sync_post_media`:** Triggered during `Post.save()` to ensure media attachments match the HTML content.
+- **`sync_article_media`:** Triggered during `Article.save()` to ensure media attachments match the HTML content.
 
 ---
 

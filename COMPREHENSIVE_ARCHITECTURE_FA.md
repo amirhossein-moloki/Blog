@@ -74,37 +74,37 @@
 
 ---
 
-## ۲. اپلیکیشن `posts`
+## ۲. اپلیکیشن `articles`
 **مسئولیت:** موتور محتوا و تاکسونومی‌ها.
 **هدف کسب‌و‌کار:** منطق اصلی انتشار و سازماندهی محتوا با پشتیبانی از چندزبانی.
 
 ### ساختار داخلی:
 *   **models.py:**
-    *   `Post`: مدل مرکزی مدیریت وضعیت و روابط. از `PostManager` استفاده می‌کند.
-    *   `PostTranslation`: ذخیره محتوای بومی‌سازی شده (عنوان، متن، سئو) برای هر زبان.
+    *   `Article`: مدل مرکزی مدیریت وضعیت و روابط. از `ArticleManager` استفاده می‌کند.
+    *   `ArticleTranslation`: ذخیره محتوای بومی‌سازی شده (عنوان، متن، سئو) برای هر زبان.
     *   `AuthorProfile`: متصل به User، بیوگرافی و نام نمایشی را ذخیره می‌کند.
     *   `Category`: تاکسونومی‌های سلسله‌مراتبی.
     *   `Tag`: برچسب‌های ساده.
     *   `Series`: گروه‌بندی پست‌های مرتبط.
     *   `Revision`: نسخه‌های تاریخی محتوا (به تفکیک زبان).
-    *   `PostTag`: رابط برای رابطه چند‌به‌چند.
+    *   `ArticleTag`: رابط برای رابطه چند‌به‌چند.
 *   **serializers.py:**
-    *   `PostListSerializer` / `PostDetailSerializer`: بهینه‌سازی شده برای نمایش محتوای بومی‌سازی شده.
-    *   `PostCreateUpdateSerializer`: مدیریت منطق پیچیده انتشار و ترجمه‌ها.
+    *   `ArticleListSerializer` / `ArticleDetailSerializer`: بهینه‌سازی شده برای نمایش محتوای بومی‌سازی شده.
+    *   `ArticleCreateUpdateSerializer`: مدیریت منطق پیچیده انتشار و ترجمه‌ها.
     *   `ContentNormalizationMixin`: تبدیل HTML به Markdown تمیز برای نمایش‌ها.
     *   `JalaliDateTimeField`: نمایش سفارشی تاریخ شمسی.
 *   **views.py:**
-    *   `PostViewSet`: فیلترینگ پیشرفته بر اساس زبان، انتخاب فیلد پویا و منطق تشابه.
-    *   `PostCommentViewSet`: نمایش تودرتو برای نظرات خاص هر پست.
+    *   `ArticleViewSet`: فیلترینگ پیشرفته بر اساس زبان، انتخاب فیلد پویا و منطق تشابه.
+    *   `ArticleCommentViewSet`: نمایش تودرتو برای نظرات خاص هر پست.
     *   `publish_post` / `related_posts`: Viewهای عملکردی تخصصی API.
 *   **services.py:**
-    *   `sync_post_media`: همگام‌سازی تگ‌های `<img>` در محتوای ترجمه‌ها با رابط `PostMedia`.
-    *   `publish_scheduled_posts`: منطق کسب‌و‌کار برای انتشار پست‌های زمان‌بندی شده.
+    *   `sync_article_media`: همگام‌سازی تگ‌های `<img>` در محتوای ترجمه‌ها با رابط `ArticleMedia`.
+    *   `publish_scheduled_articles`: منطق کسب‌و‌کار برای انتشار پست‌های زمان‌بندی شده.
 *   **tasks.py:**
-    *   `publish_scheduled_posts_task`: وظیفه دوره‌ای Celery.
-    *   `increment_post_view_count_task`: افزایش ناهمگام تعداد بازدید.
-*   **filters.py:** `PostFilter` پیاده‌سازی معیارهای "پست‌های داغ" و محدوده‌های تاریخی.
-*   **forms.py:** `PostAdminForm` یکپارچه شده با CKEditor 5.
+    *   `publish_scheduled_articles_task`: وظیفه دوره‌ای Celery.
+    *   `increment_article_view_count_task`: افزایش ناهمگام تعداد بازدید.
+*   **filters.py:** `ArticleFilter` پیاده‌سازی معیارهای "پست‌های داغ" و محدوده‌های تاریخی.
+*   **forms.py:** `ArticleAdminForm` یکپارچه شده با CKEditor 5.
 *   **urls.py:** روت‌های تودرتو برای پست‌ها و نظرات.
 *   **admin.py:** پنل مدیریت جامع با `ModelAdminJalaliMixin` و Inlineها برای ترجمه‌ها.
 
@@ -117,7 +117,7 @@
 ### ساختار داخلی:
 *   **models.py:**
     *   `Media`: ذخیره متادیتا برای تصاویر، ویدیوها و فایل‌ها.
-    *   `PostMedia`: مدل رابط برای ردیابی استفاده در پست‌ها (کاور، تصویر OG، داخل محتوا).
+    *   `ArticleMedia`: مدل رابط برای ردیابی استفاده در پست‌ها (کاور، تصویر OG، داخل محتوا).
 *   **serializers.py:**
     *   `MediaCreateSerializer`: مدیریت آپلود فایل و اجرای منطق سرویس.
     *   `MediaDetailSerializer`: نمایش کامل متادیتا.
@@ -225,7 +225,7 @@
 
 ---
 
-## ۴. `posts.Post`
+## ۴. `posts.Article`
 **هدف:** موجودیت اصلی محتوا (ساختار کلی).
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
@@ -242,12 +242,12 @@
 
 ---
 
-## ۵. `posts.PostTranslation`
+## ۵. `posts.ArticleTranslation`
 **هدف:** ذخیره محتوای بومی‌سازی شده هر پست.
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | خیر | - | CASCADE | اتصال به مدل پست اصلی. |
+| `article` | FK(Article) | خیر | - | CASCADE | اتصال به مدل پست اصلی. |
 | `language_code`| VarChar | خیر | - | en/fa/... | کد زبان ترجمه. |
 | `slug` | Slug | خیر | - | Unique(lang) | شناسه‌گر URL به زبان مربوطه. |
 | `title` | VarChar | خیر | - | - | عنوان مقاله در این زبان. |
@@ -280,7 +280,7 @@
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | خیر | - | CASCADE | پست هدف. |
+| `article` | FK(Article) | خیر | - | CASCADE | پست هدف. |
 | `user` | FK(User) | خیر | - | CASCADE | ارسال کننده. |
 | `parent` | FK(Self) | بله | - | CASCADE | والد برای تودرتویی. |
 | `content` | RichText | خیر | - | - | متن HTML نظر. |
@@ -316,8 +316,8 @@
 
 ## مدل‌های رابط (Junction Models)
 
-*   **`posts.PostTag`**: متصل‌کننده `Post` و `Tag` با محدودیت یکتا بودن.
-*   **`medias.PostMedia`**: متصل‌کننده `Post` و `Media`. شامل `attachment_type` (کاور، تصویر OG، داخل محتوا).
+*   **`posts.ArticleTag`**: متصل‌کننده `Article` و `Tag` با محدودیت یکتا بودن.
+*   **`medias.ArticleMedia`**: متصل‌کننده `Article` و `Media`. شامل `attachment_type` (کاور، تصویر OG، داخل محتوا).
 *   **`posts.Revision`**: اسنپ‌شات تاریخی از محتوا، عنوان و چکیده پست (به تفکیک زبان).
 
 ---
@@ -353,11 +353,11 @@ erDiagram
 # بخش ۵ — تحلیل جریان داده
 
 ## جریان ایجاد و پردازش محتوا
-1.  **ارسال:** کاربر یک پست را به همراه داده‌های ترجمه از طریق `POST /api/posts/` ارسال می‌کند.
+1.  **ارسال:** کاربر یک پست را به همراه داده‌های ترجمه از طریق `POST /api/articles/` ارسال می‌کند.
 2.  **اعتبارسنجی:** سریال‌ساز فیلدها و ترجمه‌ها را اعتبارسنجی می‌کند، از جمله `publish_at`.
-3.  **ذخیره‌سازی:** رکورد اصلی پست و رکورد ترجمه (`PostTranslation`) در یک تراکنش اتمیک ذخیره می‌شوند.
-4.  **اسکن ناهمگام:** `sync_post_media` تگ‌های `<img>` در محتوای ترجمه را اسکن کرده و اشیاء `PostMedia` را لینک می‌کند.
-5.  **زمان‌بندی:** اگر `status='scheduled'` باشد، Celery Beat در نهایت `publish_scheduled_posts_task` را برای عمومی کردن آن اجرا می‌کند.
+3.  **ذخیره‌سازی:** رکورد اصلی پست و رکورد ترجمه (`ArticleTranslation`) در یک تراکنش اتمیک ذخیره می‌شوند.
+4.  **اسکن ناهمگام:** `sync_article_media` تگ‌های `<img>` در محتوای ترجمه را اسکن کرده و اشیاء `ArticleMedia` را لینک می‌کند.
+5.  **زمان‌بندی:** اگر `status='scheduled'` باشد، Celery Beat در نهایت `publish_scheduled_articles_task` را برای عمومی کردن آن اجرا می‌کند.
 
 ---
 
@@ -377,11 +377,11 @@ erDiagram
 ## ۲. پست‌ها و تاکسونومی‌ها
 | URL | متد | اکشن ViewSet | توضیحات |
 | :--- | :--- | :--- | :--- |
-| `/api/posts/` | GET | list | لیست صفحه‌بندی شده (پشتیبانی از پارامتر `lang`). |
-| `/api/posts/{slug}/` | GET | retrieve | دریافت محتوای دقیق پست در زبان مشخص (افزایش بازدید). |
-| `/api/posts/{slug}/publish/` | POST | publish | انتشار دستی یک پیش‌نویس. |
-| `/api/posts/{slug}/related/` | GET | related | دریافت پست‌های مرتبط با برچسب‌های مشابه. |
-| `/api/posts/{slug}/comments/` | GET | list | دریافت نظرات تایید شده برای یک پست. |
+| `/api/articles/` | GET | list | لیست صفحه‌بندی شده (پشتیبانی از پارامتر `lang`). |
+| `/api/articles/{slug}/` | GET | retrieve | دریافت محتوای دقیق پست در زبان مشخص (افزایش بازدید). |
+| `/api/articles/{slug}/publish/` | POST | publish | انتشار دستی یک پیش‌نویس. |
+| `/api/articles/{slug}/related/` | GET | related | دریافت پست‌های مرتبط با برچسب‌های مشابه. |
+| `/api/articles/{slug}/comments/` | GET | list | دریافت نظرات تایید شده برای یک پست. |
 | `/api/categories/` | GET | list | لیست تمام دسته‌بندی‌های محتوا. |
 | `/api/tags/` | GET | list | لیست تمام برچسب‌های موجود. |
 | `/api/series/` | GET | list | لیست مجموعه‌های سری پست‌ها. |
@@ -429,10 +429,10 @@ erDiagram
 
 # بخش ۸ — قوانین کسب‌و‌کار
 
-۱.  **زمان مطالعه:** در `PostTranslation.save()` بر اساس محتوای هر زبان به صورت `تعداد کلمات / ۲۰۰ * ۶۰` ثانیه محاسبه می‌شود.
+۱.  **زمان مطالعه:** در `ArticleTranslation.save()` بر اساس محتوای هر زبان به صورت `تعداد کلمات / ۲۰۰ * ۶۰` ثانیه محاسبه می‌شود.
 ۲.  **انتشار زمان‌بندی شده:** توسط وظیفه Celery هر ۶۰ ثانیه مدیریت می‌شود؛ بررسی می‌کند `scheduled_at <= now`.
 ۳.  **مشاهده‌پذیری پست:** کاربران عادی فقط می‌توانند پست‌هایی با `status='published'` را ببینند. فیلترینگ زبان به صورت هوشمند (Fallback به انگلیسی) انجام می‌شود.
-۴.  **شمارش بازدید:** اکشن `retrieve` در `PostViewSet` تعداد `views_count` را با استفاده از عبارات `F()` افزایش می‌دهد تا از تداخل (race conditions) جلوگیری شود.
+۴.  **شمارش بازدید:** اکشن `retrieve` در `ArticleViewSet` تعداد `views_count` را با استفاده از عبارات `F()` افزایش می‌دهد تا از تداخل (race conditions) جلوگیری شود.
 
 ---
 
@@ -462,12 +462,12 @@ classDiagram
         +string email
         +file profile_picture
     }
-    class Post {
+    class Article {
         +string status
         +datetime published_at
         +save()
     }
-    class PostTranslation {
+    class ArticleTranslation {
         +string language_code
         +string title
         +html content
@@ -483,12 +483,12 @@ classDiagram
         +string status
     }
     User "1" -- "1" AuthorProfile
-    AuthorProfile "1" -- "*" Post : می‌نویسد
-    Post "1" -- "*" PostTranslation : ترجمه‌ها
-    Post "1" -- "*" Comment : شامل می‌شود
-    Post "*" -- "*" Tag : برچسب می‌خورد
-    Post "1" -- "*" PostMedia : ضمیمه می‌کند
-    Media "1" -- "*" PostMedia : استفاده شده در
+    AuthorProfile "1" -- "*" Article : می‌نویسد
+    Article "1" -- "*" ArticleTranslation : ترجمه‌ها
+    Article "1" -- "*" Comment : شامل می‌شود
+    Article "*" -- "*" Tag : برچسب می‌خورد
+    Article "1" -- "*" ArticleMedia : ضمیمه می‌کند
+    Media "1" -- "*" ArticleMedia : استفاده شده در
 ```
 
 ## فعالیت رسانه: آپلود رسانه
@@ -534,7 +534,7 @@ graph TD
 .
 ├── blog/             # تنظیمات اصلی
 ├── users/            # احراز هویت/هویت
-├── posts/            # محتوا (Post & PostTranslation)/تاکسونومی‌ها
+├── posts/            # محتوا (Article & ArticleTranslation)/تاکسونومی‌ها
 ├── medias/           # دارایی‌ها (AVIF Optimization)
 ├── interactions/     # اجتماعی (Reaction & Comment)
 ├── navigation/       # منوها

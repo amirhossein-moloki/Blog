@@ -56,7 +56,7 @@ The `docker-compose.yml` defines the following services:
 - `db`: PostgreSQL 14.
 - `cache`: Redis 8.2.
 - `celery_high_priority`: Worker for critical tasks (e.g., Auth emails).
-- `celery_default`: Worker for standard tasks (e.g., Post publishing).
+- `celery_default`: Worker for standard tasks (e.g., Article publishing).
 - `celery_low_priority`: Worker for heavy processing (e.g., Video optimization).
 - `celery-beat`: Scheduler for periodic tasks.
 - `nginx`: Reverse proxy serving static/media files.

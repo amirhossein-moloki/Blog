@@ -14,25 +14,25 @@ The service layer encapsulates the core business logic of the application, keepi
 
 | Service | Responsibility | Dependencies |
 | ------- | -------------- | ------------ |
-| `posts.services.sync_post_media` | Synchronizes media attachments (cover, OG, in-content) for a post. | `medias.models.Media`, `Post` |
-| `posts.services.publish_scheduled_posts` | Identifies and publishes posts whose scheduled time has passed. | `Post` |
-| `posts.services.increment_post_view_count` | Asynchronously increments post views using F() expressions. | `Post` |
-| `medias.services.create_media_from_file` | Handles file upload, AVIF optimization, and metadata extraction. | `PIL`, `common.utils.images` |
+| `posts.services.sync_article_media` | Synchronizes media attachments (cover, OG, in-content) for a article. | `medias.models.Media`, `Article` |
+| `posts.services.publish_scheduled_articles` | Identifies and publishes articles whose scheduled time has passed. | `Article` |
+| `posts.services.increment_article_view_count` | Asynchronously increments article views using F() expressions. | `Article` |
+| `medias.services.create_media_from_file` | Handles file upload and metadata extraction. | `PIL` |
 | `interactions.services.create_comment` | Orchestrates comment creation and author notification. | `Comment`, `interactions.tasks` |
 | `interactions.services.toggle_reaction` | Manages user reactions (likes) on any content object. | `ContentType`, `Reaction` |
 
 ### Detailed Service Descriptions
 
-#### Media Optimization (`medias.services.create_media_from_file`)
+#### Media Management (`medias.services.create_media_from_file`)
 - **Purpose:** Centralize media ingestion logic.
 - **Inputs:** `uploaded_file`, `uploaded_by`, `alt_text`, `title`.
 - **Outputs:** `Media` instance.
-- **Business Rules:** Images are automatically converted to AVIF format; filenames are sanitized; metadata (dimensions) is extracted for images.
+- **Business Rules:** Filenames are sanitized; metadata (dimensions) is extracted for images.
 
-#### Post Synchronization (`posts.services.sync_post_media`)
-- **Purpose:** Ensure all media referenced in a post (including HTML content) is tracked in the database.
-- **Inputs:** `post` instance.
-- **Business Rules:** Scans `<img>` tags in content; matches `MEDIA_URL` paths to `Media` storage keys; updates `PostMedia` through model.
+#### Article Synchronization (`posts.services.sync_article_media`)
+- **Purpose:** Ensure all media referenced in a article (including HTML content) is tracked in the database.
+- **Inputs:** `article` instance.
+- **Business Rules:** Scans `<img>` tags in content; matches `MEDIA_URL` paths to `Media` storage keys; updates `ArticleMedia` through model.
 
 ---
 
@@ -48,11 +48,11 @@ The service layer encapsulates the core business logic of the application, keepi
 
 ## Custom Managers Documentation
 
-### `PostManager` (`posts.models.PostManager`)
+### `ArticleManager` (`posts.models.ArticleManager`)
 - **Why it exists:** To centralize complex QuerySet optimizations and business filters.
 - **Key Methods:**
   - `get_queryset()`: Automatically performs `select_related` on authors/categories and annotates `comments_count` and `likes_count`.
-  - `published()`: Filters for posts with `status='published'` and valid publication dates.
+  - `published()`: Filters for articles with `status='published'` and valid publication dates.
 
 ---
 
@@ -64,7 +64,7 @@ The service layer encapsulates the core business logic of the application, keepi
 
 ### `DynamicFieldsMixin` (`common/mixins.py`)
 - **Purpose:** Allows serializers to filter fields based on an optional `fields` argument.
-- **Consumer:** Used by `PostListSerializer`.
+- **Consumer:** Used by `ArticleListSerializer`.
 
 ---
 
@@ -88,7 +88,7 @@ The service layer encapsulates the core business logic of the application, keepi
 
 | Permission | Purpose | Used In |
 | ---------- | ------- | ------- |
-| `IsAuthorOrAdminOrReadOnly` | Allows safe methods to all; writes only to authors or staff. | `PostViewSet` |
+| `IsAuthorOrAdminOrReadOnly` | Allows safe methods to all; writes only to authors or staff. | `ArticleViewSet` |
 | `IsOwnerOrAdmin` | Flexible ownership check (user, author, uploaded_by, etc.) or staff access. | `MediaViewSet`, `CommentViewSet`, `UserViewSet` |
 | `IsAdminUserOrReadOnly` | Restricts writes to staff members. | `CategoryViewSet`, `TagViewSet`, `SeriesViewSet` |
 
@@ -107,18 +107,18 @@ The project uses a custom `StandardResponseRenderer` and `StandardizedAutoSchema
 ```
 
 ### Key Serializers
-- **`PostDetailSerializer`**: Includes `ContentNormalizationMixin` which converts HTML content to Markdown for frontend flexibility.
+- **`ArticleDetailSerializer`**: Includes `ContentNormalizationMixin` which converts HTML content to Markdown for frontend flexibility.
 - **`JalaliDateTimeField`**: A read-only field that converts standard timestamps to Persian Jalali format.
 
 ---
 
 ## ViewSets Documentation
 
-### `PostViewSet`
-- **Purpose:** Main hub for post interactions.
+### `ArticleViewSet`
+- **Purpose:** Main hub for article interactions.
 - **Custom Actions:**
-  - `similar`: Returns posts in the same category.
-  - `by_slug`: Retrieves a post using its unique slug.
+  - `similar`: Returns articles in the same category.
+  - `by_slug`: Retrieves a article using its unique slug.
   - `publish_post` (Action/Decorator): Allows manual state transition from draft to published.
 - **Logic:** Overrides `get_queryset` to handle visibility (Drafts only visible to authors; Published visible to all).
 
@@ -143,14 +143,14 @@ All public methods and classes must use **Google Style Docstrings** with bilingu
 
 ## Testing Strategy
 - **Unit Tests (`app/tests/unit/`)**: Validate individual services, models, and validators in isolation.
-- **Integration Tests (`tests/integration/`)**: Validate multi-app flows (e.g., Post Lifecycle, Auth Flow).
+- **Integration Tests (`tests/integration/`)**: Validate multi-app flows (e.g., Article Lifecycle, Auth Flow).
 
 ## Repository Test Map
 | App | Unit Tests | Integration Coverage |
 | --- | --- | --- |
 | `users` | Auth, Profile, Signals | Auth Flow |
-| `posts` | CRUD, Services, Tasks | Post Lifecycle |
-| `medias` | Optimization, Storage | Post Lifecycle |
+| `articles` | CRUD, Services, Tasks | Article Lifecycle |
+| `medias` | Optimization, Storage | Article Lifecycle |
 | `interactions`| Comments, Reactions | Engagement Flow |
 | `pages` | Content, Meta | Navigation Flow |
 | `navigation` | Menus, Items | Navigation Flow |
@@ -160,8 +160,8 @@ The project uses **FactoryBoy** for generating test data.
 - **Location**: `posts/factories.py` contains factories for all major models.
 - **Usage Example**:
 ```python
-from posts.factories import PostFactory
-post = PostFactory(title="Test Post")
+from posts.factories import ArticleFactory
+article = ArticleFactory(title="Test Article")
 ```
 - **Mocking**: External services (like Google OAuth) are mocked using `unittest.mock` in `users/tests.py` and `tests/integration/`.
 
@@ -171,7 +171,7 @@ post = PostFactory(title="Test Post")
 python manage.py test
 
 # Run specific app
-python manage.py test posts
+python manage.py test articles
 
 # With coverage
 coverage run manage.py test
@@ -192,8 +192,8 @@ coverage report
 
 | Issue | Symptoms | Resolution |
 | ----- | -------- | ---------- |
-| **AVIF Conversion Failure** | `Pillow` errors during media upload. | Ensure `libavif` and `pillow-avif-plugin` are installed in the environment. |
-| **N+1 Queries** | Slow listing endpoints. | Check `PostManager` and ensure `select_related`/`prefetch_related` are used. |
+| **Media Upload Failure** | Errors during media upload. | Check database connection and storage permissions. |
+| **N+1 Queries** | Slow listing endpoints. | Check `ArticleManager` and ensure `select_related`/`prefetch_related` are used. |
 | **Migration Conflict** | `InconsistentMigrationHistory`. | The project removed `phonenumber_field`. Check `users/migrations` for CharField overrides. |
 
 ---
@@ -227,10 +227,10 @@ coverage report
 # SECTION 7 — MAINTAINABILITY REPORT
 
 ### Technical Debt
-- **Tight Coupling**: `Post.save()` directly calls `sync_post_media`. Consider using signals for better decoupling.
+- **Tight Coupling**: `Article.save()` directly calls `sync_article_media`. Consider using signals for better decoupling.
 - **Large Modules**: `posts/views.py` is growing large; consider splitting into `views/` directory.
 
 ### Improvement Recommendations
 - **High Priority**: Complete bilingual docstrings for all models.
-- **Medium Priority**: Implement a soft-delete mechanism for Posts and Comments.
+- **Medium Priority**: Implement a soft-delete mechanism for Articles and Comments.
 - **Low Priority**: Transition from `markdownify` to a dedicated Markdown field if HTML storage is no longer required.

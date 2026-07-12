@@ -14,6 +14,686 @@
         }
     },
     "paths": {
+        "/api/articles/": {
+            "get": {
+                "operationId": "articles_list",
+                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "category",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_hot",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "published_after",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "published_before",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "A search term.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "series",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "tags",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "explode": true,
+                        "style": "form"
+                    },
+                    {
+                        "in": "query",
+                        "name": "visibility",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "private",
+                                "public",
+                                "unlisted"
+                            ]
+                        },
+                        "description": "* `public` - Public\n* `private` - Private\n* `unlisted` - Unlisted"
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedStdArticleListGetArticleListSerializer200List"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "articles_create",
+                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "tags": [
+                    "articles"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleCreatePostArticleCreateUpdateSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{article_slug}/comments/": {
+            "get": {
+                "operationId": "articles_comments_list",
+                "description": "EN: ViewSet to list approved comments for a specific article.\nFA: ViewSet برای لیست کردن نظرات تایید شده برای یک مقاله خاص.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "article_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The slug of the article to get comments for.",
+                        "required": true
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedStdArticleCommentListGetCommentListSerializer200List"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{article_slug}/comments/{id}/": {
+            "get": {
+                "operationId": "articles_comments_retrieve",
+                "description": "EN: ViewSet to list approved comments for a specific article.\nFA: ViewSet برای لیست کردن نظرات تایید شده برای یک مقاله خاص.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "article_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The slug of the article to get comments for.",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this comment.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleCommentRetrieveGetCommentListSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{slug}/": {
+            "get": {
+                "operationId": "articles_retrieve",
+                "description": "EN: Increments the view count and returns article details.\nFA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را بازمی‌گرداند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleRetrieveGetArticleDetailSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "articles_update",
+                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ArticleCreateUpdateRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleUpdatePutArticleCreateUpdateSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "articles_partial_update",
+                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedArticleCreateUpdateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedArticleCreateUpdateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedArticleCreateUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticlePartial_updatePatchArticleCreateUpdateSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "articles_destroy",
+                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/articles/{slug}/publish/": {
+            "post": {
+                "operationId": "articles_publish_create",
+                "description": "Publish a draft or scheduled article.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticleDetail"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{slug}/related/": {
+            "get": {
+                "operationId": "articles_related_list",
+                "description": "Get related articles based on tags.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ArticleList"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{slug}/same-category/": {
+            "get": {
+                "operationId": "articles_same_category_retrieve",
+                "description": "EN: Returns paginated articles from the same category.\nFA: مقاله‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleSame_categoryGetArticleListSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/{slug}/similar/": {
+            "get": {
+                "operationId": "articles_similar_retrieve",
+                "description": "EN: Returns similar articles based on the category.\nFA: مقاله‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleSimilarGetArticleListSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/articles/slug/{slug}/": {
+            "get": {
+                "operationId": "articles_slug_retrieve",
+                "description": "EN: Endpoint to retrieve a single article by its slug and language.\nFA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "articles"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdArticleBy_slugGetArticleListSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/auth/admin-login/": {
             "post": {
                 "operationId": "auth_admin_login_create",
@@ -325,7 +1005,7 @@
         "/api/categories/": {
             "get": {
                 "operationId": "categories_list",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "tags": [
                     "categories"
                 ],
@@ -355,7 +1035,7 @@
             },
             "post": {
                 "operationId": "categories_create",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "tags": [
                     "categories"
                 ],
@@ -404,7 +1084,7 @@
         "/api/categories/{id}/": {
             "get": {
                 "operationId": "categories_retrieve",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -442,7 +1122,7 @@
             },
             "put": {
                 "operationId": "categories_update",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -500,7 +1180,7 @@
             },
             "patch": {
                 "operationId": "categories_partial_update",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -557,7 +1237,7 @@
             },
             "delete": {
                 "operationId": "categories_destroy",
-                "description": "EN: ViewSet for managing post categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پست.",
+                "description": "EN: ViewSet for managing article categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -855,6 +1535,289 @@
                 ],
                 "tags": [
                     "comments"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/gallery/": {
+            "get": {
+                "operationId": "gallery_list",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "gallery"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StdGalleryItemListGetGalleryItemSerializer200"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "gallery_create",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "tags": [
+                    "gallery"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdGalleryItemCreatePostGalleryItemSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/gallery/{id}/": {
+            "get": {
+                "operationId": "gallery_retrieve",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this gallery item.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "gallery"
+                ],
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdGalleryItemRetrieveGetGalleryItemSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "gallery_update",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this gallery item.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "gallery"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GalleryItemRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdGalleryItemUpdatePutGalleryItemSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "gallery_partial_update",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this gallery item.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "gallery"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedGalleryItemRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedGalleryItemRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedGalleryItemRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdGalleryItemPartial_updatePatchGalleryItemSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "gallery_destroy",
+                "description": "EN: ViewSet for managing gallery items.\nFA: ViewSet برای مدیریت گالری تصاویر.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this gallery item.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "gallery"
                 ],
                 "security": [
                     {
@@ -1950,66 +2913,16 @@
                 }
             }
         },
-        "/api/posts/": {
+        "/api/podcast-categories/": {
             "get": {
-                "operationId": "posts_list",
-                "description": "EN:\nViewSet for managing blog posts.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled posts.\n\nFA:\nViewSet برای مدیریت پست‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "operationId": "podcast_categories_list",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "category",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "is_hot",
+                        "name": "is_active",
                         "schema": {
                             "type": "boolean"
-                        }
-                    },
-                    {
-                        "name": "ordering",
-                        "required": false,
-                        "in": "query",
-                        "description": "Which field to use when ordering the results.",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "required": false,
-                        "in": "query",
-                        "description": "A page number within the paginated result set.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Number of results to return per page.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "published_after",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "published_before",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
                         }
                     },
                     {
@@ -2020,42 +2933,10 @@
                         "schema": {
                             "type": "string"
                         }
-                    },
-                    {
-                        "in": "query",
-                        "name": "series",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "query",
-                        "name": "tags",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "explode": true,
-                        "style": "form"
-                    },
-                    {
-                        "in": "query",
-                        "name": "visibility",
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "private",
-                                "public",
-                                "unlisted"
-                            ]
-                        },
-                        "description": "* `public` - Public\n* `private` - Private\n* `unlisted` - Unlisted"
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "security": [
                     {
@@ -2063,15 +2944,17 @@
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedStdPostListGetPostListSerializer200List"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StdPodcastCategoryListGetPodcastCategorySerializer200"
+                                    }
                                 }
                             }
                         },
@@ -2080,26 +2963,26 @@
                 }
             },
             "post": {
-                "operationId": "posts_create",
-                "description": "EN:\nViewSet for managing blog posts.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled posts.\n\nFA:\nViewSet برای مدیریت پست‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "operationId": "podcast_categories_create",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         }
                     },
@@ -2118,7 +3001,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostCreatePostPostCreateUpdateSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastCategoryCreatePostPodcastCategorySerializer200"
                                 }
                             }
                         },
@@ -2127,78 +3010,10 @@
                 }
             }
         },
-        "/api/posts/{post_slug}/comments/": {
+        "/api/podcast-categories/{id}/": {
             "get": {
-                "operationId": "posts_comments_list",
-                "description": "EN: ViewSet to list approved comments for a specific post.\nFA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.",
-                "parameters": [
-                    {
-                        "name": "ordering",
-                        "required": false,
-                        "in": "query",
-                        "description": "Which field to use when ordering the results.",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "required": false,
-                        "in": "query",
-                        "description": "A page number within the paginated result set.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Number of results to return per page.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "post_slug",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The slug of the post to get comments for.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "security": [
-                    {
-                        "StaticAPIKeyAuth": []
-                    },
-                    {
-                        "jwtAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/PaginatedStdPostCommentListGetCommentListSerializer200List"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/posts/{post_slug}/comments/{id}/": {
-            "get": {
-                "operationId": "posts_comments_retrieve",
-                "description": "EN: ViewSet to list approved comments for a specific post.\nFA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.",
+                "operationId": "podcast_categories_retrieve",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2206,21 +3021,12 @@
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "A unique integer value identifying this comment.",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "post_slug",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "The slug of the post to get comments for.",
+                        "description": "A unique integer value identifying this podcast category.",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "security": [
                     {
@@ -2228,55 +3034,14 @@
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostCommentRetrieveGetCommentListSerializer200"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/posts/{slug}/": {
-            "get": {
-                "operationId": "posts_retrieve",
-                "description": "EN: Increments the view count and returns post details.\nFA: تعداد بازدیدها را افزایش داده و جزئیات پست را بازمی‌گرداند.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "slug",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "security": [
-                    {
-                        "StaticAPIKeyAuth": []
-                    },
-                    {
-                        "jwtAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StdPostRetrieveGetPostDetailSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastCategoryRetrieveGetPodcastCategorySerializer200"
                                 }
                             }
                         },
@@ -2285,36 +3050,37 @@
                 }
             },
             "put": {
-                "operationId": "posts_update",
-                "description": "EN:\nViewSet for managing blog posts.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled posts.\n\nFA:\nViewSet برای مدیریت پست‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "operationId": "podcast_categories_update",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "slug",
+                        "name": "id",
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         },
+                        "description": "A unique integer value identifying this podcast category.",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PodcastCategoryRequest"
                             }
                         }
                     },
@@ -2333,7 +3099,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostUpdatePutPostCreateUpdateSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastCategoryUpdatePutPodcastCategorySerializer200"
                                 }
                             }
                         },
@@ -2342,36 +3108,37 @@
                 }
             },
             "patch": {
-                "operationId": "posts_partial_update",
-                "description": "EN:\nViewSet for managing blog posts.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled posts.\n\nFA:\nViewSet برای مدیریت پست‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "operationId": "podcast_categories_partial_update",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "slug",
+                        "name": "id",
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         },
+                        "description": "A unique integer value identifying this podcast category.",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PatchedPodcastCategoryRequest"
                             }
                         },
                         "application/x-www-form-urlencoded": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PatchedPodcastCategoryRequest"
                             }
                         },
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/PatchedPostCreateUpdateRequest"
+                                "$ref": "#/components/schemas/PatchedPodcastCategoryRequest"
                             }
                         }
                     }
@@ -2389,7 +3156,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostPartial_updatePatchPostCreateUpdateSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastCategoryPartial_updatePatchPodcastCategorySerializer200"
                                 }
                             }
                         },
@@ -2398,20 +3165,21 @@
                 }
             },
             "delete": {
-                "operationId": "posts_destroy",
-                "description": "EN:\nViewSet for managing blog posts.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled posts.\n\nFA:\nViewSet برای مدیریت پست‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "operationId": "podcast_categories_destroy",
+                "description": "EN: ViewSet for managing podcast categories.\nFA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "slug",
+                        "name": "id",
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         },
+                        "description": "A unique integer value identifying this podcast category.",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcast-categories"
                 ],
                 "security": [
                     {
@@ -2428,61 +3196,58 @@
                 }
             }
         },
-        "/api/posts/{slug}/publish/": {
-            "post": {
-                "operationId": "posts_publish_create",
-                "description": "Publish a draft or scheduled post.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "slug",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "posts"
-                ],
-                "security": [
-                    {
-                        "StaticAPIKeyAuth": []
-                    },
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/PostDetail"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/posts/{slug}/related/": {
+        "/api/podcasts/": {
             "get": {
-                "operationId": "posts_related_list",
-                "description": "Get related posts based on tags.",
+                "operationId": "podcasts_list",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
                 "parameters": [
                     {
-                        "in": "path",
-                        "name": "slug",
+                        "in": "query",
+                        "name": "category",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_active",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "media_type",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "audio",
+                                "video"
+                            ]
+                        },
+                        "description": "* `audio` - Audio\n* `video` - Video"
+                    },
+                    {
+                        "name": "ordering",
+                        "required": false,
+                        "in": "query",
+                        "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
-                        },
-                        "required": true
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "description": "A search term.",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcasts"
                 ],
                 "security": [
                     {
@@ -2490,8 +3255,7 @@
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -2500,7 +3264,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/PostList"
+                                        "$ref": "#/components/schemas/StdPodcastListGetPodcastSerializer200"
                                     }
                                 }
                             }
@@ -2508,40 +3272,47 @@
                         "description": ""
                     }
                 }
-            }
-        },
-        "/api/posts/{slug}/same-category/": {
-            "get": {
-                "operationId": "posts_same_category_retrieve",
-                "description": "EN: Returns paginated posts from the same category.\nFA: پست‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "slug",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
+            },
+            "post": {
+                "operationId": "podcasts_create",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
                 "tags": [
-                    "posts"
+                    "podcasts"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "StaticAPIKeyAuth": []
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostSame_categoryGetPostListSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastCreatePostPodcastSerializer200"
                                 }
                             }
                         },
@@ -2550,10 +3321,10 @@
                 }
             }
         },
-        "/api/posts/{slug}/similar/": {
+        "/api/podcasts/{slug}/": {
             "get": {
-                "operationId": "posts_similar_retrieve",
-                "description": "EN: Returns similar posts based on the category.\nFA: پست‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.",
+                "operationId": "podcasts_retrieve",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2565,7 +3336,7 @@
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcasts"
                 ],
                 "security": [
                     {
@@ -2573,27 +3344,24 @@
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
                     "200": {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StdPostSimilarGetPostListSerializer200"
+                                    "$ref": "#/components/schemas/StdPodcastRetrieveGetPodcastSerializer200"
                                 }
                             }
                         },
                         "description": ""
                     }
                 }
-            }
-        },
-        "/api/posts/slug/{slug}/": {
-            "get": {
-                "operationId": "posts_slug_retrieve",
-                "description": "EN: Endpoint to retrieve a single post by its slug and language.\nFA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ و زبان آن.",
+            },
+            "put": {
+                "operationId": "podcasts_update",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2605,7 +3373,120 @@
                     }
                 ],
                 "tags": [
-                    "posts"
+                    "podcasts"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PodcastRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdPodcastUpdatePutPodcastSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "podcasts_partial_update",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "podcasts"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPodcastRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPodcastRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedPodcastRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "StaticAPIKeyAuth": []
+                    },
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StdPodcastPartial_updatePatchPodcastSerializer200"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "podcasts_destroy",
+                "description": "EN: ViewSet for managing podcasts.\nFA: ViewSet برای مدیریت پادکست‌ها.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "podcasts"
                 ],
                 "security": [
                     {
@@ -2613,19 +3494,11 @@
                     },
                     {
                         "jwtAuth": []
-                    },
-                    {}
+                    }
                 ],
                 "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StdPostBy_slugGetPostListSerializer200"
-                                }
-                            }
-                        },
-                        "description": ""
+                    "204": {
+                        "description": "No response body"
                     }
                 }
             }
@@ -2898,7 +3771,7 @@
         "/api/revisions/": {
             "get": {
                 "operationId": "revisions_list",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "tags": [
                     "revisions"
                 ],
@@ -2929,7 +3802,7 @@
             },
             "post": {
                 "operationId": "revisions_create",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "tags": [
                     "revisions"
                 ],
@@ -2978,7 +3851,7 @@
         "/api/revisions/{id}/": {
             "get": {
                 "operationId": "revisions_retrieve",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3017,7 +3890,7 @@
             },
             "put": {
                 "operationId": "revisions_update",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3075,7 +3948,7 @@
             },
             "patch": {
                 "operationId": "revisions_partial_update",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3132,7 +4005,7 @@
             },
             "delete": {
                 "operationId": "revisions_destroy",
-                "description": "EN: ViewSet for viewing post revisions.\nFA: ViewSet برای مشاهده بازنگری‌های پست.",
+                "description": "EN: ViewSet for viewing article revisions.\nFA: ViewSet برای مشاهده بازنگری‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3165,7 +4038,7 @@
         "/api/series/": {
             "get": {
                 "operationId": "series_list",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "tags": [
                     "series"
                 ],
@@ -3195,7 +4068,7 @@
             },
             "post": {
                 "operationId": "series_create",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "tags": [
                     "series"
                 ],
@@ -3244,7 +4117,7 @@
         "/api/series/{id}/": {
             "get": {
                 "operationId": "series_retrieve",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3282,7 +4155,7 @@
             },
             "put": {
                 "operationId": "series_update",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3340,7 +4213,7 @@
             },
             "patch": {
                 "operationId": "series_partial_update",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3397,7 +4270,7 @@
             },
             "delete": {
                 "operationId": "series_destroy",
-                "description": "EN: ViewSet for managing post series.\nFA: ViewSet برای مدیریت مجموعه‌های پست.",
+                "description": "EN: ViewSet for managing article series.\nFA: ViewSet برای مدیریت مجموعه‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3430,7 +4303,7 @@
         "/api/tags/": {
             "get": {
                 "operationId": "tags_list",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "tags": [
                     "tags"
                 ],
@@ -3460,7 +4333,7 @@
             },
             "post": {
                 "operationId": "tags_create",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "tags": [
                     "tags"
                 ],
@@ -3509,7 +4382,7 @@
         "/api/tags/{id}/": {
             "get": {
                 "operationId": "tags_retrieve",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3547,7 +4420,7 @@
             },
             "put": {
                 "operationId": "tags_update",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3605,7 +4478,7 @@
             },
             "patch": {
                 "operationId": "tags_partial_update",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -3662,7 +4535,7 @@
             },
             "delete": {
                 "operationId": "tags_destroy",
-                "description": "EN: ViewSet for managing post tags.\nFA: ViewSet برای مدیریت برچسب‌های پست.",
+                "description": "EN: ViewSet for managing article tags.\nFA: ViewSet برای مدیریت برچسب‌های مقاله.",
                 "parameters": [
                     {
                         "in": "path",
@@ -4088,9 +4961,499 @@
     },
     "components": {
         "schemas": {
-            "AuthorForPost": {
+            "ArticleCreateUpdate": {
                 "type": "object",
-                "description": "EN: Minimal author serializer for inclusion in Post representation.\nFA: سریالایزر حداقلی نویسنده برای استفاده در نمایش پست.",
+                "description": "EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "visibility": {
+                        "$ref": "#/components/schemas/VisibilityEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "published_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "scheduled_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "category": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Category"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "series": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "cover_image": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "og_image": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tag"
+                        },
+                        "readOnly": true
+                    },
+                    "canonical_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "views_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "related_articles": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ArticleList"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "category",
+                    "cover_image",
+                    "id",
+                    "og_image",
+                    "published_at",
+                    "related_articles",
+                    "scheduled_at",
+                    "tags",
+                    "views_count"
+                ]
+            },
+            "ArticleCreateUpdateRequest": {
+                "type": "object",
+                "description": "EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
+                "properties": {
+                    "language_code": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "default": "en"
+                    },
+                    "title": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "short_description": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "content": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "visibility": {
+                        "$ref": "#/components/schemas/VisibilityEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "series": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "seo_title": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "seo_description": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "slug": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "pattern": "^[-a-zA-Z0-9_]+$"
+                    },
+                    "canonical_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "tag_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "writeOnly": true
+                        },
+                        "writeOnly": true
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "writeOnly": true
+                    },
+                    "cover_image_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "og_image_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "related_article_ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "writeOnly": true
+                        },
+                        "writeOnly": true
+                    },
+                    "publish_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "writeOnly": true,
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "content",
+                    "excerpt",
+                    "title"
+                ]
+            },
+            "ArticleDetail": {
+                "type": "object",
+                "description": "EN: Comprehensive serializer for detailed Article view, including content and attachments.\nFA: سریالایزر جامع برای نمای جزئیات مقاله، شامل محتوا و پیوست‌ها.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "slug": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "short_description": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "reading_time_sec": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "published_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "author": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuthorForArticle"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "category": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "cover_image": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "views_count": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "likes_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "comments_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tag"
+                        },
+                        "readOnly": true
+                    },
+                    "content": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "canonical_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "series": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Series"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "seo_title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "seo_description": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "og_image": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "media_attachments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ArticleMedia"
+                        },
+                        "readOnly": true
+                    },
+                    "related_articles": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ArticleList"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "author",
+                    "category",
+                    "comments_count",
+                    "content",
+                    "cover_image",
+                    "excerpt",
+                    "id",
+                    "likes_count",
+                    "media_attachments",
+                    "og_image",
+                    "published_at",
+                    "reading_time_sec",
+                    "related_articles",
+                    "seo_description",
+                    "seo_title",
+                    "series",
+                    "short_description",
+                    "slug",
+                    "tags",
+                    "title"
+                ]
+            },
+            "ArticleList": {
+                "type": "object",
+                "description": "EN: Optimized serializer for listing Articles with essential fields.\nFA: سریالایزر بهینه‌سازی شده برای لیست کردن مقاله‌ها با فیلدهای ضروری.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "slug": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "short_description": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "reading_time_sec": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "published_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "author": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuthorForArticle"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "category": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "cover_image": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "views_count": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "likes_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "comments_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tag"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "author",
+                    "category",
+                    "comments_count",
+                    "cover_image",
+                    "excerpt",
+                    "id",
+                    "likes_count",
+                    "published_at",
+                    "reading_time_sec",
+                    "short_description",
+                    "slug",
+                    "tags",
+                    "title"
+                ]
+            },
+            "ArticleListRequest": {
+                "type": "object",
+                "description": "EN: Optimized serializer for listing Articles with essential fields.\nFA: سریالایزر بهینه‌سازی شده برای لیست کردن مقاله‌ها با فیلدهای ضروری.",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "views_count": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    }
+                }
+            },
+            "ArticleMedia": {
+                "type": "object",
+                "description": "EN: Serializer for the relationship between Articles and Media.\nFA: سریالایزر برای رابطه بین مقاله‌ها و رسانه‌ها.",
+                "properties": {
+                    "media": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/MediaDetail"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "attachment_type": {
+                        "type": "string",
+                        "maxLength": 50
+                    }
+                },
+                "required": [
+                    "media"
+                ]
+            },
+            "AuthorForArticle": {
+                "type": "object",
+                "description": "EN: Minimal author serializer for inclusion in Article representation.\nFA: سریالایزر حداقلی نویسنده برای استفاده در نمایش مقاله.",
                 "properties": {
                     "display_name": {
                         "type": "string",
@@ -4107,6 +5470,20 @@
                 },
                 "required": [
                     "avatar",
+                    "display_name"
+                ]
+            },
+            "AuthorForArticleRequest": {
+                "type": "object",
+                "description": "EN: Minimal author serializer for inclusion in Article representation.\nFA: سریالایزر حداقلی نویسنده برای استفاده در نمایش مقاله.",
+                "properties": {
+                    "display_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    }
+                },
+                "required": [
                     "display_name"
                 ]
             },
@@ -4179,6 +5556,11 @@
                     "parent": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "icon": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -4205,6 +5587,11 @@
                     "parent": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "icon": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -4220,7 +5607,7 @@
                         "type": "integer",
                         "readOnly": true
                     },
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "user": {
@@ -4245,10 +5632,10 @@
                     }
                 },
                 "required": [
+                    "article",
                     "content",
                     "created_at",
                     "id",
-                    "post",
                     "user"
                 ]
             },
@@ -4298,7 +5685,7 @@
                 "type": "object",
                 "description": "EN: Serializer for creating and managing individual Comments.\nFA: سریالایزر برای ایجاد و مدیریت نظرات فردی.",
                 "properties": {
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "parent": {
@@ -4314,8 +5701,8 @@
                     }
                 },
                 "required": [
-                    "content",
-                    "post"
+                    "article",
+                    "content"
                 ]
             },
             "CommentStatusEnum": {
@@ -4366,6 +5753,80 @@
                 "required": [
                     "password",
                     "username"
+                ]
+            },
+            "GalleryItem": {
+                "type": "object",
+                "description": "EN: Serializer for GalleryItem model.\nFA: سریالایزر برای مدل گالری تصاویر.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "image": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "caption": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "order": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "link": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
+                    }
+                },
+                "required": [
+                    "caption",
+                    "id",
+                    "image"
+                ]
+            },
+            "GalleryItemRequest": {
+                "type": "object",
+                "description": "EN: Serializer for GalleryItem model.\nFA: سریالایزر برای مدل گالری تصاویر.",
+                "properties": {
+                    "image": {
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "caption": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "order": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "link": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
+                    }
+                },
+                "required": [
+                    "caption",
+                    "image"
                 ]
             },
             "LocationEnum": {
@@ -4565,6 +6026,14 @@
                     "url"
                 ]
             },
+            "MediaTypeEnum": {
+                "enum": [
+                    "audio",
+                    "video"
+                ],
+                "type": "string",
+                "description": "* `audio` - Audio\n* `video` - Video"
+            },
             "Menu": {
                 "type": "object",
                 "description": "EN: Serializer for Menus, including nested MenuItem representations.\nFA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.",
@@ -4742,6 +6211,81 @@
                 "type": "string",
                 "description": "* `manual` - Manual\n* `by_date` - By Date"
             },
+            "PagStdArticleCommentListGetCommentListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "pageNo": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 10
+                    },
+                    "totalPage": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "lastId": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "PagStdArticleListGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "pageNo": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 10
+                    },
+                    "totalPage": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "lastId": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "PagStdArticleSame_categoryGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "pageNo": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 10
+                    },
+                    "totalPage": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "totalCount": {
+                        "type": "integer",
+                        "default": 1
+                    },
+                    "lastId": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
             "PagStdCommentListGetCommentSerializer200": {
                 "type": "object",
                 "properties": {
@@ -4768,81 +6312,6 @@
                 }
             },
             "PagStdMediaListGetMediaDetailSerializer200": {
-                "type": "object",
-                "properties": {
-                    "pageNo": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "pageSize": {
-                        "type": "integer",
-                        "default": 10
-                    },
-                    "totalPage": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "totalCount": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "lastId": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                }
-            },
-            "PagStdPostCommentListGetCommentListSerializer200": {
-                "type": "object",
-                "properties": {
-                    "pageNo": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "pageSize": {
-                        "type": "integer",
-                        "default": 10
-                    },
-                    "totalPage": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "totalCount": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "lastId": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                }
-            },
-            "PagStdPostListGetPostListSerializer200": {
-                "type": "object",
-                "properties": {
-                    "pageNo": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "pageSize": {
-                        "type": "integer",
-                        "default": 10
-                    },
-                    "totalPage": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "totalCount": {
-                        "type": "integer",
-                        "default": 1
-                    },
-                    "lastId": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                }
-            },
-            "PagStdPostSame_categoryGetPostListSerializer200": {
                 "type": "object",
                 "properties": {
                     "pageNo": {
@@ -4973,6 +6442,68 @@
                     "title"
                 ]
             },
+            "PaginatedStdArticleCommentListGetCommentListSerializer200List": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StdArticleCommentListGetCommentListSerializer200"
+                        }
+                    }
+                }
+            },
+            "PaginatedStdArticleListGetArticleListSerializer200List": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StdArticleListGetArticleListSerializer200"
+                        }
+                    }
+                }
+            },
             "PaginatedStdCommentListGetCommentSerializer200List": {
                 "type": "object",
                 "required": [
@@ -5035,65 +6566,104 @@
                     }
                 }
             },
-            "PaginatedStdPostCommentListGetCommentListSerializer200List": {
+            "PatchedArticleCreateUpdateRequest": {
                 "type": "object",
-                "required": [
-                    "count",
-                    "results"
-                ],
+                "description": "EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
                 "properties": {
-                    "count": {
+                    "language_code": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "default": "en"
+                    },
+                    "title": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "excerpt": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "short_description": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "nullable": true
+                    },
+                    "content": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/PostStatusEnum"
+                    },
+                    "visibility": {
+                        "$ref": "#/components/schemas/VisibilityEnum"
+                    },
+                    "is_hot": {
+                        "type": "boolean"
+                    },
+                    "series": {
                         "type": "integer",
-                        "example": 123
+                        "nullable": true
                     },
-                    "next": {
+                    "seo_title": {
                         "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=4"
+                        "writeOnly": true
                     },
-                    "previous": {
+                    "seo_description": {
                         "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=2"
+                        "writeOnly": true
                     },
-                    "results": {
+                    "slug": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1,
+                        "pattern": "^[-a-zA-Z0-9_]+$"
+                    },
+                    "canonical_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "tag_ids": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/StdPostCommentListGetCommentListSerializer200"
-                        }
-                    }
-                }
-            },
-            "PaginatedStdPostListGetPostListSerializer200List": {
-                "type": "object",
-                "required": [
-                    "count",
-                    "results"
-                ],
-                "properties": {
-                    "count": {
+                            "type": "integer",
+                            "writeOnly": true
+                        },
+                        "writeOnly": true
+                    },
+                    "category_id": {
                         "type": "integer",
-                        "example": 123
+                        "writeOnly": true
                     },
-                    "next": {
-                        "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=4"
+                    "cover_image_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
                     },
-                    "previous": {
-                        "type": "string",
-                        "nullable": true,
-                        "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=2"
+                    "og_image_id": {
+                        "type": "integer",
+                        "writeOnly": true,
+                        "nullable": true
                     },
-                    "results": {
+                    "related_article_ids": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/StdPostListGetPostListSerializer200"
-                        }
+                            "type": "integer",
+                            "writeOnly": true
+                        },
+                        "writeOnly": true
+                    },
+                    "publish_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "writeOnly": true,
+                        "nullable": true
                     }
                 }
             },
@@ -5136,6 +6706,11 @@
                     "parent": {
                         "type": "integer",
                         "nullable": true
+                    },
+                    "icon": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
                     }
                 }
             },
@@ -5143,7 +6718,7 @@
                 "type": "object",
                 "description": "EN: Serializer for creating and managing individual Comments.\nFA: سریالایزر برای ایجاد و مدیریت نظرات فردی.",
                 "properties": {
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "parent": {
@@ -5156,6 +6731,37 @@
                     },
                     "status": {
                         "$ref": "#/components/schemas/CommentStatusEnum"
+                    }
+                }
+            },
+            "PatchedGalleryItemRequest": {
+                "type": "object",
+                "description": "EN: Serializer for GalleryItem model.\nFA: سریالایزر برای مدل گالری تصاویر.",
+                "properties": {
+                    "image": {
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "caption": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "order": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "link": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
                     }
                 }
             },
@@ -5319,91 +6925,103 @@
                     }
                 }
             },
-            "PatchedPostCreateUpdateRequest": {
+            "PatchedPodcastCategoryRequest": {
                 "type": "object",
-                "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
+                "description": "EN: Serializer for PodcastCategory model.\nFA: سریالایزر برای مدل دسته‌بندی پادکست.",
                 "properties": {
-                    "language_code": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1,
-                        "default": "en"
-                    },
                     "title": {
                         "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "excerpt": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "content": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/PostStatusEnum"
-                    },
-                    "visibility": {
-                        "$ref": "#/components/schemas/VisibilityEnum"
-                    },
-                    "is_hot": {
-                        "type": "boolean"
-                    },
-                    "series": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "seo_title": {
-                        "type": "string",
-                        "writeOnly": true
-                    },
-                    "seo_description": {
-                        "type": "string",
-                        "writeOnly": true
+                        "minLength": 1,
+                        "maxLength": 255
                     },
                     "slug": {
                         "type": "string",
-                        "writeOnly": true,
                         "minLength": 1,
-                        "pattern": "^[-a-zA-Z0-9_]+$"
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
                     },
-                    "canonical_url": {
+                    "icon": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
+                    }
+                }
+            },
+            "PatchedPodcastRequest": {
+                "type": "object",
+                "description": "EN: Serializer for Podcast model.\nFA: سریالایزر برای مدل پادکست.",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "slug": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
+                    },
+                    "category": {
+                        "type": "integer"
+                    },
+                    "episode_number": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64"
+                    },
+                    "cover_image": {
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "audio_file": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "media_type": {
+                        "$ref": "#/components/schemas/MediaTypeEnum"
+                    },
+                    "video_file": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "video_url": {
                         "type": "string",
                         "format": "uri",
                         "nullable": true,
                         "maxLength": 200
                     },
-                    "tag_ids": {
+                    "description": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "description": "Duration in minutes"
+                    },
+                    "published_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "related_podcasts": {
                         "type": "array",
                         "items": {
-                            "type": "integer",
-                            "writeOnly": true
-                        },
-                        "writeOnly": true
+                            "type": "integer"
+                        }
                     },
-                    "category_id": {
-                        "type": "integer",
-                        "writeOnly": true
-                    },
-                    "cover_media_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "og_image_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "publish_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "writeOnly": true,
-                        "nullable": true
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
                     }
                 }
             },
@@ -5429,7 +7047,7 @@
             },
             "PatchedRevisionRequest": {
                 "type": "object",
-                "description": "EN: Serializer for Post Revisions.\nFA: سریالایزر برای بازنگری‌های پست.",
+                "description": "EN: Serializer for Article Revisions.\nFA: سریالایزر برای بازنگری‌های مقاله.",
                 "properties": {
                     "is_active": {
                         "type": "boolean",
@@ -5457,7 +7075,7 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "editor": {
@@ -5542,437 +7160,255 @@
                     }
                 }
             },
-            "PostCreateUpdate": {
+            "Podcast": {
                 "type": "object",
-                "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
+                "description": "EN: Serializer for Podcast model.\nFA: سریالایزر برای مدل پادکست.",
                 "properties": {
                     "id": {
                         "type": "integer",
                         "readOnly": true
                     },
-                    "status": {
-                        "$ref": "#/components/schemas/PostStatusEnum"
-                    },
-                    "visibility": {
-                        "$ref": "#/components/schemas/VisibilityEnum"
-                    },
-                    "is_hot": {
-                        "type": "boolean"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true,
-                        "readOnly": true
-                    },
-                    "scheduled_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true,
-                        "readOnly": true
-                    },
-                    "category": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Category"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "series": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "cover_media": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MediaDetail"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "og_image": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MediaDetail"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Tag"
-                        },
-                        "readOnly": true
-                    },
-                    "canonical_url": {
-                        "type": "string",
-                        "format": "uri",
-                        "nullable": true,
-                        "maxLength": 200
-                    },
-                    "views_count": {
-                        "type": "integer",
-                        "readOnly": true
-                    }
-                },
-                "required": [
-                    "category",
-                    "cover_media",
-                    "id",
-                    "og_image",
-                    "published_at",
-                    "scheduled_at",
-                    "tags",
-                    "views_count"
-                ]
-            },
-            "PostCreateUpdateRequest": {
-                "type": "object",
-                "description": "EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.\nFA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.",
-                "properties": {
-                    "language_code": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1,
-                        "default": "en"
-                    },
                     "title": {
                         "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "excerpt": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "content": {
-                        "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/PostStatusEnum"
-                    },
-                    "visibility": {
-                        "$ref": "#/components/schemas/VisibilityEnum"
-                    },
-                    "is_hot": {
-                        "type": "boolean"
-                    },
-                    "series": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "seo_title": {
-                        "type": "string",
-                        "writeOnly": true
-                    },
-                    "seo_description": {
-                        "type": "string",
-                        "writeOnly": true
+                        "maxLength": 255
                     },
                     "slug": {
                         "type": "string",
-                        "writeOnly": true,
-                        "minLength": 1,
-                        "pattern": "^[-a-zA-Z0-9_]+$"
-                    },
-                    "canonical_url": {
-                        "type": "string",
-                        "format": "uri",
-                        "nullable": true,
-                        "maxLength": 200
-                    },
-                    "tag_ids": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer",
-                            "writeOnly": true
-                        },
-                        "writeOnly": true
-                    },
-                    "category_id": {
-                        "type": "integer",
-                        "writeOnly": true
-                    },
-                    "cover_media_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "og_image_id": {
-                        "type": "integer",
-                        "writeOnly": true,
-                        "nullable": true
-                    },
-                    "publish_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "writeOnly": true,
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "content",
-                    "excerpt",
-                    "title"
-                ]
-            },
-            "PostDetail": {
-                "type": "object",
-                "description": "EN: Comprehensive serializer for detailed Post view, including content and attachments.\nFA: سریالایزر جامع برای نمای جزئیات پست، شامل محتوا و پیوست‌ها.",
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "slug": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "title": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "excerpt": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "reading_time_sec": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/PostStatusEnum"
-                    },
-                    "is_hot": {
-                        "type": "boolean"
-                    },
-                    "published_at": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true,
-                        "readOnly": true
-                    },
-                    "author": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AuthorForPost"
-                            }
-                        ],
-                        "readOnly": true
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
                     },
                     "category": {
-                        "type": "string",
-                        "readOnly": true
+                        "type": "integer"
                     },
-                    "cover_media": {
+                    "category_detail": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/MediaDetail"
+                                "$ref": "#/components/schemas/PodcastCategory"
                             }
                         ],
                         "readOnly": true
                     },
-                    "views_count": {
+                    "episode_number": {
                         "type": "integer",
                         "maximum": 9223372036854775807,
                         "minimum": 0,
                         "format": "int64"
                     },
-                    "likes_count": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "comments_count": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "tags": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Tag"
-                        },
-                        "readOnly": true
-                    },
-                    "content": {
+                    "cover_image": {
                         "type": "string",
-                        "readOnly": true
+                        "format": "uri"
                     },
-                    "canonical_url": {
+                    "audio_file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "media_type": {
+                        "$ref": "#/components/schemas/MediaTypeEnum"
+                    },
+                    "video_file": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true
+                    },
+                    "video_url": {
                         "type": "string",
                         "format": "uri",
                         "nullable": true,
                         "maxLength": 200
                     },
-                    "series": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Series"
-                            }
-                        ],
-                        "readOnly": true
+                    "description": {
+                        "type": "string"
                     },
-                    "seo_title": {
+                    "duration": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "description": "Duration in minutes"
+                    },
+                    "published_date": {
                         "type": "string",
-                        "readOnly": true
+                        "format": "date-time"
                     },
-                    "seo_description": {
+                    "published_date_jalali": {
                         "type": "string",
+                        "format": "date-time",
                         "readOnly": true
                     },
-                    "og_image": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MediaDetail"
-                            }
-                        ],
+                    "view_count": {
+                        "type": "integer",
                         "readOnly": true
                     },
-                    "media_attachments": {
+                    "related_podcasts": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/PostMedia"
-                        },
-                        "readOnly": true
+                            "type": "integer"
+                        }
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
                     }
                 },
                 "required": [
-                    "author",
                     "category",
-                    "comments_count",
-                    "content",
-                    "cover_media",
-                    "excerpt",
+                    "category_detail",
+                    "cover_image",
+                    "duration",
+                    "episode_number",
                     "id",
-                    "likes_count",
-                    "media_attachments",
-                    "og_image",
-                    "published_at",
-                    "reading_time_sec",
-                    "seo_description",
-                    "seo_title",
-                    "series",
+                    "published_date",
+                    "published_date_jalali",
                     "slug",
-                    "tags",
-                    "title"
+                    "title",
+                    "view_count"
                 ]
             },
-            "PostList": {
+            "PodcastCategory": {
                 "type": "object",
-                "description": "EN: Optimized serializer for listing Posts with essential fields.\nFA: سریالایزر بهینه‌سازی شده برای لیست کردن پست‌ها با فیلدهای ضروری.",
+                "description": "EN: Serializer for PodcastCategory model.\nFA: سریالایزر برای مدل دسته‌بندی پادکست.",
                 "properties": {
                     "id": {
                         "type": "integer",
                         "readOnly": true
                     },
-                    "slug": {
-                        "type": "string",
-                        "readOnly": true
-                    },
                     "title": {
                         "type": "string",
-                        "readOnly": true
+                        "maxLength": 255
                     },
-                    "excerpt": {
+                    "slug": {
                         "type": "string",
-                        "readOnly": true
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
                     },
-                    "reading_time_sec": {
-                        "type": "integer",
-                        "readOnly": true
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/PostStatusEnum"
-                    },
-                    "is_hot": {
-                        "type": "boolean"
-                    },
-                    "published_at": {
+                    "icon": {
                         "type": "string",
-                        "format": "date-time",
-                        "nullable": true,
-                        "readOnly": true
+                        "format": "uri",
+                        "nullable": true
                     },
-                    "author": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AuthorForPost"
-                            }
-                        ],
-                        "readOnly": true
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
+                    }
+                },
+                "required": [
+                    "id",
+                    "slug",
+                    "title"
+                ]
+            },
+            "PodcastCategoryRequest": {
+                "type": "object",
+                "description": "EN: Serializer for PodcastCategory model.\nFA: سریالایزر برای مدل دسته‌بندی پادکست.",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "slug": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
+                    },
+                    "icon": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
+                    }
+                },
+                "required": [
+                    "slug",
+                    "title"
+                ]
+            },
+            "PodcastRequest": {
+                "type": "object",
+                "description": "EN: Serializer for Podcast model.\nFA: سریالایزر برای مدل پادکست.",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "slug": {
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[-\\w]+$",
+                        "maxLength": 255
                     },
                     "category": {
-                        "type": "string",
-                        "readOnly": true
+                        "type": "integer"
                     },
-                    "cover_media": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MediaDetail"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "views_count": {
+                    "episode_number": {
                         "type": "integer",
                         "maximum": 9223372036854775807,
                         "minimum": 0,
                         "format": "int64"
                     },
-                    "likes_count": {
-                        "type": "integer",
-                        "readOnly": true
+                    "cover_image": {
+                        "type": "string",
+                        "format": "binary"
                     },
-                    "comments_count": {
-                        "type": "integer",
-                        "readOnly": true
+                    "audio_file": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
                     },
-                    "tags": {
+                    "media_type": {
+                        "$ref": "#/components/schemas/MediaTypeEnum"
+                    },
+                    "video_file": {
+                        "type": "string",
+                        "format": "binary",
+                        "nullable": true
+                    },
+                    "video_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "nullable": true,
+                        "maxLength": 200
+                    },
+                    "description": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "maximum": 9223372036854775807,
+                        "minimum": 0,
+                        "format": "int64",
+                        "description": "Duration in minutes"
+                    },
+                    "published_date": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "related_podcasts": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/Tag"
-                        },
-                        "readOnly": true
-                    }
-                },
-                "required": [
-                    "author",
-                    "category",
-                    "comments_count",
-                    "cover_media",
-                    "excerpt",
-                    "id",
-                    "likes_count",
-                    "published_at",
-                    "reading_time_sec",
-                    "slug",
-                    "tags",
-                    "title"
-                ]
-            },
-            "PostMedia": {
-                "type": "object",
-                "description": "EN: Serializer for the relationship between Posts and Media.\nFA: سریالایزر برای رابطه بین پست‌ها و رسانه‌ها.",
-                "properties": {
-                    "media": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MediaDetail"
-                            }
-                        ],
-                        "readOnly": true
+                            "type": "integer"
+                        }
                     },
-                    "attachment_type": {
-                        "type": "string",
-                        "maxLength": 50
+                    "is_active": {
+                        "type": "boolean",
+                        "description": "Specifies whether this record is active or not."
                     }
                 },
                 "required": [
-                    "media"
+                    "category",
+                    "cover_image",
+                    "duration",
+                    "episode_number",
+                    "published_date",
+                    "slug",
+                    "title"
                 ]
             },
             "PostStatusEnum": {
@@ -6049,7 +7485,7 @@
             },
             "Revision": {
                 "type": "object",
-                "description": "EN: Serializer for Post Revisions.\nFA: سریالایزر برای بازنگری‌های پست.",
+                "description": "EN: Serializer for Article Revisions.\nFA: سریالایزر برای بازنگری‌های مقاله.",
                 "properties": {
                     "id": {
                         "type": "integer",
@@ -6089,7 +7525,7 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "editor": {
@@ -6098,18 +7534,18 @@
                     }
                 },
                 "required": [
+                    "article",
                     "content",
                     "created_at",
                     "excerpt",
                     "id",
-                    "post",
                     "title",
                     "updated_at"
                 ]
             },
             "RevisionRequest": {
                 "type": "object",
-                "description": "EN: Serializer for Post Revisions.\nFA: سریالایزر برای بازنگری‌های پست.",
+                "description": "EN: Serializer for Article Revisions.\nFA: سریالایزر برای بازنگری‌های مقاله.",
                 "properties": {
                     "is_active": {
                         "type": "boolean",
@@ -6137,7 +7573,7 @@
                         "type": "string",
                         "maxLength": 255
                     },
-                    "post": {
+                    "article": {
                         "type": "integer"
                     },
                     "editor": {
@@ -6146,9 +7582,9 @@
                     }
                 },
                 "required": [
+                    "article",
                     "content",
                     "excerpt",
-                    "post",
                     "title"
                 ]
             },
@@ -6229,6 +7665,198 @@
                 "required": [
                     "slug",
                     "title"
+                ]
+            },
+            "StdArticleBy_slugGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleCommentListGetCommentListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CommentList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PagStdArticleCommentListGetCommentListSerializer200"
+                    }
+                },
+                "required": [
+                    "data",
+                    "pagination"
+                ]
+            },
+            "StdArticleCommentRetrieveGetCommentListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/CommentList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleCreatePostArticleCreateUpdateSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleCreateUpdate"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleListGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PagStdArticleListGetArticleListSerializer200"
+                    }
+                },
+                "required": [
+                    "data",
+                    "pagination"
+                ]
+            },
+            "StdArticlePartial_updatePatchArticleCreateUpdateSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleCreateUpdate"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleRetrieveGetArticleDetailSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleDetail"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleSame_categoryGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PagStdArticleSame_categoryGetArticleListSerializer200"
+                    }
+                },
+                "required": [
+                    "data",
+                    "pagination"
+                ]
+            },
+            "StdArticleSimilarGetArticleListSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleList"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdArticleUpdatePutArticleCreateUpdateSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/ArticleCreateUpdate"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
                 ]
             },
             "StdAuthorProfileCreatePostAuthorProfileSerializer200": {
@@ -6516,6 +8144,96 @@
                         "default": []
                     }
                 }
+            },
+            "StdGalleryItemCreatePostGalleryItemSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GalleryItem"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdGalleryItemListGetGalleryItemSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GalleryItem"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdGalleryItemPartial_updatePatchGalleryItemSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GalleryItem"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdGalleryItemRetrieveGetGalleryItemSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GalleryItem"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdGalleryItemUpdatePutGalleryItemSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/GalleryItem"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
             },
             "StdMediaCreatePostMediaCreateSerializer200": {
                 "type": "object",
@@ -6881,11 +8599,11 @@
                     "data"
                 ]
             },
-            "StdPostBy_slugGetPostListSerializer200": {
+            "StdPodcastCategoryCreatePostPodcastCategorySerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostList"
+                        "$ref": "#/components/schemas/PodcastCategory"
                     },
                     "messagesList": {
                         "type": "array",
@@ -6899,33 +8617,11 @@
                     "data"
                 ]
             },
-            "StdPostCommentListGetCommentListSerializer200": {
+            "StdPodcastCategoryListGetPodcastCategorySerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/CommentList"
-                    },
-                    "messagesList": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "default": []
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PagStdPostCommentListGetCommentListSerializer200"
-                    }
-                },
-                "required": [
-                    "data",
-                    "pagination"
-                ]
-            },
-            "StdPostCommentRetrieveGetCommentListSerializer200": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "$ref": "#/components/schemas/CommentList"
+                        "$ref": "#/components/schemas/PodcastCategory"
                     },
                     "messagesList": {
                         "type": "array",
@@ -6939,11 +8635,11 @@
                     "data"
                 ]
             },
-            "StdPostCreatePostPostCreateUpdateSerializer200": {
+            "StdPodcastCategoryPartial_updatePatchPodcastCategorySerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostCreateUpdate"
+                        "$ref": "#/components/schemas/PodcastCategory"
                     },
                     "messagesList": {
                         "type": "array",
@@ -6957,33 +8653,11 @@
                     "data"
                 ]
             },
-            "StdPostListGetPostListSerializer200": {
+            "StdPodcastCategoryRetrieveGetPodcastCategorySerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostList"
-                    },
-                    "messagesList": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "default": []
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PagStdPostListGetPostListSerializer200"
-                    }
-                },
-                "required": [
-                    "data",
-                    "pagination"
-                ]
-            },
-            "StdPostPartial_updatePatchPostCreateUpdateSerializer200": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "$ref": "#/components/schemas/PostCreateUpdate"
+                        "$ref": "#/components/schemas/PodcastCategory"
                     },
                     "messagesList": {
                         "type": "array",
@@ -6997,11 +8671,11 @@
                     "data"
                 ]
             },
-            "StdPostRetrieveGetPostDetailSerializer200": {
+            "StdPodcastCategoryUpdatePutPodcastCategorySerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostDetail"
+                        "$ref": "#/components/schemas/PodcastCategory"
                     },
                     "messagesList": {
                         "type": "array",
@@ -7015,33 +8689,11 @@
                     "data"
                 ]
             },
-            "StdPostSame_categoryGetPostListSerializer200": {
+            "StdPodcastCreatePostPodcastSerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostList"
-                    },
-                    "messagesList": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "default": []
-                    },
-                    "pagination": {
-                        "$ref": "#/components/schemas/PagStdPostSame_categoryGetPostListSerializer200"
-                    }
-                },
-                "required": [
-                    "data",
-                    "pagination"
-                ]
-            },
-            "StdPostSimilarGetPostListSerializer200": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "$ref": "#/components/schemas/PostList"
+                        "$ref": "#/components/schemas/Podcast"
                     },
                     "messagesList": {
                         "type": "array",
@@ -7055,11 +8707,65 @@
                     "data"
                 ]
             },
-            "StdPostUpdatePutPostCreateUpdateSerializer200": {
+            "StdPodcastListGetPodcastSerializer200": {
                 "type": "object",
                 "properties": {
                     "data": {
-                        "$ref": "#/components/schemas/PostCreateUpdate"
+                        "$ref": "#/components/schemas/Podcast"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdPodcastPartial_updatePatchPodcastSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Podcast"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdPodcastRetrieveGetPodcastSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Podcast"
+                    },
+                    "messagesList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StdPodcastUpdatePutPodcastSerializer200": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "$ref": "#/components/schemas/Podcast"
                     },
                     "messagesList": {
                         "type": "array",
