@@ -22,8 +22,8 @@ If you prefer to create the environment manually, define the following variables
 | `password` | Test user's password | `password` |
 | `accessToken` | JWT Access Token | *(Set automatically by Login request)* |
 | `refreshToken`| JWT Refresh Token | *(Set automatically by Login request)* |
-| `postSlug` | Slug of a blog post | *(Set automatically by List Posts)* |
-| `postId` | ID of a blog post | *(Set automatically by List Posts)* |
+| `articleSlug` | Slug of a blog article | *(Set automatically by List Articles)* |
+| `articleId` | ID of a blog article | *(Set automatically by List Articles)* |
 | `mediaId` | ID of a media object | *(Set automatically by List Media)* |
 
 ## 2. Execution Order
@@ -32,8 +32,8 @@ For the automated tests to pass correctly, the requests should be executed in th
 
 1.  **Users > Register User**: (Optional) Register a new user for testing.
 2.  **Authentication > Login**: This obtains the JWT tokens and stores them in the environment for subsequent authenticated requests.
-3.  **Posts > List Posts**: This fetches the latest posts and extracts a `postSlug` and `postId` to be used in detail and interaction requests.
-4.  **Other Requests**: Once `accessToken`, `postSlug`, and `postId` are set, you can run all other requests (Users, Media, Interactions, etc.) in any order.
+3.  **Articles > List Articles**: This fetches the latest articles and extracts a `articleSlug` and `articleId` to be used in detail and interaction requests.
+4.  **Other Requests**: Once `accessToken`, `articleSlug`, and `articleId` are set, you can run all other requests (Users, Media, Interactions, etc.) in any order.
 
 ## 3. Running Automated Tests
 

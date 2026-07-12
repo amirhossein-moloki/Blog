@@ -25,7 +25,7 @@ The Blog Platform follows a modular Django architecture, where each application 
 │   ├── auth_utils.py       # Security helpers (axes lockout logic)
 │   └── services.py         # Auth business logic
 ├── posts/                  # Content Management (The Core)
-│   ├── models.py           # Posts, Categories, Tags, Series, Revisions
+│   ├── models.py           # Articles, Categories, Tags, Series, Revisions
 │   ├── tasks.py            # Scheduled publishing
 │   └── services.py         # Content sync and analytics
 ├── medias/                 # Centralized Asset Library
@@ -49,9 +49,9 @@ The Blog Platform follows a modular Django architecture, where each application 
 | App | Responsibility | Models | APIs | Dependencies |
 | :--- | :--- | :--- | :--- | :--- |
 | **users** | Identity & Auth | `User` | Register, Me, Login, Google Login | `common` |
-| **posts** | Content Engine | `Post`, `Category`, `Tag`, `Series`, `Revision` | CRUD, Publish, Similar Posts | `users`, `medias`, `core` |
-| **medias** | Asset Library | `Media`, `PostMedia` | Upload, Download | `users`, `common` |
-| **interactions** | Social Features | `Comment`, `Reaction` | Post Comments, Like/Emoji | `users`, `posts` |
+| **articles** | Content Engine | `Article`, `Category`, `Tag`, `Series`, `Revision` | CRUD, Publish, Similar Articles | `users`, `medias`, `core` |
+| **medias** | Asset Library | `Media`, `ArticleMedia` | Upload, Download | `users`, `common` |
+| **interactions** | Social Features | `Comment`, `Reaction` | Article Comments, Like/Emoji | `users`, `articles` |
 | **pages** | Static Pages | `Page` | CRUD Static Content | `core` |
 | **navigation** | Site Menus | `Menu`, `MenuItem` | CRUD Dynamic Menus | `core` |
 | **common** | Shared Logic | - | - | - |
@@ -64,8 +64,8 @@ The Blog Platform follows a modular Django architecture, where each application 
 The project is designed to minimize circular dependencies by utilizing a service layer and generic relationships where appropriate.
 
 ### Core Relationships
-1. **Content → Media:** `Post` and `AuthorProfile` depend on `medias.Media` for attachments and avatars.
-2. **Engagement → Content:** `interactions.Comment` relates directly to `posts.Post`.
+1. **Content → Media:** `Article` and `AuthorProfile` depend on `medias.Media` for attachments and avatars.
+2. **Engagement → Content:** `interactions.Comment` relates directly to `posts.Article`.
 3. **Reactions → Generic:** `interactions.Reaction` uses a Generic Foreign Key, allowing it to attach to any model without a hard dependency.
 4. **All → Core:** Every model inherits from `core.base_models.BaseModel`.
 
@@ -75,9 +75,9 @@ graph TD
     Common --> Medias
     Core --> Pages
     Core --> Navigation
-    Users --> Posts
-    Medias --> Posts
-    Posts --> Interactions
+    Users --> Articles
+    Medias --> Articles
+    Articles --> Interactions
     Users --> Interactions
 ```
 

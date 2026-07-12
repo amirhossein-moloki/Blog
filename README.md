@@ -8,7 +8,7 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 
 ### Problem Solved
 - **Content Lifecycle Management:** Handles the transition from draft to review, scheduled, and published states.
-- **Media Inefficiency:** Automates image conversion to AVIF and video compression using FFmpeg to ensure fast load times.
+- **Media Management:** Manages uploaded media and integrates standard local or S3-compatible cloud storage backends.
 - **Fragmented User Management:** Integrates standard JWT authentication with Google OAuth2 and Iranian-specific localized features (Jalali dates).
 - **Scalability:** Built with a modular architecture that separates core concerns (Interactions, Navigation, Medias, Pages).
 
@@ -24,14 +24,14 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 
 ### ✍️ Advanced Publishing Engine
 - **Rich Text Editing:** Integrated CKEditor 5 with image upload support.
-- **Post Scheduling:** Automated publishing of scheduled content via Celery.
-- **Versioning:** Historical revision tracking for all post edits.
+- **Article Scheduling:** Automated publishing of scheduled content via Celery.
+- **Versioning:** Historical revision tracking for all article edits.
 - **Taxonomies:** Hierarchical categories, tags, and series management.
 
 ### 🖼️ Centralized Media Library
 - **Automatic Optimization:** Real-time AVIF conversion and resizing for images.
 - **Async Processing:** Background video optimization using FFmpeg.
-- **Smart Linking:** Automatically syncs media attachments by parsing post content.
+- **Smart Linking:** Automatically syncs media attachments by parsing article content.
 
 ### 💬 Engagement & Interactions
 - **Nested Comments:** Support for threaded discussions with moderation workflows.
@@ -56,7 +56,7 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 ---
 
 ## Architecture Summary
-The system follows a **Modular Monolith** architecture. Each domain (Users, Posts, Medias, etc.) is isolated into its own Django application with dedicated models, services, and APIs.
+The system follows a **Modular Monolith** architecture. Each domain (Users, Articles, Medias, etc.) is isolated into its own Django application with dedicated models, services, and APIs.
 
 ```mermaid
 graph TD
@@ -72,7 +72,7 @@ graph TD
 
     subgraph CoreDomains ["Core Domains"]
         Users[Users App]
-        Posts[Posts App]
+        Articles[Articles App]
         Medias[Medias App]
         Interactions[Interactions App]
     end
@@ -94,7 +94,7 @@ graph TD
 
 ### Service Boundaries
 - `users`: Identity, Authentication, and Permissions.
-- `posts`: Content engine, Taxonomies, and Revisions.
+- `articles`: Content engine, Taxonomies, and Revisions.
 - `medias`: Centralized asset storage and processing.
 - `interactions`: Social features (Comments, Reactions).
 - `navigation` & `pages`: CMS structural components.

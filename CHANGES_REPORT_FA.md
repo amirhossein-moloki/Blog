@@ -6,7 +6,7 @@
 
 ## ۱. نیازمندی‌های خواسته‌شده (Requested Requirements)
 تغییرات و نیازمندی‌های جدید به صورت کلی به سه دسته اصلی تقسیم می‌شدند:
-1. **ارتقای مدل‌های محتوایی موجود (Article/Post & Category):**
+1. **ارتقای مدل‌های محتوایی موجود (Article/Article & Category):**
    - اضافه کردن عنوان، اسلاگ، توضیحات کوتاه، تصویر کاور، فیلد Rich Text برای محتوای اصلی، دسته‌بندی، نویسنده، انتخاب دستی مقالات مرتبط (`related_articles`) و تاریخ‌ها.
    - اضافه کردن آیکون (ترجیحاً SVG) و وضعیت فعال/غیرفعال به مدل دسته‌بندی مقالات (`Category`).
 2. **پیاده‌سازی سیستم مدیریت پادکست‌ها (Podcast & PodcastCategory):**
@@ -22,9 +22,9 @@
 تغییرات با کمترین تغییر در معماری و به صورت ۱۰۰٪ سازگار با ساختار فعلی پروژه بدون هیچ‌گونه Data Loss یا Breaking Changes پیاده‌سازی شدند:
 
 ### الف) ارتقای مدل‌های موجود در `posts/models.py`
-* **مدل `Post` (معادل Article):**
-  - فیلد `related_posts` به صورت `ManyToManyField("self", blank=True, symmetrical=False)` به مدل `Post` اضافه شد تا مدیر سایت بتواند به صورت دستی مقالات مرتبط را در پنل ادمین انتخاب کند. این فیلد در سطح کلان مدل `Post` قرار دارد و با سیستم چندزبانه تداخلی ندارد (هر زبان محتوای ترجمه‌شده پست مرتبط را متناسب با زبان جاری کاربر رندر می‌کند).
-* **مدل `PostTranslation`:**
+* **مدل `Article` (معادل Article):**
+  - فیلد `related_posts` به صورت `ManyToManyField("self", blank=True, symmetrical=False)` به مدل `Article` اضافه شد تا مدیر سایت بتواند به صورت دستی مقالات مرتبط را در پنل ادمین انتخاب کند. این فیلد در سطح کلان مدل `Article` قرار دارد و با سیستم چندزبانه تداخلی ندارد (هر زبان محتوای ترجمه‌شده پست مرتبط را متناسب با زبان جاری کاربر رندر می‌کند).
+* **مدل `ArticleTranslation`:**
   - فیلد `short_description = models.TextField(blank=True, null=True)` اضافه شد تا توضیحات خلاصه کارت‌ها و متای سئو به ازای هر زبان به صورت مجزا ذخیره شود.
 * **مدل `Category`:**
   - فیلد `icon = models.FileField(upload_to="categories/icons/", null=True, blank=True)` اضافه شد تا آیکون‌های دسته‌بندی با فرمت‌های مختلف به ویژه **SVG** به درستی پشتیبانی و ذخیره شوند. وضعیت `is_active` نیز از پیش از طریق ارث‌بری از `BaseModel` وجود داشت.
@@ -51,20 +51,20 @@
 
 ### ۲. لایه سریالایزرها (`posts/serializers.py`):
 - فیلد `icon` به `CategorySerializer` اضافه شد.
-- فیلد `short_description` به `PostListSerializer` و `PostDetailSerializer` اضافه شد.
-- فیلد `related_posts` با استفاده از نمایش کامل `PostListSerializer(many=True)` در `PostDetailSerializer` پیاده‌سازی شد.
-- در `PostCreateUpdateSerializer` فیلدهای `short_description` و `related_post_ids` (به صورت PrimaryKeyRelatedField با قابلیت نوشتن برای ارتباط ManyToMany) با موفقیت پیاده‌سازی و در متدهای `create` و `update` هندل شدند.
+- فیلد `short_description` به `ArticleListSerializer` و `ArticleDetailSerializer` اضافه شد.
+- فیلد `related_posts` با استفاده از نمایش کامل `ArticleListSerializer(many=True)` در `ArticleDetailSerializer` پیاده‌سازی شد.
+- در `ArticleCreateUpdateSerializer` فیلدهای `short_description` و `related_article_ids` (به صورت PrimaryKeyRelatedField با قابلیت نوشتن برای ارتباط ManyToMany) با موفقیت پیاده‌سازی و در متدهای `create` و `update` هندل شدند.
 - سریالایزرهای جدید `PodcastCategorySerializer`، `PodcastSerializer` (به همراه فیلد تاریخ جلالی `published_date_jalali` و نرمال‌سازی محتوای ادیتور از طریق `ContentNormalizationMixin`) و `GalleryItemSerializer` ایجاد شدند.
 
 ### ۳. لایه ویوها و آدرس‌ها (`posts/views.py` & `posts/urls.py`):
 - ایجاد `PodcastCategoryViewSet` با قابلیت فیلترینگ و جستجو.
 - ایجاد `PodcastViewSet` با قابلیت فیلتر بر اساس دسته‌بندی و نوع رسانه، مرتب‌سازی و افزایش خودکار تعداد بازدید اپیزود (`view_count`) به ازای هر بار خواندن جزئیات اپیزود (Retrieve API).
 - ایجاد `GalleryItemViewSet` با قابلیت مرتب‌سازی بر اساس فیلد ترتیب (`order`).
-- ثبت تمامی مسیرهای جدید در Router اپلیکیشن `posts`.
+- ثبت تمامی مسیرهای جدید در Router اپلیکیشن `articles`.
 
 ### ۴. پنل مدیریت ادمین جنگو (`posts/admin.py`):
 - ارتقای `CategoryAdmin` جهت پیش‌نمایش آیکون و اسلاگ‌سازی خودکار.
-- ارتقای `PostAdmin` جهت اضافه شدن فیلد مقالات مرتبط به صورت `filter_horizontal` و مدیریت آسان‌تر روابط.
+- ارتقای `ArticleAdmin` جهت اضافه شدن فیلد مقالات مرتبط به صورت `filter_horizontal` و مدیریت آسان‌تر روابط.
 - ثبت ادمین مدل‌های `PodcastCategory` و `GalleryItem` به همراه قابلیت ادیت درجا (list_editable) برای فیلد ترتیب و وضعیت گالری.
 - ثبت ادمین مدل `Podcast` با استفاده از `ModelAdminJalaliMixin` جهت نمایش زیبای شمسی تاریخ انتشار و گروه‌بندی فیلدها در قالب Fieldsetها.
 
@@ -77,7 +77,7 @@
 
 ## ۴. مستندات نمونه پاسخ‌های API (Sample Response Real Payload)
 
-### دسته‌بندی پادکست‌ها (`GET /api/posts/podcast-categories/`):
+### دسته‌بندی پادکست‌ها (`GET /api/articles/podcast-categories/`):
 ```json
 [
   {
@@ -90,7 +90,7 @@
 ]
 ```
 
-### اپیزودهای پادکست (`GET /api/posts/podcasts/`):
+### اپیزودهای پادکست (`GET /api/articles/podcasts/`):
 ```json
 [
   {

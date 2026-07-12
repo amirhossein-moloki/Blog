@@ -14,12 +14,12 @@ Extract and formalize all domain/business rules from the system behavior.
 | Rule ID | Description | Scope | Enforcement Layer |
 | :--- | :--- | :--- | :--- |
 | **BR-001** | **Single Author Profile**: A user can have exactly one Author Profile. | Users | Model (`OneToOneField`) |
-| **BR-002** | **Automated Reading Time**: Post reading time is calculated based on content word count (200 wpm). | Posts | Model (`save` method) |
-| **BR-003** | **Media Synchronization**: Media attachments (cover, OG, in-content) must sync with post content. | Posts/Medias | Service (`sync_post_media`) |
-| **BR-004** | **Scheduled Publishing**: Scheduled posts are published automatically via background workers. | Posts | Service + Celery Beat |
-| **BR-005** | **Race-Condition Protection**: View counts must use atomic increments to ensure data integrity. | Posts | Service (`F()` expressions) |
+| **BR-002** | **Automated Reading Time**: Article reading time is calculated based on content word count (200 wpm). | Articles | Model (`save` method) |
+| **BR-003** | **Media Synchronization**: Media attachments (cover, OG, in-content) must sync with article content. | Articles/Medias | Service (`sync_article_media`) |
+| **BR-004** | **Scheduled Publishing**: Scheduled articles are published automatically via background workers. | Articles | Service + Celery Beat |
+| **BR-005** | **Race-Condition Protection**: View counts must use atomic increments to ensure data integrity. | Articles | Service (`F()` expressions) |
 | **BR-006** | **Media Validation**: Files are restricted to 10MB and specific allowed extensions (.jpg, .mp4, etc). | Medias | Serializer + Validator |
-| **BR-007** | **Author Notifications**: Post authors must be notified of new comments asynchronously. | Interactions | Service + Celery |
+| **BR-007** | **Author Notifications**: Article authors must be notified of new comments asynchronously. | Interactions | Service + Celery |
 | **BR-008** | **Reaction Toggling**: Reaction actions toggle state (Create if absent, Delete if present). | Interactions | Service (`toggle_reaction`) |
 | **BR-009** | **Reaction Uniqueness**: A user cannot have multiple identical reactions on the same object. | Interactions | DB Constraint (`unique_together`) |
 | **BR-010** | **Cache Consistency**: User dashboard caches must be cleared upon profile updates or deletion. | System | Signals (`post_save`, `post_delete`) |
@@ -36,13 +36,13 @@ Define Role-Based Access Control (RBAC) across system operations based on active
 | Role | Create | Read | Update | Delete | Manage System |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Admin (Staff)** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Author** | ✅ (Posts/Media) | ✅ | ✅ (Own) | ✅ (Own) | ❌ |
+| **Author** | ✅ (Articles/Media) | ✅ | ✅ (Own) | ✅ (Own) | ❌ |
 | **User (Auth)** | ✅ (Comments) | ✅ | ✅ (Own) | ✅ (Own) | ❌ |
 | **Guest** | ❌ | ✅ | ❌ | ❌ | ❌ |
 | **System** | Auto | Auto | Auto | Auto | ❌ |
 
 ## NOTES
-* **IsAuthorOrAdminOrReadOnly**: Applied to Posts; requires AuthorProfile for write access.
+* **IsAuthorOrAdminOrReadOnly**: Applied to Articles; requires AuthorProfile for write access.
 * **IsOwnerOrAdmin**: Applied to Medias, Comments, and AuthorProfiles; checks `user`, `author`, or `uploaded_by`.
 * **IsAdminUserOrReadOnly**: Applied to Categories, Tags, and Series; restricted to Staff for modifications.
 * **Standard Response**: All permission denials return a standardized error format via `StandardResponseRenderer`.
@@ -77,7 +77,7 @@ flowchart TD
 * **Relational Model**: PostgreSQL 14+ handles all core entities.
 * **Content Types**: Used for generic relations (Reactions).
 * **Optimization**: `select_related` and `prefetch_related` are used in custom Managers to solve N+1 problems.
-* **Historical Tracking**: `Revision` model stores snapshots of post content.
+* **Historical Tracking**: `Revision` model stores snapshots of article content.
 
 ## 5. API ARCHITECTURE
 * **Framework**: Django REST Framework (DRF).
@@ -119,7 +119,7 @@ flowchart TD
 
 ## 11. DATABASE DESIGN SUMMARY
 * Normalized schema with foreign key integrity.
-* Through-models for Many-to-Many relations (e.g., `PostTag`).
+* Through-models for Many-to-Many relations (e.g., `ArticleTag`).
 * Optimized indexes on `slug` and `status` fields.
 
 ## 12. SYSTEM SECURITY SUMMARY
