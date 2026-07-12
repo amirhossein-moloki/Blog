@@ -13,13 +13,12 @@ from common.mixins import DynamicSerializerViewMixin
 from common.pagination import CustomPageNumberPagination
 from common.permissions import (
     IsAdminUserOrReadOnly,
-    IsAuthorOrAdminOrReadOnly,
     IsArticleAuthorOrAdmin,
     IsAuthorProfileOwnerOrAdmin,
 )
 from interactions.models import Comment
 from interactions.serializers import CommentListSerializer
-from users.permissions import IsOwnerOrAdmin, IsAdminUser
+from users.permissions import IsAdminUser, IsOwnerOrAdmin
 
 from .filters import ArticleFilter
 from .models import (

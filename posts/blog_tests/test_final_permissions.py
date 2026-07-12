@@ -1,22 +1,20 @@
-from unittest.mock import patch
-from django.contrib.auth import get_user_model
-from django.urls import reverse
-from rest_framework import status
 from io import BytesIO
-from PIL import Image
+from unittest.mock import patch
+
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
+from PIL import Image
+from rest_framework import status
 
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
     ArticleFactory,
-    AuthorProfileFactory,
     CategoryFactory,
-    MediaFactory,
     RevisionFactory,
     UserFactory,
 )
-from posts.models import Article, AuthorProfile
-from medias.models import Media
+from posts.models import AuthorProfile
 
 User = get_user_model()
 
