@@ -14,7 +14,10 @@ class MediaViewSetTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="mediauser", password="password")
         from posts.models import AuthorProfile
-        AuthorProfile.objects.get_or_create(user=self.user, defaults={"display_name": "Media User"})
+
+        AuthorProfile.objects.get_or_create(
+            user=self.user, defaults={"display_name": "Media User"}
+        )
         self.admin = User.objects.create_superuser(
             username="admin", password="password", email="admin@example.com"
         )

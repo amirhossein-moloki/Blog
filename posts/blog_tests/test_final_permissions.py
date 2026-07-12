@@ -51,7 +51,9 @@ class FinalPermissionsAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Anonymous user can retrieve article detail
-        url = reverse("posts:article-detail", kwargs={"slug": self.article.translation.slug})
+        url = reverse(
+            "posts:article-detail", kwargs={"slug": self.article.translation.slug}
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
