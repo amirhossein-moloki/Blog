@@ -82,9 +82,9 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         if self.action == "create":
             return [AllowAny()]
-        if self.action in ["list", "retrieve"]:
-            return [IsOwnerOrAdmin()]
-        if self.action in ["update", "partial_update", "destroy"]:
+        if self.action == "list":
+            return [IsAdminUser()]
+        if self.action in ["retrieve", "update", "partial_update", "destroy"]:
             return [IsOwnerOrAdmin()]
         return super().get_permissions()
 

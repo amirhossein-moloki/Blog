@@ -11,10 +11,15 @@ from rest_framework.response import Response
 
 from common.mixins import DynamicSerializerViewMixin
 from common.pagination import CustomPageNumberPagination
-from common.permissions import IsAdminUserOrReadOnly, IsAuthorOrAdminOrReadOnly
+from common.permissions import (
+    IsAdminUserOrReadOnly,
+    IsAuthorOrAdminOrReadOnly,
+    IsArticleAuthorOrAdmin,
+    IsAuthorProfileOwnerOrAdmin,
+)
 from interactions.models import Comment
 from interactions.serializers import CommentListSerializer
-from users.permissions import IsOwnerOrAdmin
+from users.permissions import IsOwnerOrAdmin, IsAdminUser
 
 from .filters import ArticleFilter
 from .models import (
@@ -57,7 +62,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     """
 
     queryset = Article.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrAdminOrReadOnly]
+    permission_classes = [IsArticleAuthorOrAdmin]
     pagination_class = CustomPageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ArticleFilter
@@ -422,7 +427,7 @@ class AuthorProfileViewSet(viewsets.ModelViewSet):
 
     queryset = AuthorProfile.objects.all()
     serializer_class = AuthorProfileSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
+    permission_classes = [IsAuthorProfileOwnerOrAdmin]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -466,7 +471,7 @@ class RevisionViewSet(viewsets.ModelViewSet):
 
     queryset = Revision.objects.all()
     serializer_class = RevisionSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
+    permission_classes = [IsAdminUser]
 
 
 class PodcastCategoryViewSet(viewsets.ModelViewSet):

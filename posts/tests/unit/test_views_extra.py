@@ -145,6 +145,7 @@ class ArticleViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_revision_list(self):
+        self.client.force_authenticate(user=self.admin)
         Revision.objects.create(
             article=self.article,
             title="Old Title",

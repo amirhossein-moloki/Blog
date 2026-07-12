@@ -2,11 +2,10 @@ from django.core.files.storage import default_storage
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from common.pagination import CustomPageNumberPagination
-from users.permissions import IsOwnerOrAdmin
+from common.permissions import IsAuthorOrAdmin
 
 from .models import Media
 from .serializers import MediaCreateSerializer, MediaDetailSerializer
@@ -24,7 +23,7 @@ class MediaViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Media.objects.all().order_by("-created_at")
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
+    permission_classes = [IsAuthorOrAdmin]
     pagination_class = CustomPageNumberPagination
     ordering = ["-created_at"]
 

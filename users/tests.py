@@ -37,13 +37,7 @@ class UserViewSetTests(APITestCase):
     def test_list_users_regular_user(self):
         self.client.force_authenticate(user=self.user1)
         response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        if isinstance(response.data, list):
-            data = response.data
-        else:
-            data = response.data["data"]
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["username"], "user1")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_retrieve_user_self(self):
         self.client.force_authenticate(user=self.user1)

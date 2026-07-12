@@ -9,13 +9,34 @@ from posts.models import Article
 
 
 class RevisionAPITest(BaseAPITestCase):
-    def test_list_revisions_for_article(self):
+    def test_anonymous_guest_cannot_list_revisions(self):
+        article = ArticleFactory()
+        RevisionFactory.create_batch(3, article=article)
+        url = reverse("posts:revision-list") + f"?article={article.pk}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated_non_staff_user_cannot_list_revisions(self):
+        self._authenticate()  # Authenticate as regular user
+        article = ArticleFactory()
+        RevisionFactory.create_batch(3, article=article)
+        url = reverse("posts:revision-list") + f"?article={article.pk}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_staff_user_can_list_revisions(self):
+        self._authenticate_as_staff()
         article = ArticleFactory()
         RevisionFactory.create_batch(3, article=article)
         url = reverse("posts:revision-list") + f"?article={article.pk}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        # Handle wrapping in 'data' envelope if any
+        if isinstance(response.data, dict) and "data" in response.data:
+            data = response.data["data"]
+        else:
+            data = response.data
+        self.assertEqual(len(data), 3)
 
 
 class ReactionAPITest(BaseAPITestCase):
