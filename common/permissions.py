@@ -116,3 +116,139 @@ class IsAdminUserOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user and request.user.is_staff
+
+
+class IsArticleAuthorOrAdmin(permissions.BasePermission):
+    """
+    EN:
+    Custom permission for ArticleViewSet:
+    - Safe methods (GET, HEAD, OPTIONS): public access.
+    - POST: Only registered authors or admin users.
+    - PUT, PATCH: Only the article's author or admin users.
+    - DELETE: Only admin users.
+
+    FA:
+    سطح دسترسی سفارشی برای ArticleViewSet:
+    - متدهای ایمن (GET, HEAD, OPTIONS): دسترسی عمومی.
+    - ایجاد (POST): فقط نویسندگان ثبت‌شده یا کاربران ادمین.
+    - ویرایش (PUT, PATCH): فقط نویسنده مقاله یا کاربران ادمین.
+    - حذف (DELETE): فقط کاربران ادمین.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.user.is_staff:
+            return True
+
+        if request.method == "POST":
+            AuthorProfile = apps.get_model("posts", "AuthorProfile")
+            try:
+                return hasattr(request.user, "authorprofile")
+            except AuthorProfile.DoesNotExist:
+                return False
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if request.user and request.user.is_staff:
+            return True
+
+        if request.method == "DELETE":
+            # DELETE is restricted to admin staff only
+            # حذف منحصراً محدود به کاربران ادمین است
+            return False
+
+        return obj.author.user == request.user
+
+
+class IsAuthorOrAdmin(permissions.BasePermission):
+    """
+    EN:
+    Custom permission to only allow admin users (staff) or registered authors.
+    Blocks safe reads for unauthenticated or regular users (for media management).
+
+    FA:
+    سطح دسترسی سفارشی برای اجازه دسترسی فقط به ادمین‌ها (staff) یا نویسندگان ثبت‌شده.
+    خواندن‌های ایمن را برای کاربران احراز هویت نشده یا عادی مسدود می‌کند (برای مدیریت رسانه).
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.user.is_staff:
+            return True
+
+        AuthorProfile = apps.get_model("posts", "AuthorProfile")
+        try:
+            return hasattr(request.user, "authorprofile")
+        except AuthorProfile.DoesNotExist:
+            return False
+
+    def has_object_permission(self, request, view, obj):
+        if request.user and request.user.is_staff:
+            return True
+
+        owner_attributes = ["user", "author", "uploaded_by"]
+        for attr in owner_attributes:
+            if hasattr(obj, attr):
+                owner = getattr(obj, attr)
+                if owner == request.user:
+                    return True
+                if hasattr(owner, "user") and owner.user == request.user:
+                    return True
+
+        return False
+
+
+class IsAuthorProfileOwnerOrAdmin(permissions.BasePermission):
+    """
+    EN:
+    Custom permission for AuthorProfileViewSet:
+    - Safe methods (GET, HEAD, OPTIONS): public access.
+    - POST: Only admin users (cannot register self arbitrarily).
+    - PUT, PATCH: Only profile owner or admin users.
+    - DELETE: Only admin users.
+
+    FA:
+    سطح دسترسی سفارشی برای AuthorProfileViewSet:
+    - متدهای ایمن (GET, HEAD, OPTIONS): دسترسی عمومی.
+    - ایجاد (POST): فقط کاربران ادمین (ثبت خودسرانه مجاز نیست).
+    - ویرایش (PUT, PATCH): فقط صاحب پروفایل یا کاربران ادمین.
+    - حذف (DELETE): فقط کاربران ادمین.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.user.is_staff:
+            return True
+
+        if request.method == "POST":
+            return False
+
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        if request.user and request.user.is_staff:
+            return True
+
+        if request.method == "DELETE":
+            return False
+
+        return obj.user == request.user

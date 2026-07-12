@@ -22,7 +22,7 @@ class MediaAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            username="testuser", password="testpassword"
+            username="testuser", password="testpassword", is_staff=True
         )
         self.client.force_authenticate(user=self.user)
 
