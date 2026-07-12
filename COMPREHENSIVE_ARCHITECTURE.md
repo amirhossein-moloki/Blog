@@ -18,8 +18,8 @@ The system operates in the **Digital Publishing and Content Management** domain.
 
 ## Main Features
 *   **Identity Management:** Static API Key-based authentication, JWT tokens, and Role-Based Access Control (RBAC).
-*   **Publishing Engine:** Advanced post lifecycle (Draft, Review, Scheduled, Published), content localization (Multi-language), rich-text editing with CKEditor 5, and automated scheduling via Celery.
-*   **Media Library:** Centralized media registry for managing audio, image, and video files with AVIF optimization.
+*   **Publishing Engine:** Advanced article lifecycle (Draft, Review, Scheduled, Published), content localization (Multi-language), rich-text editing with CKEditor 5, and automated scheduling via Celery.
+*   **Media Library:** Centralized media registry for managing audio, image, and video files with metadata extraction.
 *   **Interactions:** Hierarchical threaded comments and a generic reaction system (likes/emojis) applicable to any content type.
 *   **SEO & Social:** Automated Sitemap generation, Jalali date support, SEO metadata management, and OpenGraph integration.
 
@@ -74,18 +74,18 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
 
 ---
 
-## 2. `posts` App
+## 2. `articles` App
 **Responsibility:** Content Engine & Taxonomies.
 **Business Purpose:** Core publishing logic and content organization with multilingual support.
 
 ### Internal Structure:
 *   **models.py:**
-    *   `Post`: Central model managing status and relations. Uses `PostManager`.
+    *   `Article`: Central model managing status and relations. Uses `PostManager`.
     *   `PostTranslation`: Stores localized content (title, content, SEO) per language.
     *   `AuthorProfile`: Linked to User, stores bio and display name.
     *   `Category`: Hierarchical taxonomies.
     *   `Tag`: Simple labels.
-    *   `Series`: Groups related posts.
+    *   `Series`: Groups related articles.
     *   `Revision`: Historical content versions (per language).
     *   `PostTag`: Junction for many-to-many.
 *   **serializers.py:**
@@ -95,34 +95,34 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
     *   `JalaliDateTimeField`: Custom Persian date representation.
 *   **views.py:**
     *   `PostViewSet`: Advanced filtering by language, dynamic field selection, and similarity logic.
-    *   `PostCommentViewSet`: Nested view for post-specific comments.
+    *   `PostCommentViewSet`: Nested view for article-specific comments.
     *   `publish_post` / `related_posts`: Specialized API functional views.
 *   **services.py:**
-    *   `sync_post_media`: Syncs content `<img>` tags in translations with `PostMedia` junction.
+    *   `sync_post_media`: Syncs content `<img>` tags in translations with `Media` junction.
     *   `publish_scheduled_posts`: Business logic for scheduled releases.
 *   **tasks.py:**
     *   `publish_scheduled_posts_task`: Periodic Celery job.
     *   `increment_post_view_count_task`: Async view count increment.
-*   **filters.py:** `PostFilter` implementing "Hot Post" criteria and date ranges.
+*   **filters.py:** `PostFilter` implementing "Hot Article" criteria and date ranges.
 *   **forms.py:** `PostAdminForm` integrating CKEditor 5.
-*   **urls.py:** Nested routers for posts and comments.
+*   **urls.py:** Nested routers for articles and comments.
 *   **admin.py:** Comprehensive admin with `ModelAdminJalaliMixin` and translation inlines.
 
 ---
 
 ## 3. `medias` App
 **Responsibility:** Media Library & Optimization.
-**Business Purpose:** Centralized asset management and performance optimization (AVIF).
+**Business Purpose:** Centralized asset management and performance optimization.
 
 ### Internal Structure:
 *   **models.py:**
     *   `Media`: Metadata storage for images, videos, and files.
-    *   `PostMedia`: Relationship model tracking usage in posts (cover, og-image, in-content).
+    *   `Media`: Relationship model tracking usage in articles (cover, og-image, in-content).
 *   **serializers.py:**
     *   `MediaCreateSerializer`: Handles file upload and triggers service logic.
     *   `MediaDetailSerializer`: Full metadata representation.
 *   **services.py:**
-    *   `create_media_from_file`: Handles AVIF conversion, resizing, and metadata extraction.
+    *   `create_media_from_file`: Handles file sanitization and metadata extraction.
 *   **views.py:**
     *   `MediaViewSet`: CRUD for media library.
     *   `download_media`: Secure file delivery.
@@ -201,19 +201,19 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 2. `posts.AuthorProfile`
+## 2. `articles.AuthorProfile`
 **Purpose:** Public author persona.
 
 | Field | Type | Nullable | Default | Constraints | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `user` | OneToOne | No | - | PK, FK | Link to User model. |
-| `display_name` | VarChar | No | - | - | Name shown on posts. |
+| `display_name` | VarChar | No | - | - | Name shown on articles. |
 | `bio` | Text | Yes | - | - | Author biography. |
 | `avatar` | FK(Media)| Yes | - | SET_NULL | Profile avatar from media library. |
 
 ---
 
-## 3. `posts.Category`
+## 3. `articles.Category`
 **Purpose:** Hierarchical classification.
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -225,7 +225,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 4. `posts.Post`
+## 4. `articles.Article`
 **Purpose:** Primary content entity (General structure).
 
 | Field | Type | Nullable | Default | Constraints | Description |
@@ -242,12 +242,12 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
-## 5. `posts.PostTranslation`
-**Purpose:** Stores localized content for each Post.
+## 5. `articles.PostTranslation`
+**Purpose:** Stores localized content for each Article.
 
 | Field | Type | Nullable | Default | Constraints | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | No | - | CASCADE | Link to the main post. |
+| `article` | FK(Article) | No | - | CASCADE | Link to the main article. |
 | `language_code`| VarChar | No | - | en/fa/... | Language code of translation. |
 | `slug` | Slug | No | - | Unique(lang) | URL identifier in the specific language. |
 | `title` | VarChar | No | - | - | Article title in this language. |
@@ -280,7 +280,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 | Field | Type | Nullable | Default | Constraints | Description |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | No | - | CASCADE | Target post. |
+| `article` | FK(Article) | No | - | CASCADE | Target article. |
 | `user` | FK(User) | No | - | CASCADE | Submitter. |
 | `parent` | FK(Self) | Yes | - | CASCADE | Parent for nesting. |
 | `content` | RichText | No | - | - | HTML comment body. |
@@ -316,9 +316,9 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ## Junction Models
 
-*   **`posts.PostTag`**: Connects `Post` and `Tag` with unique constraint.
-*   **`medias.PostMedia`**: Connects `Post` and `Media`. Includes `attachment_type` (cover, og-image, in-content).
-*   **`posts.Revision`**: Historical snapshot of Post content, title, and excerpt (per language).
+*   **`articles.PostTag`**: Connects `Article` and `Tag` with unique constraint.
+*   **`medias.Media`**: Connects `Article` and `Media`. Includes `attachment_type` (cover, og-image, in-content).
+*   **`articles.Revision`**: Historical snapshot of Article content, title, and excerpt (per language).
 
 ---
 
@@ -331,18 +331,18 @@ erDiagram
     USER ||--o{ COMMENT : "writes"
     USER ||--o{ REACTION : "performs"
 
-    AUTHOR_PROFILE ||--o{ POST : "authors"
+    AUTHOR_PROFILE ||--o{ ARTICLE : "authors"
 
-    POST ||--o{ POST_TRANSLATION : "has (localization)"
-    POST ||--o{ COMMENT : "contains"
-    POST ||--o{ REVISION : "has"
-    POST }o--o{ TAG : "tagged with"
-    POST }o--|| CATEGORY : "belongs to"
-    POST }o--o| SERIES : "part of"
+    ARTICLE ||--o{ ARTICLE_TRANSLATION : "has (localization)"
+    ARTICLE ||--o{ COMMENT : "contains"
+    ARTICLE ||--o{ REVISION : "has"
+    ARTICLE }o--o{ TAG : "tagged with"
+    ARTICLE }o--|| CATEGORY : "belongs to"
+    ARTICLE }o--o| SERIES : "part of"
 
-    POST ||--o{ POST_MEDIA : "attaches"
-    POST_TRANSLATION ||--o{ POST_MEDIA : "contains content media"
-    MEDIA ||--o{ POST_MEDIA : "linked via"
+    ARTICLE ||--o{ ARTICLE_MEDIA : "attaches"
+    ARTICLE_TRANSLATION ||--o{ ARTICLE_MEDIA : "contains content media"
+    MEDIA ||--o{ ARTICLE_MEDIA : "linked via"
 
     COMMENT ||--o{ COMMENT : "parent of (nested)"
     REACTION }o--|| CONTENT_TYPE : "targets"
@@ -353,10 +353,10 @@ erDiagram
 # SECTION 5 — Data Flow Analysis
 
 ## Content Creation & Processing Flow
-1.  **Submission:** User submits a Post along with translation data via `POST /api/posts/`.
+1.  **Submission:** User submits a Article along with translation data via `POST /api/articles/`.
 2.  **Validation:** Serializer validates fields and translations, including `publish_at`.
-3.  **Persistence:** Main Post record and `PostTranslation` record are saved in an atomic transaction.
-4.  **Async Scan:** `sync_post_media` scans for `<img>` tags in translation content and links `PostMedia` objects.
+3.  **Persistence:** Main Article record and `PostTranslation` record are saved in an atomic transaction.
+4.  **Async Scan:** `sync_post_media` scans for `<img>` tags in translation content and links `Media` objects.
 5.  **Scheduling:** If `status='scheduled'`, Celery Beat eventually triggers `publish_scheduled_posts_task` to make it public.
 
 ---
@@ -374,22 +374,22 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 | `/api/users/me/` | GET | me | Retrieve current user profile. |
 | `/api/users/{id}/` | PATCH | partial_update | Update own profile (Owner only). |
 
-## 2. Posts & Taxonomies
+## 2. Articles & Taxonomies
 | URL | Method | ViewSet Action | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/posts/` | GET | list | Paginated list (supports `lang` parameter). |
-| `/api/posts/{slug}/` | GET | retrieve | Get detailed post content in specified language (increments views). |
-| `/api/posts/{slug}/publish/` | POST | publish | Manually publish a draft. |
-| `/api/posts/{slug}/related/` | GET | related | Get posts sharing tags. |
-| `/api/posts/{slug}/comments/` | GET | list | Get approved comments for a post. |
+| `/api/articles/` | GET | list | Paginated list (supports `lang` parameter). |
+| `/api/articles/{slug}/` | GET | retrieve | Get detailed article content in specified language (increments views). |
+| `/api/articles/{slug}/publish/` | POST | publish | Manually publish a draft. |
+| `/api/articles/{slug}/related/` | GET | related | Get articles sharing tags. |
+| `/api/articles/{slug}/comments/` | GET | list | Get approved comments for a article. |
 | `/api/categories/` | GET | list | List all content categories. |
 | `/api/tags/` | GET | list | List all available tags. |
-| `/api/series/` | GET | list | List post series collections. |
+| `/api/series/` | GET | list | List article series collections. |
 
 ## 3. Media Library
 | URL | Method | ViewSet Action | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/media/` | POST | create | Upload file (auto-converts to AVIF). |
+| `/api/media/` | POST | create | Upload file. |
 | `/api/media/` | GET | list | Browse media library (Admin/Owner). |
 | `/api/media/{id}/download/`| GET | download | Secure file download endpoint. |
 
@@ -418,8 +418,8 @@ The system uses **Stateless JWT Authentication** and **Static API Key Authentica
 
 | Resource | Guest | Authenticated User | Author | Admin (Staff) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Published Posts** | Read | Read | Read | CRUD |
-| **Draft Posts** | None | None | CRUD (Own) | CRUD |
+| **Published Articles** | Read | Read | Read | CRUD |
+| **Draft Articles** | None | None | CRUD (Own) | CRUD |
 | **Comments** | Read | Create | CRUD (Own) | CRUD |
 | **Media Upload** | None | Create | Create | CRUD |
 | **Users** | None | Read (Me) | Read (Me) | CRUD |
@@ -431,7 +431,7 @@ The system uses **Stateless JWT Authentication** and **Static API Key Authentica
 
 1.  **Reading Time:** Calculated in `PostTranslation.save()` per language content as `word_count / 200 * 60` seconds.
 2.  **Scheduled Publishing:** Managed by Celery task every 60 seconds; checks `scheduled_at <= now`.
-3.  **Post Visibility:** Regular users can only query posts with `status='published'`. Language filtering is handled intelligently (Fallback to English).
+3.  **Article Visibility:** Regular users can only query articles with `status='published'`. Language filtering is handled intelligently (Fallback to English).
 4.  **View Counting:** The `retrieve` action in `PostViewSet` increments `views_count` using `F()` expressions to prevent race conditions.
 
 ---
@@ -446,7 +446,7 @@ The system implements a **Service-Oriented Modular Monolith**.
 
 ## Strengths
 *   Flexible Multilingual architecture.
-*   High performance media pipeline (AVIF).
+*   High performance media pipeline.
 *   Multi-layered security (JWT + Static API Key + Axes).
 
 ---
@@ -462,7 +462,7 @@ classDiagram
         +string email
         +file profile_picture
     }
-    class Post {
+    class Article {
         +string status
         +datetime published_at
         +save()
@@ -483,12 +483,12 @@ classDiagram
         +string status
     }
     User "1" -- "1" AuthorProfile
-    AuthorProfile "1" -- "*" Post : authors
-    Post "1" -- "*" PostTranslation : translations
-    Post "1" -- "*" Comment : contains
-    Post "*" -- "*" Tag : tagged
-    Post "1" -- "*" PostMedia : attaches
-    Media "1" -- "*" PostMedia : used in
+    AuthorProfile "1" -- "*" Article : authors
+    Article "1" -- "*" PostTranslation : translations
+    Article "1" -- "*" Comment : contains
+    Article "*" -- "*" Tag : tagged
+    Article "1" -- "*" Media : attaches
+    Media "1" -- "*" Media : used in
 ```
 
 ## Activity Diagram: Media Upload
@@ -497,9 +497,9 @@ classDiagram
 stateDiagram-v2
     [*] --> Upload: File Received
     Upload --> ExtractMetadata
-    ExtractMetadata --> AVIFOptimization
-    AVIFOptimization --> CreateMediaRecord
-    CreateMediaRecord --> LinkToPost: Async Post Sync
+    ExtractMetadata --> MetadataExtraction
+    MetadataExtraction --> CreateMediaRecord
+    CreateMediaRecord --> LinkToPost: Async Article Sync
     LinkToPost --> [*]
 ```
 
@@ -534,8 +534,8 @@ graph TD
 .
 ├── blog/             # Core Config
 ├── users/            # Auth/Identity
-├── posts/            # Content (Post & PostTranslation)/Taxonomies
-├── medias/           # Assets (AVIF Optimization)
+├── articles/            # Content (Article & PostTranslation)/Taxonomies
+├── medias/           # Assets (Metadata Extraction)
 ├── interactions/     # Social (Reaction & Comment)
 ├── navigation/       # Menus
 ├── pages/            # Static CMS

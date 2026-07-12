@@ -38,22 +38,22 @@ The Blog Platform API is built using Django REST Framework and follows RESTful s
     - Response: `access`, `refresh`
 - **Token Refresh:** `POST /api/token/refresh/`
 
-### 2. Posts
-- **List Posts:** `GET /api/posts/`
+### 2. Articles
+- **List Articles:** `GET /api/articles/`
     - Query Params: `category`, `tags`, `is_hot`, `search`, `ordering`, `fields`
-- **Retrieve Post:** `GET /api/posts/{slug}/`
-- **Publish Post:** `POST /api/posts/{slug}/publish/`
-    - Permission: Admin or Author of the post.
+- **Retrieve Article:** `GET /api/articles/{slug}/`
+- **Publish Article:** `POST /api/articles/{slug}/publish/`
+    - Permission: Admin or Author of the article.
 
 ### 3. Media
 - **Upload Media:** `POST /api/media/`
     - Body: `file` (Multipart), `alt_text`, `title`
-    - Action: Automatically converts images to AVIF.
+    - Action:
 - **Download Media:** `GET /api/media/{id}/download/`
 
 ### 4. Interactions
 - **Post Comment:** `POST /api/comments/`
-    - Body: `post`, `content`, `parent`
+    - Body: `article`, `content`, `parent`
 - **React to Content:** `POST /api/reactions/`
     - Body: `reaction` (e.g., 'like'), `content_type`, `object_id`
 
@@ -61,7 +61,7 @@ The Blog Platform API is built using Django REST Framework and follows RESTful s
 
 ## Serializer Analysis
 
-### Post Serializer
+### Article Serializer
 - **Read-Only:** `views_count`, `reading_time_sec`, `comments_count`, `likes_count`.
 - **Dynamic:** Fields like `content` are only included in the retrieve view, not in the list view (optimized for bandwidth).
 - **Validation:** `publish_at` field handles status transitions (Draft → Scheduled → Published).
@@ -73,16 +73,16 @@ The Blog Platform API is built using Django REST Framework and follows RESTful s
 
 ## Business Logic Flows
 
-### Post Lifecycle
-1. User creates a `Post` with `status='draft'`.
+### Article Lifecycle
+1. User creates a `Article` with `status='draft'`.
 2. User updates `status='scheduled'` and sets `publish_at` to a future date.
 3. Every minute, a Celery task (`publish_scheduled_posts_task`) checks for passed dates and sets `status='published'`.
 
 ### Media Synchronization
-When a `Post` is saved, the `sync_post_media` service:
+When a `Article` is saved, the `sync_post_media` service:
 1. Scans the `content` HTML for `<img>` tags.
 2. Extracts internal media URLs.
-3. Updates the `PostMedia` junction table to track which media is used in which post.
+3. Updates the `Media` junction table to track which media is used in which article.
 4. Deletes unused attachments to maintain database integrity.
 
 ---

@@ -29,7 +29,7 @@ classDiagram
         }
     end
 
-    subgraph PostsDomain ["Posts Domain"]
+    subgraph PostsDomain ["Articles Domain"]
         class AuthorProfile {
             +string display_name
             +text bio
@@ -49,7 +49,7 @@ classDiagram
             +string title
             +string order_strategy
         }
-        class Post {
+        class Article {
             +string slug
             +string title
             +text excerpt
@@ -75,7 +75,7 @@ classDiagram
             +string mime
             +int size_bytes
         }
-        class PostMedia {
+        class Media {
             +string attachment_type
         }
     end
@@ -118,10 +118,10 @@ classDiagram
     BaseModel <|-- Category
     BaseModel <|-- Tag
     BaseModel <|-- Series
-    BaseModel <|-- Post
+    BaseModel <|-- Article
     BaseModel <|-- Revision
     BaseModel <|-- Media
-    BaseModel <|-- PostMedia
+    BaseModel <|-- Media
     BaseModel <|-- Comment
     BaseModel <|-- Reaction
     BaseModel <|-- Page
@@ -129,25 +129,25 @@ classDiagram
     BaseModel <|-- MenuItem
 
     User "1" -- "1" AuthorProfile : owns
-    AuthorProfile "1" -- "*" Post : writes
-    Category "1" -- "*" Post : classifies
+    AuthorProfile "1" -- "*" Article : writes
+    Category "1" -- "*" Article : classifies
     Category "0..1" -- "*" Category : parent
-    Post "*" -- "*" Tag : tagged with (PostTag)
-    Series "1" -- "*" Post : grouped in
-    Post "1" -- "*" Revision : has
-    Post "1" -- "*" PostMedia : contains
-    Media "1" -- "*" PostMedia : attached to
-    Post "1" -- "*" Comment : commented on
+    Article "*" -- "*" Tag : tagged with (ArticleTag)
+    Series "1" -- "*" Article : grouped in
+    Article "1" -- "*" Revision : has
+    Article "1" -- "*" Media : contains
+    Media "1" -- "*" Media : attached to
+    Article "1" -- "*" Comment : commented on
     Comment "1" -- "*" Comment : replies to
     User "1" -- "*" Comment : writes
     User "1" -- "*" Reaction : performs
-    Reaction "*" -- "1" Post : reacts to (Generic)
+    Reaction "*" -- "1" Article : reacts to (Generic)
     Reaction "*" -- "1" Comment : reacts to (Generic)
     Menu "1" -- "*" MenuItem : contains
     MenuItem "0..1" -- "*" MenuItem : parent
     AuthorProfile "*" -- "0..1" Media : avatar
-    Post "*" -- "0..1" Media : cover_media
-    Post "*" -- "0..1" Media : og_image
+    Article "*" -- "0..1" Media : cover_media
+    Article "*" -- "0..1" Media : og_image
 ```
 
 ---
@@ -173,12 +173,12 @@ flowchart LR
 
     subgraph UseCases ["Use Cases"]
         UC1(Login/Register)
-        UC2(View Posts/Pages)
+        UC2(View Articles/Pages)
         UC3(Manage Profile)
         UC4(Comment & React)
-        UC5(Create/Edit Posts)
+        UC5(Create/Edit Articles)
         UC6(Manage Media)
-        UC7(Publish Scheduled Posts)
+        UC7(Publish Scheduled Articles)
         UC8(Send Notifications)
         UC9(Manage System Config)
     end
@@ -210,16 +210,16 @@ flowchart TD
     JWT --> Success[Return Tokens to Client]
 ```
 
-### 2. Post Publication/Scheduling Flow
+### 2. Article Publication/Scheduling Flow
 ```mermaid
 flowchart TD
-    Start[Author Saves Post] --> Status{Status == 'published'?}
+    Start[Author Saves Article] --> Status{Status == 'published'?}
     Status -- Yes --> Date{publish_at > Now?}
     Date -- Yes --> Schedule[Set Status to 'scheduled' & set scheduled_at]
     Date -- No --> Publish[Set Status to 'published' & set published_at]
     Status -- No --> Save[Save as Draft/Review]
     Schedule --> Celery[Celery Beat triggers Task]
-    Celery --> Task[Check scheduled posts]
+    Celery --> Task[Check scheduled articles]
     Task --> Due{scheduled_at <= Now?}
     Due -- Yes --> FinalPublish[Set Status to 'published']
     Due -- No --> Wait[Wait for next cycle]
@@ -228,12 +228,12 @@ flowchart TD
 ### 3. Media Synchronization Flow
 ```mermaid
 flowchart TD
-    Start[Post Saved] --> Sync[sync_post_media service]
+    Start[Article Saved] --> Sync[sync_post_media service]
     Sync --> Cover[Sync Cover Media]
     Sync --> OG[Sync OG Image]
     Sync --> Parse[Parse HTML Content for <img> tags]
     Parse --> Find[Identify Media by storage_key]
-    Find --> Update[Update PostMedia through model]
+    Find --> Update[Update Media through model]
     Update --> Remove[Remove unused attachments]
 ```
 
@@ -258,19 +258,19 @@ sequenceDiagram
     API-->>User: 200 OK (access, refresh)
 ```
 
-### 2. Post Creation with Media Sync
+### 2. Article Creation with Media Sync
 ```mermaid
 sequenceDiagram
     participant Author
-    participant API as PostViewSet
+    participant API as ArticleViewSet
     participant Service as sync_post_media
     participant DB as Database
 
-    Author->>API: POST /api/posts/ (content, images)
-    API->>DB: Save Post instance
-    API->>Service: Trigger sync_post_media(post)
+    Author->>API: POST /api/articles/ (content, images)
+    API->>DB: Save Article instance
+    API->>Service: Trigger sync_post_media(article)
     Service->>DB: Query Media by storage_key
-    Service->>DB: Create/Delete PostMedia links
+    Service->>DB: Create/Delete Media links
     DB-->>Service: Success
     Service-->>API: Done
     API-->>Author: 201 Created
@@ -284,10 +284,10 @@ sequenceDiagram
     participant Task as notify_author_on_new_comment (Celery)
     participant DB as Database
 
-    User->>API: POST /api/comments/ (post_id, content)
+    User->>API: POST /api/comments/ (article_id, content)
     API->>DB: Save Comment
     API->>Task: delay(comment_id)
-    Task->>DB: Fetch Comment & Post Author
+    Task->>DB: Fetch Comment & Article Author
     Task->>Task: Send Email/Notification
     API-->>User: 201 Created
 ```
@@ -300,8 +300,8 @@ The system is organized into distinct domains to ensure high cohesion and low co
 
 ### Domain Boundaries
 1.  **Users**: Authentication (JWT, Google OAuth2), Profile Management, Authorization (RBAC).
-2.  **Posts**: Content creation, versioning (Revisions), Categories, Tags, Series, and Scheduling.
-3.  **Medias**: File storage (Local/S3), Media metadata, Post-Media associations, and Image optimization.
+2.  **Articles**: Content creation, versioning (Revisions), Categories, Tags, Series, and Scheduling.
+3.  **Medias**: File storage (Local/S3), Media metadata, Article-Media associations, and Image optimization.
 4.  **Interactions**: User engagement via Comments and Reactions (Generic relationships).
 5.  **Navigation**: Dynamic Menu management.
 6.  **Pages**: Static content management.
@@ -333,7 +333,7 @@ flowchart TD
 - **Standardized Response**: All API responses follow a uniform JSON structure via `StandardResponseRenderer` and `StandardizedAutoSchema`.
 - **Generic Relationships**: Reactions use Django's ContentTypes system to allow reacting to any model.
 - **Mixins for Reusability**: `BaseModel` provides common fields; `FileChangeDetectionMixin` and `DynamicFieldsMixin` enhance functionality.
-- **Tight Coupling**: `Posts` and `Medias` are relatively tightly coupled due to the `sync_post_media` logic.
+- **Tight Coupling**: `Articles` and `Medias` are relatively tightly coupled due to the `sync_post_media` logic.
 
 ---
 
@@ -349,7 +349,7 @@ flowchart TD
 **Modular Monolith**: The system is built as a single Django project but strictly organized into independent apps with defined interfaces.
 
 ### Scalability Analysis
-- **Bottlenecks**: Heavy HTML parsing in `sync_post_media` for large posts.
+- **Bottlenecks**: Heavy HTML parsing in `sync_post_media` for large articles.
 - **DB Hotspots**: `Reactions` and `Comments` tables under high engagement.
 - **Optimization**: Redis is utilized for caching and as a broker for distributed task execution.
 

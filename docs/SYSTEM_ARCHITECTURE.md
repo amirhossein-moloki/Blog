@@ -47,7 +47,7 @@ Celery --> PostgreSQL
 
 ### Database (PostgreSQL)
 *   **Responsibilities**:
-    *   Persistent storage for users, posts, comments, media metadata, etc.
+    *   Persistent storage for users, articles, comments, media metadata, etc.
     *   Relational integrity and complex querying (e.g., F() expressions for view counts).
 
 ### Cache Layer (Redis)
@@ -58,8 +58,8 @@ Celery --> PostgreSQL
 
 ### Background Workers (Celery)
 *   **Responsibilities**:
-    *   **Async Tasks**: Media processing (AVIF conversion), notification sending.
-    *   **Periodic Tasks**: Celery Beat handles scheduled post publication every minute.
+    *   **Async Tasks**: Media processing (metadata extraction), notification sending.
+    *   **Periodic Tasks**: Celery Beat handles scheduled article publication every minute.
 
 ---
 
@@ -125,7 +125,7 @@ Nginx-->>User: Final Response
 *   **Horizontal Scaling**: Application instances (Gunicorn) and Celery workers can be scaled independently based on CPU/Memory usage.
 *   **Database Scaling**: Offloading read-heavy operations to PostgreSQL replicas.
 *   **Async Processing**: Celery task queues are partitioned (`high_priority`, `default`, `low_priority`) to prevent congestion of critical tasks.
-*   **Cache**: Redis-based caching reduces DB load for frequently requested data like post details.
+*   **Cache**: Redis-based caching reduces DB load for frequently requested data like article details.
 
 ---
 
@@ -177,7 +177,7 @@ Nginx-->>User: Final Response
 ## Section 9 — Key Architecture Patterns
 
 ### Used Patterns
-*   **Modular Monolith**: Organized into independent apps (`users`, `posts`, `medias`, `interactions`, etc.).
+*   **Modular Monolith**: Organized into independent apps (`users`, `articles`, `medias`, `interactions`, etc.).
 *   **Service Layer Pattern**: Business logic decoupled from views into `services.py`.
 *   **Event-driven Architecture**: Decoupled side effects (e.g., media sync, notifications) using Celery.
 *   **Standardized API**: Consistent response format across all endpoints via custom renderers.
@@ -191,7 +191,7 @@ Nginx-->>User: Final Response
 
 ### Potential Risks
 *   **N+1 Queries**: Risk in listing endpoints (mitigated by `select_related` and `prefetch_related` in `PostManager`).
-*   **Heavy Parsing**: Synchronous HTML parsing for media synchronization on post save.
+*   **Heavy Parsing**: Synchronous HTML parsing for media synchronization on article save.
 *   **Queue Congestion**: Large volumes of image optimizations could delay high-priority tasks (mitigated by priority-based queues).
 *   **Redis Memory**: High cache usage without proper eviction policies.
 

@@ -20,7 +20,7 @@ All entities share these fields:
 Extends `AbstractUser`.
 - `profile_picture`: `ImageField`.
 
-### 2. `posts.Post`
+### 2. `articles.Article`
 The central content entity.
 | Field | Type | Description |
 | :--- | :--- | :--- |
@@ -45,25 +45,25 @@ Centralized asset registry.
 ## Custom Managers & QuerySets
 
 ### `PostManager.published()`
-Filters posts where `status='published'` and optimized with `select_related` on author and category to avoid N+1 query issues.
+Filters articles where `status='published'` and optimized with `select_related` on author and category to avoid N+1 query issues.
 
 ### `PostManager.get_queryset()`
-Automatically annotates posts with `comments_count` and `likes_count` using Django's `Coalesce` and `Count`.
+Automatically annotates articles with `comments_count` and `likes_count` using Django's `Coalesce` and `Count`.
 
 ---
 
 ## Relationships & Constraints
 - **One-to-One:** `AuthorProfile` → `User` (Shared primary key).
-- **Many-to-Many:** `Post` ↔ `Tag` (via `PostTag` through model).
+- **Many-to-Many:** `Article` ↔ `Tag` (via `ArticleTag` through model).
 - **Generic Relation:** `Reaction` can link to any model using `content_type` and `object_id`.
 - **Unique Together:**
     - `Reaction`: `user`, `content_type`, `object_id`, `reaction` (Prevents duplicate reactions).
-    - `PostTag`: `post`, `tag`.
-    - `PostMedia`: `post`, `media`, `attachment_type`.
+    - `ArticleTag`: `article`, `tag`.
+    - `Media`: `article`, `media`, `attachment_type`.
 
 ---
 
 ## Business Rules
-1. **Reading Time:** Calculated in `Post.save()` based on word count (approx. 200 words/min).
+1. **Reading Time:** Calculated in `Article.save()` based on word count (approx. 200 words/min).
 2. **Slug Uniqueness:** Slugs are unique and immutable once published to preserve SEO.
 3. **Media Sync:** Automated cleanup of orphaned content-media links.

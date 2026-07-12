@@ -11,1266 +11,19 @@ info:
   license:
     name: MIT License
 paths:
-  /api/auth/admin-login/:
-    post:
-      operationId: auth_admin_login_create
-      description: |-
-        EN: Handles JWT token generation for a user.
-        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
-      tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
-          description: ''
-  /api/authors/:
+  /api/articles/:
     get:
-      operationId: authors_list
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      tags:
-      - authors
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdAuthorProfileListGetAuthorProfileSerializer200'
-          description: ''
-    post:
-      operationId: authors_create
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      tags:
-      - authors
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileCreatePostAuthorProfileSerializer200'
-          description: ''
-  /api/authors/{user}/:
-    get:
-      operationId: authors_retrieve
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: A unique value identifying this author profile.
-        required: true
-      tags:
-      - authors
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileRetrieveGetAuthorProfileSerializer200'
-          description: ''
-    put:
-      operationId: authors_update
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: A unique value identifying this author profile.
-        required: true
-      tags:
-      - authors
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/AuthorProfileRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfileUpdatePutAuthorProfileSerializer200'
-          description: ''
-    patch:
-      operationId: authors_partial_update
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: A unique value identifying this author profile.
-        required: true
-      tags:
-      - authors
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdAuthorProfilePartial_updatePatchAuthorProfileSerializer200'
-          description: ''
-    delete:
-      operationId: authors_destroy
-      description: |-
-        EN: ViewSet for managing author profiles.
-        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
-      parameters:
-      - in: path
-        name: user
-        schema:
-          type: integer
-        description: A unique value identifying this author profile.
-        required: true
-      tags:
-      - authors
-      responses:
-        '204':
-          description: No response body
-  /api/categories/:
-    get:
-      operationId: categories_list
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      tags:
-      - categories
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdCategoryListGetCategorySerializer200'
-          description: ''
-    post:
-      operationId: categories_create
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      tags:
-      - categories
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryCreatePostCategorySerializer200'
-          description: ''
-  /api/categories/{id}/:
-    get:
-      operationId: categories_retrieve
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this category.
-        required: true
-      tags:
-      - categories
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryRetrieveGetCategorySerializer200'
-          description: ''
-    put:
-      operationId: categories_update
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this category.
-        required: true
-      tags:
-      - categories
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CategoryRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryUpdatePutCategorySerializer200'
-          description: ''
-    patch:
-      operationId: categories_partial_update
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this category.
-        required: true
-      tags:
-      - categories
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedCategoryRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCategoryPartial_updatePatchCategorySerializer200'
-          description: ''
-    delete:
-      operationId: categories_destroy
-      description: |-
-        EN: ViewSet for managing post categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های پست.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this category.
-        required: true
-      tags:
-      - categories
-      responses:
-        '204':
-          description: No response body
-  /api/comments/:
-    get:
-      operationId: comments_list
+      operationId: articles_list
       description: |-
         EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      tags:
-      - comments
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedStdCommentListGetCommentSerializer200List'
-          description: ''
-    post:
-      operationId: comments_create
-      description: |-
-        EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      tags:
-      - comments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCommentCreatePostCommentSerializer200'
-          description: ''
-  /api/comments/{id}/:
-    get:
-      operationId: comments_retrieve
-      description: |-
-        EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this comment.
-        required: true
-      tags:
-      - comments
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCommentRetrieveGetCommentSerializer200'
-          description: ''
-    put:
-      operationId: comments_update
-      description: |-
-        EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this comment.
-        required: true
-      tags:
-      - comments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/CommentRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCommentUpdatePutCommentSerializer200'
-          description: ''
-    patch:
-      operationId: comments_partial_update
-      description: |-
-        EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this comment.
-        required: true
-      tags:
-      - comments
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedCommentRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedCommentRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedCommentRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdCommentPartial_updatePatchCommentSerializer200'
-          description: ''
-    delete:
-      operationId: comments_destroy
-      description: |-
-        EN:
-        ViewSet for managing comments.
-        Regular users only see approved comments, while staff can see all.
-        Triggers a notification task upon comment creation.
-
-        FA:
-        ViewSet برای مدیریت نظرات.
-        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
-        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this comment.
-        required: true
-      tags:
-      - comments
-      responses:
-        '204':
-          description: No response body
-  /api/media/:
-    get:
-      operationId: media_list
-      description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      tags:
-      - media
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedStdMediaListGetMediaDetailSerializer200List'
-          description: ''
-    post:
-      operationId: media_create
-      description: |-
-        EN: Handles media file upload and returns the detailed representation of the created object.
-        FA: آپلود فایل رسانه را مدیریت کرده و نمایش جزئی شیء ایجاد شده را بازمی‌گرداند.
-      tags:
-      - media
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MediaCreateRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MediaCreateRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MediaCreateRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMediaCreatePostMediaCreateSerializer200'
-          description: ''
-  /api/media/{id}/:
-    get:
-      operationId: media_retrieve
-      description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this media.
-        required: true
-      tags:
-      - media
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMediaRetrieveGetMediaDetailSerializer200'
-          description: ''
-    put:
-      operationId: media_update
-      description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this media.
-        required: true
-      tags:
-      - media
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MediaDetailRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MediaDetailRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MediaDetailRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMediaUpdatePutMediaDetailSerializer200'
-          description: ''
-    patch:
-      operationId: media_partial_update
-      description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this media.
-        required: true
-      tags:
-      - media
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMediaDetailRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMediaDetailRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMediaDetailRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMediaPartial_updatePatchMediaDetailSerializer200'
-          description: ''
-    delete:
-      operationId: media_destroy
-      description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this media.
-        required: true
-      tags:
-      - media
-      responses:
-        '204':
-          description: No response body
-  /api/menu-items/:
-    get:
-      operationId: menu_items_list
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      tags:
-      - menu-items
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdMenuItemListGetMenuItemSerializer200'
-          description: ''
-    post:
-      operationId: menu_items_create
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemCreatePostMenuItemSerializer200'
-          description: ''
-  /api/menu-items/{id}/:
-    get:
-      operationId: menu_items_retrieve
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemRetrieveGetMenuItemSerializer200'
-          description: ''
-    put:
-      operationId: menu_items_update
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemUpdatePutMenuItemSerializer200'
-          description: ''
-    patch:
-      operationId: menu_items_partial_update
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemPartial_updatePatchMenuItemSerializer200'
-          description: ''
-    delete:
-      operationId: menu_items_destroy
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      responses:
-        '204':
-          description: No response body
-  /api/menus/:
-    get:
-      operationId: menus_list
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - menus
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdMenuListGetMenuSerializer200'
-          description: ''
-    post:
-      operationId: menus_create
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuCreatePostMenuSerializer200'
-          description: ''
-  /api/menus/{id}/:
-    get:
-      operationId: menus_retrieve
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuRetrieveGetMenuSerializer200'
-          description: ''
-    put:
-      operationId: menus_update
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuUpdatePutMenuSerializer200'
-          description: ''
-    patch:
-      operationId: menus_partial_update
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuPartial_updatePatchMenuSerializer200'
-          description: ''
-    delete:
-      operationId: menus_destroy
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      responses:
-        '204':
-          description: No response body
-  /api/pages/:
-    get:
-      operationId: pages_list
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - pages
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdPageListGetPageSerializer200'
-          description: ''
-    post:
-      operationId: pages_create
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - pages
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPageCreatePostPageSerializer200'
-          description: ''
-  /api/pages/{id}/:
-    get:
-      operationId: pages_retrieve
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPageRetrieveGetPageSerializer200'
-          description: ''
-    put:
-      operationId: pages_update
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPageUpdatePutPageSerializer200'
-          description: ''
-    patch:
-      operationId: pages_partial_update
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPagePartial_updatePatchPageSerializer200'
-          description: ''
-    delete:
-      operationId: pages_destroy
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
-      responses:
-        '204':
-          description: No response body
-  /api/posts/:
-    get:
-      operationId: posts_list
-      description: |-
-        EN:
-        ViewSet for managing blog posts.
+        ViewSet for managing blog articles.
         Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled posts.
+        Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
         FA:
-        ViewSet برای مدیریت پست‌های بلاگ.
+        ViewSet برای مدیریت مقاله‌های بلاگ.
         فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: query
         name: category
@@ -1339,56 +92,67 @@ paths:
           * `private` - Private
           * `unlisted` - Unlisted
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedStdPostListGetPostListSerializer200List'
+                $ref: '#/components/schemas/PaginatedStdArticleListGetArticleListSerializer200List'
           description: ''
     post:
-      operationId: posts_create
+      operationId: articles_create
       description: |-
         EN:
-        ViewSet for managing blog posts.
+        ViewSet for managing blog articles.
         Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled posts.
+        Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
         FA:
-        ViewSet برای مدیریت پست‌های بلاگ.
+        ViewSet برای مدیریت مقاله‌های بلاگ.
         فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
       tags:
-      - posts
+      - articles
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostCreatePostPostCreateUpdateSerializer200'
+                $ref: '#/components/schemas/StdArticleCreatePostArticleCreateUpdateSerializer200'
           description: ''
-  /api/posts/{post_slug}/comments/:
+  /api/articles/{article_slug}/comments/:
     get:
-      operationId: posts_comments_list
+      operationId: articles_comments_list
       description: |-
-        EN: ViewSet to list approved comments for a specific post.
-        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
+        EN: ViewSet to list approved comments for a specific article.
+        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک مقاله خاص.
       parameters:
+      - in: path
+        name: article_slug
+        schema:
+          type: string
+        description: The slug of the article to get comments for.
+        required: true
       - name: ordering
         required: false
         in: query
@@ -1407,59 +171,57 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
-      - in: path
-        name: post_slug
-        schema:
-          type: string
-        description: The slug of the post to get comments for.
-        required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedStdPostCommentListGetCommentListSerializer200List'
+                $ref: '#/components/schemas/PaginatedStdArticleCommentListGetCommentListSerializer200List'
           description: ''
-  /api/posts/{post_slug}/comments/{id}/:
+  /api/articles/{article_slug}/comments/{id}/:
     get:
-      operationId: posts_comments_retrieve
+      operationId: articles_comments_retrieve
       description: |-
-        EN: ViewSet to list approved comments for a specific post.
-        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک پست خاص.
+        EN: ViewSet to list approved comments for a specific article.
+        FA: ViewSet برای لیست کردن نظرات تایید شده برای یک مقاله خاص.
       parameters:
+      - in: path
+        name: article_slug
+        schema:
+          type: string
+        description: The slug of the article to get comments for.
+        required: true
       - in: path
         name: id
         schema:
           type: integer
         description: A unique integer value identifying this comment.
         required: true
-      - in: path
-        name: post_slug
-        schema:
-          type: string
-        description: The slug of the post to get comments for.
-        required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostCommentRetrieveGetCommentListSerializer200'
+                $ref: '#/components/schemas/StdArticleCommentRetrieveGetCommentListSerializer200'
           description: ''
-  /api/posts/{slug}/:
+  /api/articles/{slug}/:
     get:
-      operationId: posts_retrieve
+      operationId: articles_retrieve
       description: |-
-        EN: Increments the view count and returns post details.
-        FA: تعداد بازدیدها را افزایش داده و جزئیات پست را بازمی‌گرداند.
+        EN: Increments the view count and returns article details.
+        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1467,28 +229,30 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostRetrieveGetPostDetailSerializer200'
+                $ref: '#/components/schemas/StdArticleRetrieveGetArticleDetailSerializer200'
           description: ''
     put:
-      operationId: posts_update
+      operationId: articles_update
       description: |-
         EN:
-        ViewSet for managing blog posts.
+        ViewSet for managing blog articles.
         Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled posts.
+        Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
         FA:
-        ViewSet برای مدیریت پست‌های بلاگ.
+        ViewSet برای مدیریت مقاله‌های بلاگ.
         فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1496,38 +260,41 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PostCreateUpdateRequest'
+              $ref: '#/components/schemas/ArticleCreateUpdateRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostUpdatePutPostCreateUpdateSerializer200'
+                $ref: '#/components/schemas/StdArticleUpdatePutArticleCreateUpdateSerializer200'
           description: ''
     patch:
-      operationId: posts_partial_update
+      operationId: articles_partial_update
       description: |-
         EN:
-        ViewSet for managing blog posts.
+        ViewSet for managing blog articles.
         Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled posts.
+        Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
         FA:
-        ViewSet برای مدیریت پست‌های بلاگ.
+        ViewSet برای مدیریت مقاله‌های بلاگ.
         فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1535,37 +302,40 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPostCreateUpdateRequest'
+              $ref: '#/components/schemas/PatchedArticleCreateUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPostCreateUpdateRequest'
+              $ref: '#/components/schemas/PatchedArticleCreateUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPostCreateUpdateRequest'
+              $ref: '#/components/schemas/PatchedArticleCreateUpdateRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostPartial_updatePatchPostCreateUpdateSerializer200'
+                $ref: '#/components/schemas/StdArticlePartial_updatePatchArticleCreateUpdateSerializer200'
           description: ''
     delete:
-      operationId: posts_destroy
+      operationId: articles_destroy
       description: |-
         EN:
-        ViewSet for managing blog posts.
+        ViewSet for managing blog articles.
         Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled posts.
+        Handles complex queryset optimizations and access control for drafts/scheduled articles.
 
         FA:
-        ViewSet برای مدیریت پست‌های بلاگ.
+        ViewSet برای مدیریت مقاله‌های بلاگ.
         فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و پست‌های زمان‌بندی شده را مدیریت می‌کند.
+        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
       parameters:
       - in: path
         name: slug
@@ -1573,14 +343,17 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
-  /api/posts/{slug}/publish/:
+  /api/articles/{slug}/publish/:
     post:
-      operationId: posts_publish_create
-      description: Publish a draft or scheduled post.
+      operationId: articles_publish_create
+      description: Publish a draft or scheduled article.
       parameters:
       - in: path
         name: slug
@@ -1588,18 +361,21 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PostDetail'
+                $ref: '#/components/schemas/ArticleDetail'
           description: ''
-  /api/posts/{slug}/related/:
+  /api/articles/{slug}/related/:
     get:
-      operationId: posts_related_list
-      description: Get related posts based on tags.
+      operationId: articles_related_list
+      description: Get related articles based on tags.
       parameters:
       - in: path
         name: slug
@@ -1607,8 +383,10 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
@@ -1617,14 +395,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PostList'
+                  $ref: '#/components/schemas/ArticleList'
           description: ''
-  /api/posts/{slug}/same-category/:
+  /api/articles/{slug}/same-category/:
     get:
-      operationId: posts_same_category_retrieve
+      operationId: articles_same_category_retrieve
       description: |-
-        EN: Returns paginated posts from the same category.
-        FA: پست‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
+        EN: Returns paginated articles from the same category.
+        FA: مقاله‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1632,22 +410,24 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostSame_categoryGetPostListSerializer200'
+                $ref: '#/components/schemas/StdArticleSame_categoryGetArticleListSerializer200'
           description: ''
-  /api/posts/{slug}/similar/:
+  /api/articles/{slug}/similar/:
     get:
-      operationId: posts_similar_retrieve
+      operationId: articles_similar_retrieve
       description: |-
-        EN: Returns similar posts based on the category.
-        FA: پست‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
+        EN: Returns similar articles based on the category.
+        FA: مقاله‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -1655,22 +435,24 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostSimilarGetPostListSerializer200'
+                $ref: '#/components/schemas/StdArticleSimilarGetArticleListSerializer200'
           description: ''
-  /api/posts/slug/{slug}/:
+  /api/articles/slug/{slug}/:
     get:
-      operationId: posts_slug_retrieve
+      operationId: articles_slug_retrieve
       description: |-
-        EN: Endpoint to retrieve a single post by its slug.
-        FA: اندپوینت برای دریافت یک پست واحد با استفاده از اسلاگ آن.
+        EN: Endpoint to retrieve a single article by its slug and language.
+        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن.
       parameters:
       - in: path
         name: slug
@@ -1678,16 +460,1929 @@ paths:
           type: string
         required: true
       tags:
-      - posts
+      - articles
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPostBy_slugGetPostListSerializer200'
+                $ref: '#/components/schemas/StdArticleBy_slugGetArticleListSerializer200'
           description: ''
+  /api/auth/admin-login/:
+    post:
+      operationId: auth_admin_login_create
+      description: |-
+        EN: Handles JWT token generation for a user.
+        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
+          description: ''
+  /api/authors/:
+    get:
+      operationId: authors_list
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      tags:
+      - authors
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdAuthorProfileListGetAuthorProfileSerializer200'
+          description: ''
+    post:
+      operationId: authors_create
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileCreatePostAuthorProfileSerializer200'
+          description: ''
+  /api/authors/{user}/:
+    get:
+      operationId: authors_retrieve
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: A unique value identifying this author profile.
+        required: true
+      tags:
+      - authors
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileRetrieveGetAuthorProfileSerializer200'
+          description: ''
+    put:
+      operationId: authors_update
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: A unique value identifying this author profile.
+        required: true
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthorProfileRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfileUpdatePutAuthorProfileSerializer200'
+          description: ''
+    patch:
+      operationId: authors_partial_update
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: A unique value identifying this author profile.
+        required: true
+      tags:
+      - authors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthorProfileRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdAuthorProfilePartial_updatePatchAuthorProfileSerializer200'
+          description: ''
+    delete:
+      operationId: authors_destroy
+      description: |-
+        EN: ViewSet for managing author profiles.
+        FA: ViewSet برای مدیریت پروفایل‌های نویسندگان.
+      parameters:
+      - in: path
+        name: user
+        schema:
+          type: integer
+        description: A unique value identifying this author profile.
+        required: true
+      tags:
+      - authors
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/categories/:
+    get:
+      operationId: categories_list
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      tags:
+      - categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdCategoryListGetCategorySerializer200'
+          description: ''
+    post:
+      operationId: categories_create
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryCreatePostCategorySerializer200'
+          description: ''
+  /api/categories/{id}/:
+    get:
+      operationId: categories_retrieve
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryRetrieveGetCategorySerializer200'
+          description: ''
+    put:
+      operationId: categories_update
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryUpdatePutCategorySerializer200'
+          description: ''
+    patch:
+      operationId: categories_partial_update
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCategoryPartial_updatePatchCategorySerializer200'
+          description: ''
+    delete:
+      operationId: categories_destroy
+      description: |-
+        EN: ViewSet for managing article categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this category.
+        required: true
+      tags:
+      - categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/comments/:
+    get:
+      operationId: comments_list
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - comments
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStdCommentListGetCommentSerializer200List'
+          description: ''
+    post:
+      operationId: comments_create
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCommentCreatePostCommentSerializer200'
+          description: ''
+  /api/comments/{id}/:
+    get:
+      operationId: comments_retrieve
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - comments
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCommentRetrieveGetCommentSerializer200'
+          description: ''
+    put:
+      operationId: comments_update
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCommentUpdatePutCommentSerializer200'
+          description: ''
+    patch:
+      operationId: comments_partial_update
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - comments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCommentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCommentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCommentRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdCommentPartial_updatePatchCommentSerializer200'
+          description: ''
+    delete:
+      operationId: comments_destroy
+      description: |-
+        EN:
+        ViewSet for managing comments.
+        Regular users only see approved comments, while staff can see all.
+        Triggers a notification task upon comment creation.
+
+        FA:
+        ViewSet برای مدیریت نظرات.
+        کاربران عادی فقط نظرات تایید شده را می‌بینند، در حالی که کارکنان به همه نظرات دسترسی دارند.
+        هنگام ایجاد نظر، یک تسک اعلان را اجرا می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      tags:
+      - comments
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/gallery/:
+    get:
+      operationId: gallery_list
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - gallery
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdGalleryItemListGetGalleryItemSerializer200'
+          description: ''
+    post:
+      operationId: gallery_create
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      tags:
+      - gallery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdGalleryItemCreatePostGalleryItemSerializer200'
+          description: ''
+  /api/gallery/{id}/:
+    get:
+      operationId: gallery_retrieve
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gallery item.
+        required: true
+      tags:
+      - gallery
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdGalleryItemRetrieveGetGalleryItemSerializer200'
+          description: ''
+    put:
+      operationId: gallery_update
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gallery item.
+        required: true
+      tags:
+      - gallery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GalleryItemRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdGalleryItemUpdatePutGalleryItemSerializer200'
+          description: ''
+    patch:
+      operationId: gallery_partial_update
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gallery item.
+        required: true
+      tags:
+      - gallery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGalleryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGalleryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGalleryItemRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdGalleryItemPartial_updatePatchGalleryItemSerializer200'
+          description: ''
+    delete:
+      operationId: gallery_destroy
+      description: |-
+        EN: ViewSet for managing gallery items.
+        FA: ViewSet برای مدیریت گالری تصاویر.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gallery item.
+        required: true
+      tags:
+      - gallery
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/media/:
+    get:
+      operationId: media_list
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - media
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStdMediaListGetMediaDetailSerializer200List'
+          description: ''
+    post:
+      operationId: media_create
+      description: |-
+        EN: Handles media file upload and returns the detailed representation of the created object.
+        FA: آپلود فایل رسانه را مدیریت کرده و نمایش جزئی شیء ایجاد شده را بازمی‌گرداند.
+      tags:
+      - media
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MediaCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MediaCreateRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMediaCreatePostMediaCreateSerializer200'
+          description: ''
+  /api/media/{id}/:
+    get:
+      operationId: media_retrieve
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this media.
+        required: true
+      tags:
+      - media
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMediaRetrieveGetMediaDetailSerializer200'
+          description: ''
+    put:
+      operationId: media_update
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this media.
+        required: true
+      tags:
+      - media
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MediaDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MediaDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MediaDetailRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMediaUpdatePutMediaDetailSerializer200'
+          description: ''
+    patch:
+      operationId: media_partial_update
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this media.
+        required: true
+      tags:
+      - media
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMediaDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMediaDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMediaDetailRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMediaPartial_updatePatchMediaDetailSerializer200'
+          description: ''
+    delete:
+      operationId: media_destroy
+      description: |-
+        EN:
+        ViewSet for managing media library.
+        Allows authenticated users to upload files and owners/admins to edit/delete them.
+
+        FA:
+        ViewSet برای مدیریت کتابخانه رسانه.
+        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this media.
+        required: true
+      tags:
+      - media
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/menu-items/:
+    get:
+      operationId: menu_items_list
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      tags:
+      - menu-items
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdMenuItemListGetMenuItemSerializer200'
+          description: ''
+    post:
+      operationId: menu_items_create
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      tags:
+      - menu-items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuItemCreatePostMenuItemSerializer200'
+          description: ''
+  /api/menu-items/{id}/:
+    get:
+      operationId: menu_items_retrieve
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu item.
+        required: true
+      tags:
+      - menu-items
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuItemRetrieveGetMenuItemSerializer200'
+          description: ''
+    put:
+      operationId: menu_items_update
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu item.
+        required: true
+      tags:
+      - menu-items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuItemUpdatePutMenuItemSerializer200'
+          description: ''
+    patch:
+      operationId: menu_items_partial_update
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu item.
+        required: true
+      tags:
+      - menu-items
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuItemPartial_updatePatchMenuItemSerializer200'
+          description: ''
+    delete:
+      operationId: menu_items_destroy
+      description: |-
+        EN:
+        ViewSet for managing individual menu items.
+        Allows administrative control over links and their hierarchy.
+
+        FA:
+        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
+        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu item.
+        required: true
+      tags:
+      - menu-items
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/menus/:
+    get:
+      operationId: menus_list
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      tags:
+      - menus
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdMenuListGetMenuSerializer200'
+          description: ''
+    post:
+      operationId: menus_create
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      tags:
+      - menus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuCreatePostMenuSerializer200'
+          description: ''
+  /api/menus/{id}/:
+    get:
+      operationId: menus_retrieve
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu.
+        required: true
+      tags:
+      - menus
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuRetrieveGetMenuSerializer200'
+          description: ''
+    put:
+      operationId: menus_update
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu.
+        required: true
+      tags:
+      - menus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuUpdatePutMenuSerializer200'
+          description: ''
+    patch:
+      operationId: menus_partial_update
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu.
+        required: true
+      tags:
+      - menus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdMenuPartial_updatePatchMenuSerializer200'
+          description: ''
+    delete:
+      operationId: menus_destroy
+      description: |-
+        EN:
+        ViewSet for managing navigation menus.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت منوهای پیمایش.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this menu.
+        required: true
+      tags:
+      - menus
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/pages/:
+    get:
+      operationId: pages_list
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      tags:
+      - pages
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdPageListGetPageSerializer200'
+          description: ''
+    post:
+      operationId: pages_create
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      tags:
+      - pages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPageCreatePostPageSerializer200'
+          description: ''
+  /api/pages/{id}/:
+    get:
+      operationId: pages_retrieve
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this page.
+        required: true
+      tags:
+      - pages
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPageRetrieveGetPageSerializer200'
+          description: ''
+    put:
+      operationId: pages_update
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this page.
+        required: true
+      tags:
+      - pages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PageRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPageUpdatePutPageSerializer200'
+          description: ''
+    patch:
+      operationId: pages_partial_update
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this page.
+        required: true
+      tags:
+      - pages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPageRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPagePartial_updatePatchPageSerializer200'
+          description: ''
+    delete:
+      operationId: pages_destroy
+      description: |-
+        EN:
+        ViewSet for managing static pages.
+        Provides read-only access to everyone and full access to administrators.
+
+        FA:
+        ViewSet برای مدیریت صفحات استاتیک.
+        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this page.
+        required: true
+      tags:
+      - pages
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/podcast-categories/:
+    get:
+      operationId: podcast_categories_list
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - podcast-categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdPodcastCategoryListGetPodcastCategorySerializer200'
+          description: ''
+    post:
+      operationId: podcast_categories_create
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      tags:
+      - podcast-categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastCategoryCreatePostPodcastCategorySerializer200'
+          description: ''
+  /api/podcast-categories/{id}/:
+    get:
+      operationId: podcast_categories_retrieve
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this podcast category.
+        required: true
+      tags:
+      - podcast-categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastCategoryRetrieveGetPodcastCategorySerializer200'
+          description: ''
+    put:
+      operationId: podcast_categories_update
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this podcast category.
+        required: true
+      tags:
+      - podcast-categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PodcastCategoryRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastCategoryUpdatePutPodcastCategorySerializer200'
+          description: ''
+    patch:
+      operationId: podcast_categories_partial_update
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this podcast category.
+        required: true
+      tags:
+      - podcast-categories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastCategoryRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastCategoryPartial_updatePatchPodcastCategorySerializer200'
+          description: ''
+    delete:
+      operationId: podcast_categories_destroy
+      description: |-
+        EN: ViewSet for managing podcast categories.
+        FA: ViewSet برای مدیریت دسته‌بندی‌های پادکست.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this podcast category.
+        required: true
+      tags:
+      - podcast-categories
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/podcasts/:
+    get:
+      operationId: podcasts_list
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: media_type
+        schema:
+          type: string
+          enum:
+          - audio
+          - video
+        description: |-
+          * `audio` - Audio
+          * `video` - Video
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - podcasts
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StdPodcastListGetPodcastSerializer200'
+          description: ''
+    post:
+      operationId: podcasts_create
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      tags:
+      - podcasts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastCreatePostPodcastSerializer200'
+          description: ''
+  /api/podcasts/{slug}/:
+    get:
+      operationId: podcasts_retrieve
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - podcasts
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastRetrieveGetPodcastSerializer200'
+          description: ''
+    put:
+      operationId: podcasts_update
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - podcasts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PodcastRequest'
+        required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastUpdatePutPodcastSerializer200'
+          description: ''
+    patch:
+      operationId: podcasts_partial_update
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - podcasts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPodcastRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdPodcastPartial_updatePatchPodcastSerializer200'
+          description: ''
+    delete:
+      operationId: podcasts_destroy
+      description: |-
+        EN: ViewSet for managing podcasts.
+        FA: ViewSet برای مدیریت پادکست‌ها.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - podcasts
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/reactions/:
     get:
       operationId: reactions_list
@@ -1701,6 +2396,9 @@ paths:
         کاربران فقط می‌توانند واکنش‌های خودشان را مدیریت کنند.
       tags:
       - reactions
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -1734,6 +2432,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ReactionRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '201':
           content:
@@ -1761,6 +2462,9 @@ paths:
         required: true
       tags:
       - reactions
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -1799,6 +2503,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ReactionRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -1836,6 +2543,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedReactionRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -1862,6 +2572,9 @@ paths:
         required: true
       tags:
       - reactions
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
@@ -1869,11 +2582,13 @@ paths:
     get:
       operationId: revisions_list
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       tags:
       - revisions
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
@@ -1887,8 +2602,8 @@ paths:
     post:
       operationId: revisions_create
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       tags:
       - revisions
       requestBody:
@@ -1903,6 +2618,9 @@ paths:
             schema:
               $ref: '#/components/schemas/RevisionRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '201':
           content:
@@ -1914,8 +2632,8 @@ paths:
     get:
       operationId: revisions_retrieve
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -1926,6 +2644,8 @@ paths:
       tags:
       - revisions
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
@@ -1937,8 +2657,8 @@ paths:
     put:
       operationId: revisions_update
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -1960,6 +2680,9 @@ paths:
             schema:
               $ref: '#/components/schemas/RevisionRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -1970,8 +2693,8 @@ paths:
     patch:
       operationId: revisions_partial_update
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -1992,6 +2715,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedRevisionRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2002,8 +2728,8 @@ paths:
     delete:
       operationId: revisions_destroy
       description: |-
-        EN: ViewSet for viewing post revisions.
-        FA: ViewSet برای مشاهده بازنگری‌های پست.
+        EN: ViewSet for viewing article revisions.
+        FA: ViewSet برای مشاهده بازنگری‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2013,6 +2739,9 @@ paths:
         required: true
       tags:
       - revisions
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
@@ -2020,10 +2749,13 @@ paths:
     get:
       operationId: series_list
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       tags:
       - series
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2036,8 +2768,8 @@ paths:
     post:
       operationId: series_create
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       tags:
       - series
       requestBody:
@@ -2052,6 +2784,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SeriesRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '201':
           content:
@@ -2063,8 +2798,8 @@ paths:
     get:
       operationId: series_retrieve
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2074,6 +2809,9 @@ paths:
         required: true
       tags:
       - series
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2084,8 +2822,8 @@ paths:
     put:
       operationId: series_update
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2107,6 +2845,9 @@ paths:
             schema:
               $ref: '#/components/schemas/SeriesRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2117,8 +2858,8 @@ paths:
     patch:
       operationId: series_partial_update
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2139,6 +2880,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedSeriesRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2149,8 +2893,8 @@ paths:
     delete:
       operationId: series_destroy
       description: |-
-        EN: ViewSet for managing post series.
-        FA: ViewSet برای مدیریت مجموعه‌های پست.
+        EN: ViewSet for managing article series.
+        FA: ViewSet برای مدیریت مجموعه‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2160,6 +2904,9 @@ paths:
         required: true
       tags:
       - series
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
@@ -2167,10 +2914,13 @@ paths:
     get:
       operationId: tags_list
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       tags:
       - tags
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2183,8 +2933,8 @@ paths:
     post:
       operationId: tags_create
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       tags:
       - tags
       requestBody:
@@ -2199,6 +2949,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TagRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '201':
           content:
@@ -2210,8 +2963,8 @@ paths:
     get:
       operationId: tags_retrieve
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2221,6 +2974,9 @@ paths:
         required: true
       tags:
       - tags
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2231,8 +2987,8 @@ paths:
     put:
       operationId: tags_update
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2254,6 +3010,9 @@ paths:
             schema:
               $ref: '#/components/schemas/TagRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2264,8 +3023,8 @@ paths:
     patch:
       operationId: tags_partial_update
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2286,6 +3045,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedTagRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2296,8 +3058,8 @@ paths:
     delete:
       operationId: tags_destroy
       description: |-
-        EN: ViewSet for managing post tags.
-        FA: ViewSet برای مدیریت برچسب‌های پست.
+        EN: ViewSet for managing article tags.
+        FA: ViewSet برای مدیریت برچسب‌های مقاله.
       parameters:
       - in: path
         name: id
@@ -2307,6 +3069,9 @@ paths:
         required: true
       tags:
       - tags
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
@@ -2386,6 +3151,9 @@ paths:
           type: string
       tags:
       - users
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2420,6 +3188,8 @@ paths:
               $ref: '#/components/schemas/UserCreateRequest'
         required: true
       security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '201':
@@ -2448,6 +3218,9 @@ paths:
         required: true
       tags:
       - users
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2486,6 +3259,9 @@ paths:
             schema:
               $ref: '#/components/schemas/UserRequest'
         required: true
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2523,6 +3299,9 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2549,6 +3328,9 @@ paths:
         required: true
       tags:
       - users
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '204':
           description: No response body
@@ -2560,6 +3342,9 @@ paths:
         FA: اندپوینت برای دریافت پروفایل کاربر فعلی که احراز هویت شده است.
       tags:
       - users
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
       responses:
         '200':
           content:
@@ -2569,11 +3354,380 @@ paths:
           description: ''
 components:
   schemas:
-    AuthorForPost:
+    ArticleCreateUpdate:
       type: object
       description: |-
-        EN: Minimal author serializer for inclusion in Post representation.
-        FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش پست.
+        EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        is_hot:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        scheduled_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        category:
+          allOf:
+          - $ref: '#/components/schemas/Category'
+          readOnly: true
+        series:
+          type: integer
+          nullable: true
+        cover_image:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        og_image:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        canonical_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        views_count:
+          type: integer
+          readOnly: true
+        related_articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleList'
+          readOnly: true
+      required:
+      - category
+      - cover_image
+      - id
+      - og_image
+      - published_at
+      - related_articles
+      - scheduled_at
+      - tags
+      - views_count
+    ArticleCreateUpdateRequest:
+      type: object
+      description: |-
+        EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
+      properties:
+        language_code:
+          type: string
+          writeOnly: true
+          minLength: 1
+          default: en
+        title:
+          type: string
+          writeOnly: true
+          minLength: 1
+        excerpt:
+          type: string
+          writeOnly: true
+          minLength: 1
+        short_description:
+          type: string
+          writeOnly: true
+          nullable: true
+        content:
+          type: string
+          writeOnly: true
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        is_hot:
+          type: boolean
+        series:
+          type: integer
+          nullable: true
+        seo_title:
+          type: string
+          writeOnly: true
+        seo_description:
+          type: string
+          writeOnly: true
+        slug:
+          type: string
+          writeOnly: true
+          minLength: 1
+          pattern: ^[-a-zA-Z0-9_]+$
+        canonical_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        tag_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        category_id:
+          type: integer
+          writeOnly: true
+        cover_image_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        og_image_id:
+          type: integer
+          writeOnly: true
+          nullable: true
+        related_article_ids:
+          type: array
+          items:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        publish_at:
+          type: string
+          format: date-time
+          writeOnly: true
+          nullable: true
+      required:
+      - content
+      - excerpt
+      - title
+    ArticleDetail:
+      type: object
+      description: |-
+        EN: Comprehensive serializer for detailed Article view, including content and attachments.
+        FA: سریالایزر جامع برای نمای جزئیات مقاله، شامل محتوا و پیوست‌ها.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        excerpt:
+          type: string
+          readOnly: true
+        short_description:
+          type: string
+          readOnly: true
+        reading_time_sec:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        is_hot:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/AuthorForArticle'
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        cover_image:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        views_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        likes_count:
+          type: integer
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        content:
+          type: string
+          readOnly: true
+        canonical_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        series:
+          allOf:
+          - $ref: '#/components/schemas/Series'
+          readOnly: true
+        seo_title:
+          type: string
+          readOnly: true
+        seo_description:
+          type: string
+          readOnly: true
+        og_image:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        media_attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleMedia'
+          readOnly: true
+        related_articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleList'
+          readOnly: true
+      required:
+      - author
+      - category
+      - comments_count
+      - content
+      - cover_image
+      - excerpt
+      - id
+      - likes_count
+      - media_attachments
+      - og_image
+      - published_at
+      - reading_time_sec
+      - related_articles
+      - seo_description
+      - seo_title
+      - series
+      - short_description
+      - slug
+      - tags
+      - title
+    ArticleList:
+      type: object
+      description: |-
+        EN: Optimized serializer for listing Articles with essential fields.
+        FA: سریالایزر بهینه‌سازی شده برای لیست کردن مقاله‌ها با فیلدهای ضروری.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        slug:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        excerpt:
+          type: string
+          readOnly: true
+        short_description:
+          type: string
+          readOnly: true
+        reading_time_sec:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        is_hot:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        author:
+          allOf:
+          - $ref: '#/components/schemas/AuthorForArticle'
+          readOnly: true
+        category:
+          type: string
+          readOnly: true
+        cover_image:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        views_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        likes_count:
+          type: integer
+          readOnly: true
+        comments_count:
+          type: integer
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+      required:
+      - author
+      - category
+      - comments_count
+      - cover_image
+      - excerpt
+      - id
+      - likes_count
+      - published_at
+      - reading_time_sec
+      - short_description
+      - slug
+      - tags
+      - title
+    ArticleListRequest:
+      type: object
+      description: |-
+        EN: Optimized serializer for listing Articles with essential fields.
+        FA: سریالایزر بهینه‌سازی شده برای لیست کردن مقاله‌ها با فیلدهای ضروری.
+      properties:
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        is_hot:
+          type: boolean
+        views_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+    ArticleMedia:
+      type: object
+      description: |-
+        EN: Serializer for the relationship between Articles and Media.
+        FA: سریالایزر برای رابطه بین مقاله‌ها و رسانه‌ها.
+      properties:
+        media:
+          allOf:
+          - $ref: '#/components/schemas/MediaDetail'
+          readOnly: true
+        attachment_type:
+          type: string
+          maxLength: 50
+      required:
+      - media
+    AuthorForArticle:
+      type: object
+      description: |-
+        EN: Minimal author serializer for inclusion in Article representation.
+        FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش مقاله.
       properties:
         display_name:
           type: string
@@ -2584,6 +3738,18 @@ components:
           readOnly: true
       required:
       - avatar
+      - display_name
+    AuthorForArticleRequest:
+      type: object
+      description: |-
+        EN: Minimal author serializer for inclusion in Article representation.
+        FA: سریالایزر حداقلی نویسنده برای استفاده در نمایش مقاله.
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+      required:
       - display_name
     AuthorProfile:
       type: object
@@ -2643,6 +3809,10 @@ components:
         parent:
           type: integer
           nullable: true
+        icon:
+          type: string
+          format: uri
+          nullable: true
       required:
       - id
       - name
@@ -2665,6 +3835,10 @@ components:
         parent:
           type: integer
           nullable: true
+        icon:
+          type: string
+          format: binary
+          nullable: true
       required:
       - name
       - slug
@@ -2677,7 +3851,7 @@ components:
         id:
           type: integer
           readOnly: true
-        post:
+        article:
           type: integer
         user:
           type: integer
@@ -2695,10 +3869,10 @@ components:
         status:
           $ref: '#/components/schemas/CommentStatusEnum'
       required:
+      - article
       - content
       - created_at
       - id
-      - post
       - user
     CommentList:
       type: object
@@ -2738,7 +3912,7 @@ components:
         EN: Serializer for creating and managing individual Comments.
         FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
       properties:
-        post:
+        article:
           type: integer
         parent:
           type: integer
@@ -2749,8 +3923,8 @@ components:
         status:
           $ref: '#/components/schemas/CommentStatusEnum'
       required:
+      - article
       - content
-      - post
     CommentStatusEnum:
       enum:
       - pending
@@ -2798,6 +3972,67 @@ components:
       required:
       - password
       - username
+    GalleryItem:
+      type: object
+      description: |-
+        EN: Serializer for GalleryItem model.
+        FA: سریالایزر برای مدل گالری تصاویر.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        image:
+          type: string
+          format: uri
+        caption:
+          type: string
+          maxLength: 255
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
+      required:
+      - caption
+      - id
+      - image
+    GalleryItemRequest:
+      type: object
+      description: |-
+        EN: Serializer for GalleryItem model.
+        FA: سریالایزر برای مدل گالری تصاویر.
+      properties:
+        image:
+          type: string
+          format: binary
+        caption:
+          type: string
+          minLength: 1
+          maxLength: 255
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
+      required:
+      - caption
+      - image
     LocationEnum:
       enum:
       - header
@@ -2964,6 +4199,14 @@ components:
       - storage_key
       - type
       - url
+    MediaTypeEnum:
+      enum:
+      - audio
+      - video
+      type: string
+      description: |-
+        * `audio` - Audio
+        * `video` - Video
     Menu:
       type: object
       description: |-
@@ -3109,6 +4352,60 @@ components:
       description: |-
         * `manual` - Manual
         * `by_date` - By Date
+    PagStdArticleCommentListGetCommentListSerializer200:
+      type: object
+      properties:
+        pageNo:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 10
+        totalPage:
+          type: integer
+          default: 1
+        totalCount:
+          type: integer
+          default: 1
+        lastId:
+          type: string
+          nullable: true
+    PagStdArticleListGetArticleListSerializer200:
+      type: object
+      properties:
+        pageNo:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 10
+        totalPage:
+          type: integer
+          default: 1
+        totalCount:
+          type: integer
+          default: 1
+        lastId:
+          type: string
+          nullable: true
+    PagStdArticleSame_categoryGetArticleListSerializer200:
+      type: object
+      properties:
+        pageNo:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 10
+        totalPage:
+          type: integer
+          default: 1
+        totalCount:
+          type: integer
+          default: 1
+        lastId:
+          type: string
+          nullable: true
     PagStdCommentListGetCommentSerializer200:
       type: object
       properties:
@@ -3128,60 +4425,6 @@ components:
           type: string
           nullable: true
     PagStdMediaListGetMediaDetailSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostCommentListGetCommentListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostListGetPostListSerializer200:
-      type: object
-      properties:
-        pageNo:
-          type: integer
-          default: 1
-        pageSize:
-          type: integer
-          default: 10
-        totalPage:
-          type: integer
-          default: 1
-        totalCount:
-          type: integer
-          default: 1
-        lastId:
-          type: string
-          nullable: true
-    PagStdPostSame_categoryGetPostListSerializer200:
       type: object
       properties:
         pageNo:
@@ -3284,6 +4527,52 @@ components:
       - content
       - slug
       - title
+    PaginatedStdArticleCommentListGetCommentListSerializer200List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StdArticleCommentListGetCommentListSerializer200'
+    PaginatedStdArticleListGetArticleListSerializer200List:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StdArticleListGetArticleListSerializer200'
     PaginatedStdCommentListGetCommentSerializer200List:
       type: object
       required:
@@ -3330,52 +4619,86 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StdMediaListGetMediaDetailSerializer200'
-    PaginatedStdPostCommentListGetCommentListSerializer200List:
+    PatchedArticleCreateUpdateRequest:
       type: object
-      required:
-      - count
-      - results
+      description: |-
+        EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.
+        FA: سریالایزر برای ایجاد و به‌روزرسانی مقاله‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
       properties:
-        count:
+        language_code:
+          type: string
+          writeOnly: true
+          minLength: 1
+          default: en
+        title:
+          type: string
+          writeOnly: true
+          minLength: 1
+        excerpt:
+          type: string
+          writeOnly: true
+          minLength: 1
+        short_description:
+          type: string
+          writeOnly: true
+          nullable: true
+        content:
+          type: string
+          writeOnly: true
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/PostStatusEnum'
+        visibility:
+          $ref: '#/components/schemas/VisibilityEnum'
+        is_hot:
+          type: boolean
+        series:
           type: integer
-          example: 123
-        next:
-          type: string
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
+        seo_title:
           type: string
-          nullable: true
+          writeOnly: true
+        seo_description:
+          type: string
+          writeOnly: true
+        slug:
+          type: string
+          writeOnly: true
+          minLength: 1
+          pattern: ^[-a-zA-Z0-9_]+$
+        canonical_url:
+          type: string
           format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
+          nullable: true
+          maxLength: 200
+        tag_ids:
           type: array
           items:
-            $ref: '#/components/schemas/StdPostCommentListGetCommentListSerializer200'
-    PaginatedStdPostListGetPostListSerializer200List:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        category_id:
           type: integer
-          example: 123
-        next:
-          type: string
+          writeOnly: true
+        cover_image_id:
+          type: integer
+          writeOnly: true
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
+        og_image_id:
+          type: integer
+          writeOnly: true
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
+        related_article_ids:
           type: array
           items:
-            $ref: '#/components/schemas/StdPostListGetPostListSerializer200'
+            type: integer
+            writeOnly: true
+          writeOnly: true
+        publish_at:
+          type: string
+          format: date-time
+          writeOnly: true
+          nullable: true
     PatchedAuthorProfileRequest:
       type: object
       description: |-
@@ -3411,13 +4734,17 @@ components:
         parent:
           type: integer
           nullable: true
+        icon:
+          type: string
+          format: binary
+          nullable: true
     PatchedCommentRequest:
       type: object
       description: |-
         EN: Serializer for creating and managing individual Comments.
         FA: سریالایزر برای ایجاد و مدیریت نظرات فردی.
       properties:
-        post:
+        article:
           type: integer
         parent:
           type: integer
@@ -3427,6 +4754,32 @@ components:
           minLength: 1
         status:
           $ref: '#/components/schemas/CommentStatusEnum'
+    PatchedGalleryItemRequest:
+      type: object
+      description: |-
+        EN: Serializer for GalleryItem model.
+        FA: سریالایزر برای مدل گالری تصاویر.
+      properties:
+        image:
+          type: string
+          format: binary
+        caption:
+          type: string
+          minLength: 1
+          maxLength: 255
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        link:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
     PatchedMediaDetailRequest:
       type: object
       description: |-
@@ -3558,68 +4911,87 @@ components:
           maxLength: 255
         seo_description:
           type: string
-    PatchedPostCreateUpdateRequest:
+    PatchedPodcastCategoryRequest:
       type: object
       description: |-
-        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
-        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
+        EN: Serializer for PodcastCategory model.
+        FA: سریالایزر برای مدل دسته‌بندی پادکست.
       properties:
         title:
           type: string
           minLength: 1
           maxLength: 255
-        excerpt:
-          type: string
-          minLength: 1
-        content:
-          type: string
-          minLength: 1
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
-        is_hot:
-          type: boolean
-        series:
-          type: integer
-          nullable: true
-        seo_title:
-          type: string
-          maxLength: 255
-        seo_description:
-          type: string
         slug:
           type: string
           minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        canonical_url:
+          pattern: ^[-\w]+$
+          maxLength: 255
+        icon:
+          type: string
+          format: binary
+          nullable: true
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
+    PatchedPodcastRequest:
+      type: object
+      description: |-
+        EN: Serializer for Podcast model.
+        FA: سریالایزر برای مدل پادکست.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          pattern: ^[-\w]+$
+          maxLength: 255
+        category:
+          type: integer
+        episode_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        cover_image:
+          type: string
+          format: binary
+        audio_file:
+          type: string
+          format: binary
+          nullable: true
+        media_type:
+          $ref: '#/components/schemas/MediaTypeEnum'
+        video_file:
+          type: string
+          format: binary
+          nullable: true
+        video_url:
           type: string
           format: uri
           nullable: true
           maxLength: 200
-        tag_ids:
+        description:
+          type: string
+          minLength: 1
+        duration:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Duration in minutes
+        published_date:
+          type: string
+          format: date-time
+        related_podcasts:
           type: array
           items:
             type: integer
-            writeOnly: true
-          writeOnly: true
-        category_id:
-          type: integer
-          writeOnly: true
-        cover_media_id:
-          type: integer
-          writeOnly: true
-          nullable: true
-        og_image_id:
-          type: integer
-          writeOnly: true
-          nullable: true
-        publish_at:
-          type: string
-          format: date-time
-          writeOnly: true
-          nullable: true
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
     PatchedReactionRequest:
       type: object
       description: |-
@@ -3640,12 +5012,16 @@ components:
     PatchedRevisionRequest:
       type: object
       description: |-
-        EN: Serializer for Post Revisions.
-        FA: سریالایزر برای بازنگری‌های پست.
+        EN: Serializer for Article Revisions.
+        FA: سریالایزر برای بازنگری‌های مقاله.
       properties:
         is_active:
           type: boolean
           description: Specifies whether this record is active or not.
+        language_code:
+          type: string
+          minLength: 1
+          maxLength: 10
         content:
           type: string
           minLength: 1
@@ -3659,7 +5035,7 @@ components:
         change_note:
           type: string
           maxLength: 255
-        post:
+        article:
           type: integer
         editor:
           type: integer
@@ -3729,339 +5105,207 @@ components:
           type: string
           format: binary
           nullable: true
-    PostCreateUpdate:
+    Podcast:
       type: object
       description: |-
-        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
-        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
+        EN: Serializer for Podcast model.
+        FA: سریالایزر برای مدل پادکست.
       properties:
+        id:
+          type: integer
+          readOnly: true
         title:
           type: string
           maxLength: 255
-        excerpt:
+        slug:
           type: string
-        content:
-          type: string
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
-        is_hot:
-          type: boolean
-        published_at:
-          type: string
-          format: date-time
-          nullable: true
-          readOnly: true
-        scheduled_at:
-          type: string
-          format: date-time
-          nullable: true
-          readOnly: true
+          pattern: ^[-\w]+$
+          maxLength: 255
         category:
-          allOf:
-          - $ref: '#/components/schemas/Category'
-          readOnly: true
-        series:
           type: integer
+        category_detail:
+          allOf:
+          - $ref: '#/components/schemas/PodcastCategory'
+          readOnly: true
+        episode_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        cover_image:
+          type: string
+          format: uri
+        audio_file:
+          type: string
+          format: uri
           nullable: true
-        cover_media:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        seo_title:
+        media_type:
+          $ref: '#/components/schemas/MediaTypeEnum'
+        video_file:
           type: string
-          maxLength: 255
-        seo_description:
-          type: string
-        og_image:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tag'
-          readOnly: true
-        slug:
-          type: string
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        canonical_url:
+          format: uri
+          nullable: true
+        video_url:
           type: string
           format: uri
           nullable: true
           maxLength: 200
-        views_count:
+        description:
+          type: string
+        duration:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          description: Duration in minutes
+        published_date:
+          type: string
+          format: date-time
+        published_date_jalali:
+          type: string
+          format: date-time
+          readOnly: true
+        view_count:
           type: integer
           readOnly: true
-        reading_time_sec:
-          type: integer
-          readOnly: true
-      required:
-      - category
-      - content
-      - cover_media
-      - excerpt
-      - og_image
-      - published_at
-      - reading_time_sec
-      - scheduled_at
-      - tags
-      - title
-      - views_count
-    PostCreateUpdateRequest:
-      type: object
-      description: |-
-        EN: Serializer for creating and updating Posts, handling complex fields like tags and scheduling.
-        FA: سریالایزر برای ایجاد و به‌روزرسانی پست‌ها، با مدیریت فیلدهای پیچیده مانند برچسب‌ها و زمان‌بندی.
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-        excerpt:
-          type: string
-          minLength: 1
-        content:
-          type: string
-          minLength: 1
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        visibility:
-          $ref: '#/components/schemas/VisibilityEnum'
-        is_hot:
-          type: boolean
-        series:
-          type: integer
-          nullable: true
-        seo_title:
-          type: string
-          maxLength: 255
-        seo_description:
-          type: string
-        slug:
-          type: string
-          minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        canonical_url:
-          type: string
-          format: uri
-          nullable: true
-          maxLength: 200
-        tag_ids:
+        related_podcasts:
           type: array
           items:
             type: integer
-            writeOnly: true
-          writeOnly: true
-        category_id:
-          type: integer
-          writeOnly: true
-        cover_media_id:
-          type: integer
-          writeOnly: true
-          nullable: true
-        og_image_id:
-          type: integer
-          writeOnly: true
-          nullable: true
-        publish_at:
-          type: string
-          format: date-time
-          writeOnly: true
-          nullable: true
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
       required:
-      - content
-      - excerpt
+      - category
+      - category_detail
+      - cover_image
+      - duration
+      - episode_number
+      - id
+      - published_date
+      - published_date_jalali
+      - slug
       - title
-    PostDetail:
+      - view_count
+    PodcastCategory:
       type: object
       description: |-
-        EN: Comprehensive serializer for detailed Post view, including content and attachments.
-        FA: سریالایزر جامع برای نمای جزئیات پست، شامل محتوا و پیوست‌ها.
+        EN: Serializer for PodcastCategory model.
+        FA: سریالایزر برای مدل دسته‌بندی پادکست.
       properties:
         id:
           type: integer
           readOnly: true
-        slug:
-          type: string
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
         title:
           type: string
           maxLength: 255
-        excerpt:
+        slug:
           type: string
-        reading_time_sec:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        is_hot:
-          type: boolean
-        published_at:
+          pattern: ^[-\w]+$
+          maxLength: 255
+        icon:
           type: string
-          format: date-time
+          format: uri
           nullable: true
-          readOnly: true
-        author:
-          allOf:
-          - $ref: '#/components/schemas/AuthorForPost'
-          readOnly: true
-        category:
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
+      required:
+      - id
+      - slug
+      - title
+    PodcastCategoryRequest:
+      type: object
+      description: |-
+        EN: Serializer for PodcastCategory model.
+        FA: سریالایزر برای مدل دسته‌بندی پادکست.
+      properties:
+        title:
           type: string
-          readOnly: true
-        cover_media:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        views_count:
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          pattern: ^[-\w]+$
+          maxLength: 255
+        icon:
+          type: string
+          format: binary
+          nullable: true
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
+      required:
+      - slug
+      - title
+    PodcastRequest:
+      type: object
+      description: |-
+        EN: Serializer for Podcast model.
+        FA: سریالایزر برای مدل پادکست.
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          minLength: 1
+          pattern: ^[-\w]+$
+          maxLength: 255
+        category:
+          type: integer
+        episode_number:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        likes_count:
-          type: integer
-          readOnly: true
-        comments_count:
-          type: integer
-          readOnly: true
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tag'
-          readOnly: true
-        content:
+        cover_image:
           type: string
-        canonical_url:
+          format: binary
+        audio_file:
+          type: string
+          format: binary
+          nullable: true
+        media_type:
+          $ref: '#/components/schemas/MediaTypeEnum'
+        video_file:
+          type: string
+          format: binary
+          nullable: true
+        video_url:
           type: string
           format: uri
           nullable: true
           maxLength: 200
-        series:
-          allOf:
-          - $ref: '#/components/schemas/Series'
-          readOnly: true
-        seo_title:
+        description:
           type: string
-          maxLength: 255
-        seo_description:
-          type: string
-        og_image:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        media_attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/PostMedia'
-          readOnly: true
-      required:
-      - author
-      - category
-      - comments_count
-      - content
-      - cover_media
-      - excerpt
-      - id
-      - likes_count
-      - media_attachments
-      - og_image
-      - published_at
-      - series
-      - slug
-      - tags
-      - title
-    PostList:
-      type: object
-      description: |-
-        EN: Optimized serializer for listing Posts with essential fields.
-        FA: سریالایزر بهینه‌سازی شده برای لیست کردن پست‌ها با فیلدهای ضروری.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        slug:
-          type: string
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        title:
-          type: string
-          maxLength: 255
-        excerpt:
-          type: string
-        reading_time_sec:
+          minLength: 1
+        duration:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
           format: int64
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        is_hot:
-          type: boolean
-        published_at:
+          description: Duration in minutes
+        published_date:
           type: string
           format: date-time
-          nullable: true
-          readOnly: true
-        author:
-          allOf:
-          - $ref: '#/components/schemas/AuthorForPost'
-          readOnly: true
-        category:
-          type: string
-          readOnly: true
-        cover_media:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        views_count:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        likes_count:
-          type: integer
-          readOnly: true
-        comments_count:
-          type: integer
-          readOnly: true
-        tags:
+        related_podcasts:
           type: array
           items:
-            $ref: '#/components/schemas/Tag'
-          readOnly: true
+            type: integer
+        is_active:
+          type: boolean
+          description: Specifies whether this record is active or not.
       required:
-      - author
       - category
-      - comments_count
-      - cover_media
-      - excerpt
-      - id
-      - likes_count
-      - published_at
+      - cover_image
+      - duration
+      - episode_number
+      - published_date
       - slug
-      - tags
       - title
-    PostMedia:
-      type: object
-      description: |-
-        EN: Serializer for the relationship between Posts and Media.
-        FA: سریالایزر برای رابطه بین پست‌ها و رسانه‌ها.
-      properties:
-        media:
-          allOf:
-          - $ref: '#/components/schemas/MediaDetail'
-          readOnly: true
-        attachment_type:
-          type: string
-          maxLength: 50
-      required:
-      - media
     PostStatusEnum:
       enum:
       - draft
@@ -4130,8 +5374,8 @@ components:
     Revision:
       type: object
       description: |-
-        EN: Serializer for Post Revisions.
-        FA: سریالایزر برای بازنگری‌های پست.
+        EN: Serializer for Article Revisions.
+        FA: سریالایزر برای بازنگری‌های مقاله.
       properties:
         id:
           type: integer
@@ -4149,6 +5393,9 @@ components:
           format: date-time
           readOnly: true
           description: The time of the last update to the record.
+        language_code:
+          type: string
+          maxLength: 10
         content:
           type: string
         title:
@@ -4159,28 +5406,32 @@ components:
         change_note:
           type: string
           maxLength: 255
-        post:
+        article:
           type: integer
         editor:
           type: integer
           nullable: true
       required:
+      - article
       - content
       - created_at
       - excerpt
       - id
-      - post
       - title
       - updated_at
     RevisionRequest:
       type: object
       description: |-
-        EN: Serializer for Post Revisions.
-        FA: سریالایزر برای بازنگری‌های پست.
+        EN: Serializer for Article Revisions.
+        FA: سریالایزر برای بازنگری‌های مقاله.
       properties:
         is_active:
           type: boolean
           description: Specifies whether this record is active or not.
+        language_code:
+          type: string
+          minLength: 1
+          maxLength: 10
         content:
           type: string
           minLength: 1
@@ -4194,15 +5445,15 @@ components:
         change_note:
           type: string
           maxLength: 255
-        post:
+        article:
           type: integer
         editor:
           type: integer
           nullable: true
       required:
+      - article
       - content
       - excerpt
-      - post
       - title
     Series:
       type: object
@@ -4268,6 +5519,135 @@ components:
       required:
       - slug
       - title
+    StdArticleBy_slugGetArticleListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleCommentListGetCommentListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CommentList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdArticleCommentListGetCommentListSerializer200'
+      required:
+      - data
+      - pagination
+    StdArticleCommentRetrieveGetCommentListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CommentList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleCreatePostArticleCreateUpdateSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleCreateUpdate'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleListGetArticleListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdArticleListGetArticleListSerializer200'
+      required:
+      - data
+      - pagination
+    StdArticlePartial_updatePatchArticleCreateUpdateSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleCreateUpdate'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleRetrieveGetArticleDetailSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleDetail'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleSame_categoryGetArticleListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+        pagination:
+          $ref: '#/components/schemas/PagStdArticleSame_categoryGetArticleListSerializer200'
+      required:
+      - data
+      - pagination
+    StdArticleSimilarGetArticleListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdArticleUpdatePutArticleCreateUpdateSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleCreateUpdate'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
     StdAuthorProfileCreatePostAuthorProfileSerializer200:
       type: object
       properties:
@@ -4459,6 +5839,66 @@ components:
           items:
             type: string
           default: []
+    StdGalleryItemCreatePostGalleryItemSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GalleryItem'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdGalleryItemListGetGalleryItemSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GalleryItem'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdGalleryItemPartial_updatePatchGalleryItemSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GalleryItem'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdGalleryItemRetrieveGetGalleryItemSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GalleryItem'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdGalleryItemUpdatePutGalleryItemSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GalleryItem'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
     StdMediaCreatePostMediaCreateSerializer200:
       type: object
       properties:
@@ -4702,11 +6142,11 @@ components:
           default: []
       required:
       - data
-    StdPostBy_slugGetPostListSerializer200:
+    StdPodcastCategoryCreatePostPodcastCategorySerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostList'
+          $ref: '#/components/schemas/PodcastCategory'
         messagesList:
           type: array
           items:
@@ -4714,26 +6154,11 @@ components:
           default: []
       required:
       - data
-    StdPostCommentListGetCommentListSerializer200:
+    StdPodcastCategoryListGetPodcastCategorySerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/CommentList'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-        pagination:
-          $ref: '#/components/schemas/PagStdPostCommentListGetCommentListSerializer200'
-      required:
-      - data
-      - pagination
-    StdPostCommentRetrieveGetCommentListSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/CommentList'
+          $ref: '#/components/schemas/PodcastCategory'
         messagesList:
           type: array
           items:
@@ -4741,11 +6166,11 @@ components:
           default: []
       required:
       - data
-    StdPostCreatePostPostCreateUpdateSerializer200:
+    StdPodcastCategoryPartial_updatePatchPodcastCategorySerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostCreateUpdate'
+          $ref: '#/components/schemas/PodcastCategory'
         messagesList:
           type: array
           items:
@@ -4753,26 +6178,11 @@ components:
           default: []
       required:
       - data
-    StdPostListGetPostListSerializer200:
+    StdPodcastCategoryRetrieveGetPodcastCategorySerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostList'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-        pagination:
-          $ref: '#/components/schemas/PagStdPostListGetPostListSerializer200'
-      required:
-      - data
-      - pagination
-    StdPostPartial_updatePatchPostCreateUpdateSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PostCreateUpdate'
+          $ref: '#/components/schemas/PodcastCategory'
         messagesList:
           type: array
           items:
@@ -4780,11 +6190,11 @@ components:
           default: []
       required:
       - data
-    StdPostRetrieveGetPostDetailSerializer200:
+    StdPodcastCategoryUpdatePutPodcastCategorySerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostDetail'
+          $ref: '#/components/schemas/PodcastCategory'
         messagesList:
           type: array
           items:
@@ -4792,26 +6202,11 @@ components:
           default: []
       required:
       - data
-    StdPostSame_categoryGetPostListSerializer200:
+    StdPodcastCreatePostPodcastSerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostList'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-        pagination:
-          $ref: '#/components/schemas/PagStdPostSame_categoryGetPostListSerializer200'
-      required:
-      - data
-      - pagination
-    StdPostSimilarGetPostListSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/PostList'
+          $ref: '#/components/schemas/Podcast'
         messagesList:
           type: array
           items:
@@ -4819,11 +6214,47 @@ components:
           default: []
       required:
       - data
-    StdPostUpdatePutPostCreateUpdateSerializer200:
+    StdPodcastListGetPodcastSerializer200:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/PostCreateUpdate'
+          $ref: '#/components/schemas/Podcast'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdPodcastPartial_updatePatchPodcastSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Podcast'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdPodcastRetrieveGetPodcastSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Podcast'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdPodcastUpdatePutPodcastSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Podcast'
         messagesList:
           type: array
           items:
@@ -5424,3 +6855,14 @@ components:
         * `public` - Public
         * `private` - Private
         * `unlisted` - Unlisted
+  securitySchemes:
+    StaticAPIKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Enter your static API key. Optionally use X-Test-User header to
+        simulate a specific user.
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

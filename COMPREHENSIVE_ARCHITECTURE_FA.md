@@ -74,13 +74,13 @@
 
 ---
 
-## ۲. اپلیکیشن `posts`
+## ۲. اپلیکیشن `articles`
 **مسئولیت:** موتور محتوا و تاکسونومی‌ها.
 **هدف کسب‌و‌کار:** منطق اصلی انتشار و سازماندهی محتوا با پشتیبانی از چندزبانی.
 
 ### ساختار داخلی:
 *   **models.py:**
-    *   `Post`: مدل مرکزی مدیریت وضعیت و روابط. از `PostManager` استفاده می‌کند.
+    *   `Article`: مدل مرکزی مدیریت وضعیت و روابط. از `PostManager` استفاده می‌کند.
     *   `PostTranslation`: ذخیره محتوای بومی‌سازی شده (عنوان، متن، سئو) برای هر زبان.
     *   `AuthorProfile`: متصل به User، بیوگرافی و نام نمایشی را ذخیره می‌کند.
     *   `Category`: تاکسونومی‌های سلسله‌مراتبی.
@@ -98,7 +98,7 @@
     *   `PostCommentViewSet`: نمایش تودرتو برای نظرات خاص هر پست.
     *   `publish_post` / `related_posts`: Viewهای عملکردی تخصصی API.
 *   **services.py:**
-    *   `sync_post_media`: همگام‌سازی تگ‌های `<img>` در محتوای ترجمه‌ها با رابط `PostMedia`.
+    *   `sync_post_media`: همگام‌سازی تگ‌های `<img>` در محتوای ترجمه‌ها با رابط `Media`.
     *   `publish_scheduled_posts`: منطق کسب‌و‌کار برای انتشار پست‌های زمان‌بندی شده.
 *   **tasks.py:**
     *   `publish_scheduled_posts_task`: وظیفه دوره‌ای Celery.
@@ -117,12 +117,12 @@
 ### ساختار داخلی:
 *   **models.py:**
     *   `Media`: ذخیره متادیتا برای تصاویر، ویدیوها و فایل‌ها.
-    *   `PostMedia`: مدل رابط برای ردیابی استفاده در پست‌ها (کاور، تصویر OG، داخل محتوا).
+    *   `Media`: مدل رابط برای ردیابی استفاده در پست‌ها (کاور، تصویر OG، داخل محتوا).
 *   **serializers.py:**
     *   `MediaCreateSerializer`: مدیریت آپلود فایل و اجرای منطق سرویس.
     *   `MediaDetailSerializer`: نمایش کامل متادیتا.
 *   **services.py:**
-    *   `create_media_from_file`: مدیریت تبدیل به AVIF، تغییر اندازه و استخراج متادیتا.
+    *   `create_media_from_file`: مدیریت استخراج متادیتا، تغییر اندازه و استخراج متادیتا.
 *   **views.py:**
     *   `MediaViewSet`: CRUD برای کتابخانه رسانه.
     *   `download_media`: تحویل امن فایل.
@@ -201,7 +201,7 @@
 
 ---
 
-## ۲. `posts.AuthorProfile`
+## ۲. `articles.AuthorProfile`
 **هدف:** شخصیت عمومی نویسنده.
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
@@ -213,7 +213,7 @@
 
 ---
 
-## ۳. `posts.Category`
+## ۳. `articles.Category`
 **هدف:** طبقه‌بندی سلسله‌مراتبی.
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
@@ -225,7 +225,7 @@
 
 ---
 
-## ۴. `posts.Post`
+## ۴. `articles.Article`
 **هدف:** موجودیت اصلی محتوا (ساختار کلی).
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
@@ -242,12 +242,12 @@
 
 ---
 
-## ۵. `posts.PostTranslation`
+## ۵. `articles.PostTranslation`
 **هدف:** ذخیره محتوای بومی‌سازی شده هر پست.
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | خیر | - | CASCADE | اتصال به مدل پست اصلی. |
+| `article` | FK(Article) | خیر | - | CASCADE | اتصال به مدل پست اصلی. |
 | `language_code`| VarChar | خیر | - | en/fa/... | کد زبان ترجمه. |
 | `slug` | Slug | خیر | - | Unique(lang) | شناسه‌گر URL به زبان مربوطه. |
 | `title` | VarChar | خیر | - | - | عنوان مقاله در این زبان. |
@@ -280,7 +280,7 @@
 
 | فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `post` | FK(Post) | خیر | - | CASCADE | پست هدف. |
+| `article` | FK(Article) | خیر | - | CASCADE | پست هدف. |
 | `user` | FK(User) | خیر | - | CASCADE | ارسال کننده. |
 | `parent` | FK(Self) | بله | - | CASCADE | والد برای تودرتویی. |
 | `content` | RichText | خیر | - | - | متن HTML نظر. |
@@ -316,9 +316,9 @@
 
 ## مدل‌های رابط (Junction Models)
 
-*   **`posts.PostTag`**: متصل‌کننده `Post` و `Tag` با محدودیت یکتا بودن.
-*   **`medias.PostMedia`**: متصل‌کننده `Post` و `Media`. شامل `attachment_type` (کاور، تصویر OG، داخل محتوا).
-*   **`posts.Revision`**: اسنپ‌شات تاریخی از محتوا، عنوان و چکیده پست (به تفکیک زبان).
+*   **`articles.PostTag`**: متصل‌کننده `Article` و `Tag` با محدودیت یکتا بودن.
+*   **`medias.Media`**: متصل‌کننده `Article` و `Media`. شامل `attachment_type` (کاور، تصویر OG، داخل محتوا).
+*   **`articles.Revision`**: اسنپ‌شات تاریخی از محتوا، عنوان و چکیده پست (به تفکیک زبان).
 
 ---
 
@@ -331,18 +331,18 @@ erDiagram
     USER ||--o{ COMMENT : "می‌نویسد"
     USER ||--o{ REACTION : "انجام می‌دهد"
 
-    AUTHOR_PROFILE ||--o{ POST : "می‌نویسد"
+    AUTHOR_PROFILE ||--o{ ARTICLE : "می‌نویسد"
 
-    POST ||--o{ POST_TRANSLATION : "دارد (بومی‌سازی)"
-    POST ||--o{ COMMENT : "شامل"
-    POST ||--o{ REVISION : "دارد"
-    POST }o--o{ TAG : "برچسب خورده با"
-    POST }o--|| CATEGORY : "متعلق به"
-    POST }o--o| SERIES : "بخشی از"
+    ARTICLE ||--o{ ARTICLE_TRANSLATION : "دارد (بومی‌سازی)"
+    ARTICLE ||--o{ COMMENT : "شامل"
+    ARTICLE ||--o{ REVISION : "دارد"
+    ARTICLE }o--o{ TAG : "برچسب خورده با"
+    ARTICLE }o--|| CATEGORY : "متعلق به"
+    ARTICLE }o--o| SERIES : "بخشی از"
 
-    POST ||--o{ POST_MEDIA : "ضمیمه می‌کند"
-    POST_TRANSLATION ||--o{ POST_MEDIA : "شامل رسانه محتوا"
-    MEDIA ||--o{ POST_MEDIA : "لینک شده از طریق"
+    ARTICLE ||--o{ ARTICLE_MEDIA : "ضمیمه می‌کند"
+    ARTICLE_TRANSLATION ||--o{ ARTICLE_MEDIA : "شامل رسانه محتوا"
+    MEDIA ||--o{ ARTICLE_MEDIA : "لینک شده از طریق"
 
     COMMENT ||--o{ COMMENT : "والدِ (تودرتو)"
     REACTION }o--|| CONTENT_TYPE : "هدف قرار می‌دهد"
@@ -353,10 +353,10 @@ erDiagram
 # بخش ۵ — تحلیل جریان داده
 
 ## جریان ایجاد و پردازش محتوا
-1.  **ارسال:** کاربر یک پست را به همراه داده‌های ترجمه از طریق `POST /api/posts/` ارسال می‌کند.
+1.  **ارسال:** کاربر یک مقاله را به همراه داده‌های ترجمه از طریق `POST /api/articles/` ارسال می‌کند.
 2.  **اعتبارسنجی:** سریال‌ساز فیلدها و ترجمه‌ها را اعتبارسنجی می‌کند، از جمله `publish_at`.
 3.  **ذخیره‌سازی:** رکورد اصلی پست و رکورد ترجمه (`PostTranslation`) در یک تراکنش اتمیک ذخیره می‌شوند.
-4.  **اسکن ناهمگام:** `sync_post_media` تگ‌های `<img>` در محتوای ترجمه را اسکن کرده و اشیاء `PostMedia` را لینک می‌کند.
+4.  **اسکن ناهمگام:** `sync_post_media` تگ‌های `<img>` در محتوای ترجمه را اسکن کرده و اشیاء `Media` را لینک می‌کند.
 5.  **زمان‌بندی:** اگر `status='scheduled'` باشد، Celery Beat در نهایت `publish_scheduled_posts_task` را برای عمومی کردن آن اجرا می‌کند.
 
 ---
@@ -377,11 +377,11 @@ erDiagram
 ## ۲. پست‌ها و تاکسونومی‌ها
 | URL | متد | اکشن ViewSet | توضیحات |
 | :--- | :--- | :--- | :--- |
-| `/api/posts/` | GET | list | لیست صفحه‌بندی شده (پشتیبانی از پارامتر `lang`). |
-| `/api/posts/{slug}/` | GET | retrieve | دریافت محتوای دقیق پست در زبان مشخص (افزایش بازدید). |
-| `/api/posts/{slug}/publish/` | POST | publish | انتشار دستی یک پیش‌نویس. |
-| `/api/posts/{slug}/related/` | GET | related | دریافت پست‌های مرتبط با برچسب‌های مشابه. |
-| `/api/posts/{slug}/comments/` | GET | list | دریافت نظرات تایید شده برای یک پست. |
+| `/api/articles/` | GET | list | لیست صفحه‌بندی شده (پشتیبانی از پارامتر `lang`). |
+| `/api/articles/{slug}/` | GET | retrieve | دریافت محتوای دقیق پست در زبان مشخص (افزایش بازدید). |
+| `/api/articles/{slug}/publish/` | POST | publish | انتشار دستی یک پیش‌نویس. |
+| `/api/articles/{slug}/related/` | GET | related | دریافت پست‌های مرتبط با برچسب‌های مشابه. |
+| `/api/articles/{slug}/comments/` | GET | list | دریافت نظرات تایید شده برای یک پست. |
 | `/api/categories/` | GET | list | لیست تمام دسته‌بندی‌های محتوا. |
 | `/api/tags/` | GET | list | لیست تمام برچسب‌های موجود. |
 | `/api/series/` | GET | list | لیست مجموعه‌های سری پست‌ها. |
@@ -389,7 +389,7 @@ erDiagram
 ## ۳. کتابخانه رسانه
 | URL | متد | اکشن ViewSet | توضیحات |
 | :--- | :--- | :--- | :--- |
-| `/api/media/` | POST | create | آپلود فایل (تبدیل خودکار به AVIF). |
+| `/api/media/` | POST | create | آپلود فایل. |
 | `/api/media/` | GET | list | مرور کتابخانه رسانه (ادمین/مالک). |
 | `/api/media/{id}/download/`| GET | download | نقطه پایانی دانلود امن فایل. |
 
@@ -446,7 +446,7 @@ erDiagram
 
 ## نقاط قوت
 *   معماری چندزبانی (Multilingual) منعطف.
-*   خط لوله رسانه‌ای با کارایی بالا (AVIF).
+*   خط لوله رسانه‌ای با کارایی بالا.
 *   امنیت چندلایه‌ای (JWT + Static API Key + Axes).
 
 ---
@@ -462,7 +462,7 @@ classDiagram
         +string email
         +file profile_picture
     }
-    class Post {
+    class Article {
         +string status
         +datetime published_at
         +save()
@@ -483,12 +483,12 @@ classDiagram
         +string status
     }
     User "1" -- "1" AuthorProfile
-    AuthorProfile "1" -- "*" Post : می‌نویسد
-    Post "1" -- "*" PostTranslation : ترجمه‌ها
-    Post "1" -- "*" Comment : شامل می‌شود
-    Post "*" -- "*" Tag : برچسب می‌خورد
-    Post "1" -- "*" PostMedia : ضمیمه می‌کند
-    Media "1" -- "*" PostMedia : استفاده شده در
+    AuthorProfile "1" -- "*" Article : می‌نویسد
+    Article "1" -- "*" PostTranslation : ترجمه‌ها
+    Article "1" -- "*" Comment : شامل می‌شود
+    Article "*" -- "*" Tag : برچسب می‌خورد
+    Article "1" -- "*" Media : ضمیمه می‌کند
+    Media "1" -- "*" Media : استفاده شده در
 ```
 
 ## فعالیت رسانه: آپلود رسانه
@@ -497,8 +497,8 @@ classDiagram
 stateDiagram-v2
     [*] --> آپلود: فایل دریافت شد
     آپلود --> استخراج_متادیتا
-    استخراج_متادیتا --> بهینه‌سازی_AVIF
-    بهینه‌سازی_AVIF --> ایجاد_رکورد_رسانه
+    استخراج_متادیتا --> استخراج_متادیتا
+    استخراج_متادیتا --> ایجاد_رکورد_رسانه
     ایجاد_رکورد_رسانه --> لینک_به_پست: همگام‌سازی ناهمگام پست
     لینک_به_پست --> [*]
 ```
@@ -534,8 +534,8 @@ graph TD
 .
 ├── blog/             # تنظیمات اصلی
 ├── users/            # احراز هویت/هویت
-├── posts/            # محتوا (Post & PostTranslation)/تاکسونومی‌ها
-├── medias/           # دارایی‌ها (AVIF Optimization)
+├── articles/            # محتوا (Article & PostTranslation)/تاکسونومی‌ها
+├── medias/           # دارایی‌ها (Metadata Extraction)
 ├── interactions/     # اجتماعی (Reaction & Comment)
 ├── navigation/       # منوها
 ├── pages/            # صفحات CMS ایستا

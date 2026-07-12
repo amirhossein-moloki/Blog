@@ -10,20 +10,20 @@ Tasks are distributed across three specialized queues to ensure optimal resource
 | Queue | Priority | Purpose |
 | :--- | :--- | :--- |
 | `high_priority` | High | User-facing tasks like password resets and auth emails. |
-| `default` | Medium | Standard background operations like post publishing and notifications. |
+| `default` | Medium | Standard background operations like article publishing and notifications. |
 | `low_priority` | Low | Resource-intensive background tasks. |
 
 ---
 
 ## Task Registry
 
-### 1. `posts.tasks.publish_scheduled_posts_task`
-- **Purpose:** Scans the database for posts marked as 'scheduled' whose `publish_at` time has passed.
+### 1. `articles.tasks.publish_scheduled_posts_task`
+- **Purpose:** Scans the database for articles marked as 'scheduled' whose `publish_at` time has passed.
 - **Trigger:** Automated (Celery Beat).
-- **Service Called:** `posts.services.publish_scheduled_posts()`.
+- **Service Called:** `articles.services.publish_scheduled_posts()`.
 
 ### 2. `interactions.tasks.notify_author_on_new_comment`
-- **Purpose:** Sends a notification (email/dashboard) to a post author when a new comment is approved.
+- **Purpose:** Sends a notification (email/dashboard) to a article author when a new comment is approved.
 - **Trigger:** Manual (called in `CommentViewSet.perform_create`).
 
 ---
@@ -34,7 +34,7 @@ The following jobs are configured in `settings.py`:
 
 | Job Name | Task | Schedule |
 | :--- | :--- | :--- |
-| `publish-scheduled-posts` | `posts.tasks.publish_scheduled_posts_task` | Every 1 Minute |
+| `publish-scheduled-articles` | `articles.tasks.publish_scheduled_posts_task` | Every 1 Minute |
 
 ---
 

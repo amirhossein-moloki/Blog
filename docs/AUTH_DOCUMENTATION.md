@@ -26,9 +26,9 @@ For development, automated testing, and internal service communication, a static
 The system utilizes **RBAC (Role-Based Access Control)** supplemented by object-level checks.
 
 ### Predefined Roles
-- **Admin (Staff):** Full access to the Admin Panel and all API endpoints. Can moderate comments and manage all posts.
-- **Author:** Can create posts, manage their own posts, and view their own analytics. Access is granted if the user has an associated `AuthorProfile`.
-- **User:** Authenticated users who can post comments and react to content.
+- **Admin (Staff):** Full access to the Admin Panel and all API endpoints. Can moderate comments and manage all articles.
+- **Author:** Can create articles, manage their own articles, and view their own analytics. Access is granted if the user has an associated `AuthorProfile`.
+- **User:** Authenticated users who can article comments and react to content.
 
 ### Permission Classes
 | Class | Logic |

@@ -1,7 +1,7 @@
 # API Audit Report - Blog Platform
 
 ## 1. Executive Summary
-A complete audit of the Blog Platform API was performed on June 11, 2024. The audit covered all Django applications, including authentication, users, posts, medias, interactions, pages, and navigation.
+A complete audit of the Blog Platform API was performed on June 11, 2024. The audit covered all Django applications, including authentication, users, articles, medias, interactions, pages, and navigation.
 
 ## 2. Audit Metrics
 * **Total Endpoints Discovered:** 90
@@ -17,7 +17,7 @@ A complete audit of the Blog Platform API was performed on June 11, 2024. The au
 | :--- | :--- |
 | Users | 8 |
 | Token (Auth) | 2 |
-| Posts | 43 |
+| Articles | 43 |
 | Medias | 3 |
 | Interactions | 22 |
 | Pages | 6 |
@@ -25,7 +25,7 @@ A complete audit of the Blog Platform API was performed on June 11, 2024. The au
 
 ## 4. Documentation Inconsistencies Found & Fixed
 * **publish_post endpoint:** Missing request body schema documentation. Fixed by adding `@extend_schema(request=None)`.
-* **Enum Collisions:** `status` fields in `Post` and `Comment` models caused naming collisions in OpenAPI schema. Fixed by adding `ENUM_NAME_OVERRIDES` in `blog/settings.py`.
+* **Enum Collisions:** `status` fields in `Article` and `Comment` models caused naming collisions in OpenAPI schema. Fixed by adding `ENUM_NAME_OVERRIDES` in `blog/settings.py`.
 * **Standardized Response:** The project uses a custom renderer and exception handler to wrap all responses in a `{data, pagination, messagesList}` envelope. The OpenAPI schema was updated to reflect this globally via `StandardizedAutoSchema`.
 
 ## 5. Recommendations for API Improvements

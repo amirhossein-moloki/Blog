@@ -9,16 +9,16 @@ erDiagram
     USER ||--o{ COMMENT : "writes"
     USER ||--o{ REACTION : "performs"
 
-    AUTHOR_PROFILE ||--o{ POST : "authors"
+    AUTHOR_PROFILE ||--o{ ARTICLE : "authors"
 
-    POST ||--o{ COMMENT : "contains"
-    POST ||--o{ REVISION : "has"
-    POST }o--o{ TAG : "tagged with"
-    POST }o--|| CATEGORY : "belongs to"
-    POST }o--o| SERIES : "part of"
+    ARTICLE ||--o{ COMMENT : "contains"
+    ARTICLE ||--o{ REVISION : "has"
+    ARTICLE }o--o{ TAG : "tagged with"
+    ARTICLE }o--|| CATEGORY : "belongs to"
+    ARTICLE }o--o| SERIES : "part of"
 
-    POST ||--o{ POST_MEDIA : "attaches"
-    MEDIA ||--o{ POST_MEDIA : "linked via"
+    ARTICLE ||--o{ ARTICLE_MEDIA : "attaches"
+    MEDIA ||--o{ ARTICLE_MEDIA : "linked via"
 
     COMMENT ||--o{ COMMENT : "parent of (nested)"
 
@@ -27,7 +27,7 @@ erDiagram
     MENU ||--o{ MENU_ITEM : "contains"
     MENU_ITEM ||--o{ MENU_ITEM : "parent of"
 
-    class POST {
+    class ARTICLE {
         string slug
         string title
         text content
@@ -51,5 +51,5 @@ erDiagram
 ---
 
 ## Junction Tables
-- **`PostTag`:** Connects `Post` and `Tag`.
-- **`PostMedia`:** Connects `Post` and `Media` with an `attachment_type` (cover, og-image, in-content).
+- **`ArticleTag`:** Connects `Article` and `Tag`.
+- **`Media`:** Connects `Article` and `Media` with an `attachment_type` (cover, og-image, in-content).
