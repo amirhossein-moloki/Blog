@@ -408,8 +408,10 @@ class ArticleUnifiedWorkflowTests(APITestCase):
 
     def _create_dummy_image(self, name):
         import io
-        from PIL import Image
+
         from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
         file = io.BytesIO()
         image = Image.new("RGB", size=(10, 10), color=(0, 120, 0))
         image.save(file, "png")
@@ -419,6 +421,7 @@ class ArticleUnifiedWorkflowTests(APITestCase):
 
     def test_new_workflow_multipart_success(self):
         import json
+
         self.client.force_authenticate(user=self.user)
 
         # Create dummy files
@@ -430,7 +433,7 @@ class ArticleUnifiedWorkflowTests(APITestCase):
         article_data = {
             "title": "Unified Workflow Test",
             "excerpt": "This is an excerpt",
-            "content": "<p>Hello</p><img data-upload-id=\"img1\"><p>World</p>",
+            "content": '<p>Hello</p><img data-upload-id="img1"><p>World</p>',
             "status": "draft",
         }
 
@@ -442,7 +445,6 @@ class ArticleUnifiedWorkflowTests(APITestCase):
             "files[gallery1]": gallery1,
         }
 
-        from medias.models import Media, ArticleMedia
         response = self.client.post(self.list_url, payload, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -455,7 +457,7 @@ class ArticleUnifiedWorkflowTests(APITestCase):
         translation = article.translations.get(language_code="en")
         self.assertNotIn("data-upload-id", translation.content)
         self.assertIn('src="', translation.content)
-        self.assertIn('content1', translation.content)
+        self.assertIn("content1", translation.content)
 
         # Check ArticleMedia relationships
         attachments = article.media_attachments.all()
@@ -468,7 +470,8 @@ class ArticleUnifiedWorkflowTests(APITestCase):
     def test_legacy_workflow_backward_compatibility(self):
         self.client.force_authenticate(user=self.user)
 
-        from medias.models import Media, ArticleMedia
+        from medias.models import ArticleMedia, Media
+
         # Manually create media first
         cover_media = Media.objects.create(
             storage_key="cover.png",
@@ -501,6 +504,7 @@ class ArticleUnifiedWorkflowTests(APITestCase):
 
     def test_transaction_rollback_and_storage_cleanup_on_failure(self):
         import json
+
         self.client.force_authenticate(user=self.user)
 
         cover_image = self._create_dummy_image("fail_cover.png")
@@ -517,7 +521,6 @@ class ArticleUnifiedWorkflowTests(APITestCase):
             "cover_image": cover_image,
         }
 
-        from django.core.files.storage import default_storage
         from medias.models import Media
 
         # Capture pre-existing keys to verify no leaks
