@@ -100,7 +100,6 @@ INSTALLED_APPS = [
     "medias",
     "interactions",
     "pages",
-    "navigation",
 ]
 
 # EN: Authentication backends including support for object permissions (guardian) and lockout protection (axes).

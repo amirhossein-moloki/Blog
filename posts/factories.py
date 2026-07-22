@@ -8,7 +8,6 @@ from faker import Faker
 
 from interactions.models import Comment, Reaction
 from medias.models import Media
-from navigation.models import Menu, MenuItem
 from pages.models import Page
 from posts.models import (
     Article,
@@ -127,23 +126,6 @@ class PageFactory(factory.django.DjangoModelFactory):
     slug = factory.LazyAttribute(lambda o: fake.slug(o.title))
     content = factory.LazyAttribute(lambda _: fake.text())
     status = "published"
-
-
-class MenuFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Menu
-
-    name = factory.LazyAttribute(lambda _: fake.word())
-    location = factory.Iterator([choice[0] for choice in Menu.LOCATION_CHOICES])
-
-
-class MenuItemFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = MenuItem
-
-    menu = factory.SubFactory(MenuFactory)
-    label = factory.LazyAttribute(lambda _: fake.word())
-    url = factory.LazyAttribute(lambda _: fake.uri())
 
 
 class ArticleFactory(factory.django.DjangoModelFactory):
