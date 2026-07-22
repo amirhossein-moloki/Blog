@@ -1,5 +1,4 @@
 import logging
-import re
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -93,6 +92,7 @@ def sync_article_media(obj):
     # FA: مدیریت رسانه‌های درون محتوا (متصل به محتوا، که در ArticleTranslation وجود دارد)
     if content:
         from bs4 import BeautifulSoup
+
         # EN: Parse content to find media mentioned in <img> tags using BeautifulSoup instead of regex
         # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img> با استفاده از BeautifulSoup به جای رگرکس
         soup = BeautifulSoup(content, "html.parser")
@@ -102,7 +102,9 @@ def sync_article_media(obj):
             if src:
                 path = urlparse(src).path
                 if path.startswith(settings.MEDIA_URL):
-                    media_paths_in_content.add(path[len(settings.MEDIA_URL) :].lstrip("/"))
+                    media_paths_in_content.add(
+                        path[len(settings.MEDIA_URL) :].lstrip("/")
+                    )
 
         linked_media_ids = set(
             Media.objects.filter(storage_key__in=media_paths_in_content).values_list(

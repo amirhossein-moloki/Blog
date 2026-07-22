@@ -365,6 +365,7 @@ class ArticleCreateUpdateSerializer(
         pending_attachments = []
         if request:
             from django.core.exceptions import ValidationError as DjangoValidationError
+
             from common.validators import validate_file
 
             # 1. Process cover_image
@@ -375,9 +376,7 @@ class ArticleCreateUpdateSerializer(
                 except DjangoValidationError as e:
                     raise serializers.ValidationError({"cover_image": e.messages})
 
-                cover_media = create_media_from_file(
-                    cover_file, request.user
-                )
+                cover_media = create_media_from_file(cover_file, request.user)
                 if not hasattr(request, "_uploaded_media"):
                     request._uploaded_media = []
                 request._uploaded_media.append(cover_media.storage_key)
@@ -392,9 +391,7 @@ class ArticleCreateUpdateSerializer(
                 except DjangoValidationError as e:
                     raise serializers.ValidationError({"og_image": e.messages})
 
-                og_media = create_media_from_file(
-                    og_file, request.user
-                )
+                og_media = create_media_from_file(og_file, request.user)
                 if not hasattr(request, "_uploaded_media"):
                     request._uploaded_media = []
                 request._uploaded_media.append(og_media.storage_key)
