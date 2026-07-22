@@ -81,7 +81,7 @@ class MediaAPITest(TestCase):
         Tests that an article can be created with cover_image_id and og_image_id
         uploaded directly as files in the same request.
         """
-        from posts.models import AuthorProfile, Article
+        from posts.models import Article, AuthorProfile
 
         AuthorProfile.objects.get_or_create(
             user=self.user, display_name=self.user.username
@@ -115,7 +115,7 @@ class MediaAPITest(TestCase):
         Tests that inline images uploaded within the request are matched with <img> tags,
         uploaded, and substituted with real media URLs.
         """
-        from posts.models import AuthorProfile, Article
+        from posts.models import Article, AuthorProfile
 
         AuthorProfile.objects.get_or_create(
             user=self.user, display_name=self.user.username

@@ -1,4 +1,3 @@
-from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
@@ -439,10 +438,12 @@ class ArticleCreateUpdateSerializer(
         if not request or not request.user or request.user.is_anonymous:
             return content
 
-        from bs4 import BeautifulSoup
         import os
-        from medias.services import create_media_from_file
+
+        from bs4 import BeautifulSoup
+
         from common.validators import validate_file
+        from medias.services import create_media_from_file
 
         soup = BeautifulSoup(content, "html.parser")
         img_tags = soup.find_all("img")
