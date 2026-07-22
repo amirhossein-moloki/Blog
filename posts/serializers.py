@@ -40,6 +40,61 @@ class JalaliDateTimeField(serializers.ReadOnlyField):
         return None
 
 
+class HybridMediaField(serializers.Field):
+    """
+    EN: Custom field to accept either a Media ID (integer/string) or an uploaded file.
+    FA: فیلد سفارشی برای پذیرش شناسه رسانه (عدد/رشته) یا فایل آپلود شده.
+    """
+
+    def to_internal_value(self, data):
+        from django.apps import apps
+        Media = apps.get_model("medias", "Media")
+
+        if not data:
+            return None
+
+        # Check if the data is a digit/integer (existing Media ID)
+        if isinstance(data, (int, str)) and str(data).isdigit():
+            try:
+                return Media.objects.get(pk=int(data))
+            except Media.DoesNotExist:
+                raise serializers.ValidationError("Media with this ID does not exist.")
+
+        # Check if the data is an uploaded file
+        from django.core.files.uploadedfile import UploadedFile
+        if isinstance(data, UploadedFile) or hasattr(data, "read"):
+            request = self.context.get("request")
+            if not request or not request.user or request.user.is_anonymous:
+                raise serializers.ValidationError("Authentication is required to upload files.")
+
+            from common.validators import validate_file
+            try:
+                validate_file(data)
+            except Exception as e:
+                raise serializers.ValidationError(str(e))
+
+            from medias.services import create_media_from_file
+            try:
+                media_instance = create_media_from_file(data, request.user)
+                # Track this processed media file to avoid reprocessing in inline content parsing
+                serializer = self.parent
+                if serializer:
+                    if not hasattr(serializer, "_processed_files"):
+                        serializer._processed_files = set()
+                    serializer._processed_files.add(data.name)
+                return media_instance
+            except Exception as e:
+                raise serializers.ValidationError(f"File upload failed: {str(e)}")
+
+        raise serializers.ValidationError("Invalid input. Must be an integer ID or a file.")
+
+    def to_representation(self, value):
+        if not value:
+            return None
+        from medias.serializers import MediaDetailSerializer
+        return MediaDetailSerializer(value, context=self.context).data
+
+
 class ContentNormalizationMixin:
     """
     EN: Mixin to normalize HTML content by converting it to Markdown and cleaning up whitespace.
@@ -264,15 +319,13 @@ class ArticleCreateUpdateSerializer(
         required=False,
         write_only=True,
     )
-    cover_image_id = serializers.PrimaryKeyRelatedField(
-        queryset=apps.get_model("medias", "Media").objects.all(),
+    cover_image_id = HybridMediaField(
         source="cover_image",
         required=False,
         allow_null=True,
         write_only=True,
     )
-    og_image_id = serializers.PrimaryKeyRelatedField(
-        queryset=apps.get_model("medias", "Media").objects.all(),
+    og_image_id = HybridMediaField(
         source="og_image",
         required=False,
         allow_null=True,
@@ -369,6 +422,53 @@ class ArticleCreateUpdateSerializer(
 
         return validated_data
 
+    def _process_inline_files(self, content):
+        if not content:
+            return content
+
+        request = self.context.get("request")
+        if not request or not request.user or request.user.is_anonymous:
+            return content
+
+        from bs4 import BeautifulSoup
+        import os
+        from medias.services import create_media_from_file
+        from common.validators import validate_file
+
+        soup = BeautifulSoup(content, "html.parser")
+        img_tags = soup.find_all("img")
+        if not img_tags or not request.FILES:
+            return content
+
+        for img_tag in img_tags:
+            src = img_tag.get("src", "")
+            if not src:
+                continue
+            src_filename = os.path.basename(src)
+
+            # Find a matching file in request.FILES by its filename
+            for name, file_obj in request.FILES.items():
+                processed_names = getattr(self, "_processed_files", set())
+                if file_obj.name in processed_names:
+                    continue
+
+                if file_obj.name == src_filename:
+                    # Validate and create Media
+                    try:
+                        validate_file(file_obj)
+                    except Exception as e:
+                        raise serializers.ValidationError(f"Inline file validation failed: {str(e)}")
+
+                    media_instance = create_media_from_file(file_obj, request.user)
+                    img_tag["src"] = media_instance.url
+
+                    if not hasattr(self, "_processed_files"):
+                        self._processed_files = set()
+                    self._processed_files.add(file_obj.name)
+                    break
+
+        return str(soup)
+
     def create(self, validated_data):
         """
         EN: Handles article and translation creation with publication date processing.
@@ -388,6 +488,9 @@ class ArticleCreateUpdateSerializer(
             "seo_title": validated_data.pop("seo_title", ""),
             "seo_description": validated_data.pop("seo_description", ""),
         }
+        if "content" in translation_data:
+            translation_data["content"] = self._process_inline_files(translation_data["content"])
+
         if not translation_data["slug"]:
             from django.utils.text import slugify
 
@@ -424,6 +527,9 @@ class ArticleCreateUpdateSerializer(
         for field in translation_fields:
             if field in validated_data:
                 translation_data[field] = validated_data.pop(field)
+
+        if "content" in translation_data:
+            translation_data["content"] = self._process_inline_files(translation_data["content"])
 
         validated_data = self._handle_publication_date(validated_data)
 

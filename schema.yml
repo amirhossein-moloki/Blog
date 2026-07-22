@@ -3083,11 +3083,11 @@ components:
           type: integer
           writeOnly: true
         cover_image_id:
-          type: integer
+          type: string
           writeOnly: true
           nullable: true
         og_image_id:
-          type: integer
+          type: string
           writeOnly: true
           nullable: true
         related_article_ids:
@@ -4133,11 +4133,11 @@ components:
           type: integer
           writeOnly: true
         cover_image_id:
-          type: integer
+          type: string
           writeOnly: true
           nullable: true
         og_image_id:
-          type: integer
+          type: string
           writeOnly: true
           nullable: true
         related_article_ids:

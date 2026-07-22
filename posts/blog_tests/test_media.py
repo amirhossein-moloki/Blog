@@ -75,3 +75,74 @@ class MediaAPITest(TestCase):
 
         # Assert file existence
         self.assertTrue(default_storage.exists(media.storage_key))
+
+    def test_article_create_with_direct_cover_and_og_upload(self):
+        """
+        Tests that an article can be created with cover_image_id and og_image_id
+        uploaded directly as files in the same request.
+        """
+        from posts.models import AuthorProfile, Article
+        AuthorProfile.objects.get_or_create(
+            user=self.user, display_name=self.user.username
+        )
+
+        cover_file = self._create_dummy_image(name="my_cover.jpg")
+        og_file = self._create_dummy_image(name="my_og.jpg")
+
+        data = {
+            "title": "Article with Uploaded Images",
+            "slug": "article-uploaded-images",
+            "excerpt": "Excerpt text",
+            "content": "Some HTML content.",
+            "cover_image_id": cover_file,
+            "og_image_id": og_file,
+        }
+
+        response = self.client.post(
+            reverse("posts:article-list"), data, format="multipart"
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+        article = Article.objects.get(translations__slug="article-uploaded-images")
+        self.assertIsNotNone(article.cover_image)
+        self.assertIsNotNone(article.og_image)
+        self.assertEqual(article.cover_image.title, "my_cover.jpg")
+        self.assertEqual(article.og_image.title, "my_og.jpg")
+
+    def test_article_create_with_inline_media_upload(self):
+        """
+        Tests that inline images uploaded within the request are matched with <img> tags,
+        uploaded, and substituted with real media URLs.
+        """
+        from posts.models import AuthorProfile, Article
+        AuthorProfile.objects.get_or_create(
+            user=self.user, display_name=self.user.username
+        )
+
+        inline_file = self._create_dummy_image(name="inline_image.jpg")
+        content = '<p>Check out this image:</p><img src="inline_image.jpg" alt="inline" />'
+
+        data = {
+            "title": "Article with Inline Image",
+            "slug": "article-inline-image",
+            "excerpt": "Excerpt text",
+            "content": content,
+            "inline_file": inline_file,
+        }
+
+        response = self.client.post(
+            reverse("posts:article-list"), data, format="multipart"
+        )
+        self.assertEqual(response.status_code, 201, response.data)
+
+        article = Article.objects.get(translations__slug="article-inline-image")
+        translation = article.translations.get(language_code="en")
+
+        # Verify that the src in translation.content was updated
+        self.assertNotIn("src=\"inline_image.jpg\"", translation.content)
+        self.assertIn("/media/inline_image", translation.content)
+
+        # Verify that the media attachment was linked as in-content
+        attachments = article.media_attachments.filter(attachment_type="in-content")
+        self.assertEqual(attachments.count(), 1)
+        self.assertEqual(attachments.first().media.title, "inline_image.jpg")
