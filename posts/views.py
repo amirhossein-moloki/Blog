@@ -86,6 +86,29 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             return ArticleDetailSerializer
         return ArticleListSerializer
 
+    def get_serializer(self, *args, **kwargs):
+        """
+        EN: Overrides get_serializer to handle the unified single-request multipart flow (Workflow A)
+        and pass 'fields' filtering to DynamicSerializerViewMixin.
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            request = self.request
+            # Check if 'article' JSON is present in the request data
+            article_str = request.data.get("article")
+            if isinstance(article_str, str):
+                try:
+                    import json
+                    parsed_data = json.loads(article_str)
+                    merged_data = {}
+                    for k, v in request.data.items():
+                        if k != "article":
+                            merged_data[k] = v
+                    merged_data.update(parsed_data)
+                    kwargs["data"] = merged_data
+                except json.JSONDecodeError:
+                    pass
+        return super().get_serializer(*args, **kwargs)
+
     def get_queryset(self):
         """
         EN:
