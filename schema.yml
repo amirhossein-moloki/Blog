@@ -96,7 +96,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -233,7 +232,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -414,7 +412,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -439,7 +436,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -464,7 +460,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -510,7 +505,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -567,7 +561,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1256,7 +1249,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1316,7 +1308,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -1424,396 +1415,6 @@ paths:
         required: true
       tags:
       - media
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/menu-items/:
-    get:
-      operationId: menu_items_list
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      tags:
-      - menu-items
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdMenuItemListGetMenuItemSerializer200'
-          description: ''
-    post:
-      operationId: menu_items_create
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-        required: true
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemCreatePostMenuItemSerializer200'
-          description: ''
-  /api/menu-items/{id}/:
-    get:
-      operationId: menu_items_retrieve
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemRetrieveGetMenuItemSerializer200'
-          description: ''
-    put:
-      operationId: menu_items_update
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuItemRequest'
-        required: true
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemUpdatePutMenuItemSerializer200'
-          description: ''
-    patch:
-      operationId: menu_items_partial_update
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuItemRequest'
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuItemPartial_updatePatchMenuItemSerializer200'
-          description: ''
-    delete:
-      operationId: menu_items_destroy
-      description: |-
-        EN:
-        ViewSet for managing individual menu items.
-        Allows administrative control over links and their hierarchy.
-
-        FA:
-        ViewSet برای مدیریت آیتم‌های منو به صورت تکی.
-        اجازه کنترل مدیریتی روی لینک‌ها و سلسله‌مراتب آن‌ها را می‌دهد.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu item.
-        required: true
-      tags:
-      - menu-items
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
-  /api/menus/:
-    get:
-      operationId: menus_list
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - menus
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdMenuListGetMenuSerializer200'
-          description: ''
-    post:
-      operationId: menus_create
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-        required: true
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuCreatePostMenuSerializer200'
-          description: ''
-  /api/menus/{id}/:
-    get:
-      operationId: menus_retrieve
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuRetrieveGetMenuSerializer200'
-          description: ''
-    put:
-      operationId: menus_update
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/MenuRequest'
-        required: true
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuUpdatePutMenuSerializer200'
-          description: ''
-    patch:
-      operationId: menus_partial_update
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedMenuRequest'
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdMenuPartial_updatePatchMenuSerializer200'
-          description: ''
-    delete:
-      operationId: menus_destroy
-      description: |-
-        EN:
-        ViewSet for managing navigation menus.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت منوهای پیمایش.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this menu.
-        required: true
-      tags:
-      - menus
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
@@ -2589,7 +2190,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -2646,7 +2246,6 @@ paths:
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -4033,16 +3632,6 @@ components:
       required:
       - caption
       - image
-    LocationEnum:
-      enum:
-      - header
-      - footer
-      - sidebar
-      type: string
-      description: |-
-        * `header` - Header
-        * `footer` - Footer
-        * `sidebar` - Sidebar
     MediaCreate:
       type: object
       description: |-
@@ -4207,143 +3796,6 @@ components:
       description: |-
         * `audio` - Audio
         * `video` - Video
-    Menu:
-      type: object
-      description: |-
-        EN: Serializer for Menus, including nested MenuItem representations.
-        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/MenuItem'
-          readOnly: true
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time the record was created.
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time of the last update to the record.
-        name:
-          type: string
-          maxLength: 255
-        location:
-          $ref: '#/components/schemas/LocationEnum'
-      required:
-      - created_at
-      - id
-      - items
-      - location
-      - name
-      - updated_at
-    MenuItem:
-      type: object
-      description: |-
-        EN: Serializer for Menu items, including all their fields.
-        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time the record was created.
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time of the last update to the record.
-        label:
-          type: string
-          maxLength: 255
-        url:
-          type: string
-          maxLength: 255
-        order:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        target_blank:
-          type: boolean
-        menu:
-          type: integer
-        parent:
-          type: integer
-          nullable: true
-      required:
-      - created_at
-      - id
-      - label
-      - menu
-      - updated_at
-      - url
-    MenuItemRequest:
-      type: object
-      description: |-
-        EN: Serializer for Menu items, including all their fields.
-        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        label:
-          type: string
-          minLength: 1
-          maxLength: 255
-        url:
-          type: string
-          minLength: 1
-          maxLength: 255
-        order:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        target_blank:
-          type: boolean
-        menu:
-          type: integer
-        parent:
-          type: integer
-          nullable: true
-      required:
-      - label
-      - menu
-      - url
-    MenuRequest:
-      type: object
-      description: |-
-        EN: Serializer for Menus, including nested MenuItem representations.
-        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        location:
-          $ref: '#/components/schemas/LocationEnum'
-      required:
-      - location
-      - name
     OrderStrategyEnum:
       enum:
       - manual
@@ -4835,50 +4287,6 @@ components:
         uploaded_by:
           type: integer
           nullable: true
-    PatchedMenuItemRequest:
-      type: object
-      description: |-
-        EN: Serializer for Menu items, including all their fields.
-        FA: سریالایزر برای آیتم‌های منو، شامل تمامی فیلدها.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        label:
-          type: string
-          minLength: 1
-          maxLength: 255
-        url:
-          type: string
-          minLength: 1
-          maxLength: 255
-        order:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        target_blank:
-          type: boolean
-        menu:
-          type: integer
-        parent:
-          type: integer
-          nullable: true
-    PatchedMenuRequest:
-      type: object
-      description: |-
-        EN: Serializer for Menus, including nested MenuItem representations.
-        FA: سریالایزر برای منوها، شامل نمایش آیتم‌های منوی تو در تو.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        name:
-          type: string
-          minLength: 1
-          maxLength: 255
-        location:
-          $ref: '#/components/schemas/LocationEnum'
     PatchedPageRequest:
       type: object
       description: |-
@@ -5955,126 +5363,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuCreatePostMenuSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Menu'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuItemCreatePostMenuItemSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/MenuItem'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuItemListGetMenuItemSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/MenuItem'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuItemPartial_updatePatchMenuItemSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/MenuItem'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuItemRetrieveGetMenuItemSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/MenuItem'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuItemUpdatePutMenuItemSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/MenuItem'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuListGetMenuSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Menu'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuPartial_updatePatchMenuSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Menu'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuRetrieveGetMenuSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Menu'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdMenuUpdatePutMenuSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Menu'
         messagesList:
           type: array
           items:
