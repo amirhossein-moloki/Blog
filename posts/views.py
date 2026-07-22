@@ -91,8 +91,8 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Creates an article inside a transaction.
         Removes any uploaded files from storage on failure.
         """
-        from django.db import transaction
         from django.core.files.storage import default_storage
+        from django.db import transaction
 
         request._uploaded_media = []
         try:
@@ -112,8 +112,8 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Updates an article inside a transaction.
         Removes any uploaded files from storage on failure.
         """
-        from django.db import transaction
         from django.core.files.storage import default_storage
+        from django.db import transaction
 
         request._uploaded_media = []
         try:
