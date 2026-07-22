@@ -98,6 +98,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             if isinstance(article_str, str):
                 try:
                     import json
+
                     parsed_data = json.loads(article_str)
                     merged_data = {}
                     for k, v in request.data.items():

@@ -268,9 +268,11 @@ class ArticleViewSetTests(APITestCase):
     def test_unified_single_request_creation_workflow_a(self):
         import io
         import json
+
         from django.core.files.uploadedfile import SimpleUploadedFile
         from PIL import Image
-        from medias.models import Media, ArticleMedia
+
+        from medias.models import ArticleMedia
 
         self.client.force_authenticate(user=self.user)
 
@@ -279,27 +281,31 @@ class ArticleViewSetTests(APITestCase):
         Image.new("RGB", size=(100, 100), color=(0, 255, 0)).save(cover_file, "jpeg")
         cover_file.name = "cover.jpg"
         cover_file.seek(0)
-        uploaded_cover = SimpleUploadedFile("cover.jpg", cover_file.read(), content_type="image/jpeg")
+        uploaded_cover = SimpleUploadedFile(
+            "cover.jpg", cover_file.read(), content_type="image/jpeg"
+        )
 
         # Generate dummy content image
         img1_file = io.BytesIO()
         Image.new("RGB", size=(200, 200), color=(0, 0, 255)).save(img1_file, "png")
         img1_file.name = "content1.png"
         img1_file.seek(0)
-        uploaded_img1 = SimpleUploadedFile("content1.png", img1_file.read(), content_type="image/png")
+        uploaded_img1 = SimpleUploadedFile(
+            "content1.png", img1_file.read(), content_type="image/png"
+        )
 
         # Prepare payload
         article_data = {
             "title": "Unified Creation Article",
             "excerpt": "Awesome unified article",
-            "content": "<p>Check this image:</p><img data-upload-id=\"img1\"><p>End of article.</p>",
-            "status": "draft"
+            "content": '<p>Check this image:</p><img data-upload-id="img1"><p>End of article.</p>',
+            "status": "draft",
         }
 
         data = {
             "article": json.dumps(article_data),
             "cover_image": uploaded_cover,
-            "files[img1]": uploaded_img1
+            "files[img1]": uploaded_img1,
         }
 
         response = self.client.post(self.list_url, data, format="multipart")
@@ -317,17 +323,23 @@ class ArticleViewSetTests(APITestCase):
         self.assertIn('data-upload-id="img1"', translation.content)
 
         # ArticleMedia relation assertion
-        cover_attachments = ArticleMedia.objects.filter(article=article, attachment_type="cover")
+        cover_attachments = ArticleMedia.objects.filter(
+            article=article, attachment_type="cover"
+        )
         self.assertTrue(cover_attachments.exists())
 
-        content_attachments = ArticleMedia.objects.filter(article=article, attachment_type="in-content")
+        content_attachments = ArticleMedia.objects.filter(
+            article=article, attachment_type="in-content"
+        )
         self.assertTrue(content_attachments.exists())
 
     def test_unified_creation_rollback_on_error(self):
         import io
         import json
+
         from django.core.files.uploadedfile import SimpleUploadedFile
         from PIL import Image
+
         from medias.models import Media
 
         self.client.force_authenticate(user=self.user)
@@ -336,13 +348,12 @@ class ArticleViewSetTests(APITestCase):
         Image.new("RGB", size=(100, 100), color=(0, 255, 0)).save(cover_file, "jpeg")
         cover_file.name = "cover_err.jpg"
         cover_file.seek(0)
-        uploaded_cover = SimpleUploadedFile("cover_err.jpg", cover_file.read(), content_type="image/jpeg")
+        uploaded_cover = SimpleUploadedFile(
+            "cover_err.jpg", cover_file.read(), content_type="image/jpeg"
+        )
 
         # Prepare payload with missing 'excerpt' and 'content' fields to trigger serializer error
-        article_data = {
-            "title": "Error Article",
-            "status": "draft"
-        }
+        article_data = {"title": "Error Article", "status": "draft"}
 
         data = {
             "article": json.dumps(article_data),
@@ -357,7 +368,9 @@ class ArticleViewSetTests(APITestCase):
 
         # Ensure no Media was saved and no Article was created
         self.assertEqual(Media.objects.count(), media_count_before)
-        self.assertFalse(Article.objects.filter(translations__title="Error Article").exists())
+        self.assertFalse(
+            Article.objects.filter(translations__title="Error Article").exists()
+        )
 
 
 class ArticleSerializerTests(APITestCase):

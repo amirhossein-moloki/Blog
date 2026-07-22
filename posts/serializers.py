@@ -371,6 +371,7 @@ class ArticleCreateUpdateSerializer(
 
     def _cleanup_files(self, storage_keys):
         from django.core.files.storage import default_storage
+
         for key in storage_keys:
             try:
                 default_storage.delete(key)
@@ -388,15 +389,16 @@ class ArticleCreateUpdateSerializer(
         if not request or not request.FILES:
             return validated_data, []
 
-        from django.db import transaction
-        from django.core.files.storage import default_storage
-        from common.validators import validate_file
-        from medias.services import create_media_from_file
         from bs4 import BeautifulSoup
         from rest_framework import serializers
 
+        from common.validators import validate_file
+        from medias.services import create_media_from_file
+
         uploaded_storage_keys = []
-        uploaded_by = request.user if (request.user and request.user.is_authenticated) else None
+        uploaded_by = (
+            request.user if (request.user and request.user.is_authenticated) else None
+        )
 
         # 1. Handle cover_image
         if "cover_image" in request.FILES:
@@ -404,7 +406,9 @@ class ArticleCreateUpdateSerializer(
             try:
                 validate_file(cover_file)
             except Exception as e:
-                raise serializers.ValidationError({"cover_image": getattr(e, "messages", [str(e)])})
+                raise serializers.ValidationError(
+                    {"cover_image": getattr(e, "messages", [str(e)])}
+                )
 
             try:
                 media = create_media_from_file(cover_file, uploaded_by)
@@ -421,7 +425,9 @@ class ArticleCreateUpdateSerializer(
                 validate_file(og_file)
             except Exception as e:
                 self._cleanup_files(uploaded_storage_keys)
-                raise serializers.ValidationError({"og_image": getattr(e, "messages", [str(e)])})
+                raise serializers.ValidationError(
+                    {"og_image": getattr(e, "messages", [str(e)])}
+                )
 
             try:
                 media = create_media_from_file(og_file, uploaded_by)
@@ -445,9 +451,11 @@ class ArticleCreateUpdateSerializer(
                     validate_file(f)
                 except Exception as e:
                     self._cleanup_files(uploaded_storage_keys)
-                    raise serializers.ValidationError({
-                        "content": f"Error validating content image with upload id '{upload_id}': {getattr(e, 'messages', [str(e)])[0]}"
-                    })
+                    raise serializers.ValidationError(
+                        {
+                            "content": f"Error validating content image with upload id '{upload_id}': {getattr(e, 'messages', [str(e)])[0]}"
+                        }
+                    )
 
                 try:
                     media = create_media_from_file(f, uploaded_by)
@@ -478,10 +486,13 @@ class ArticleCreateUpdateSerializer(
         FA: ایجاد مقاله و ترجمه را به همراه پردازش تاریخ انتشار و آپلود یکپارچه رسانه‌ها مدیریت می‌کند.
         """
         from django.db import transaction
+
         from .models import ArticleTranslation
 
         request = self.context.get("request")
-        validated_data, uploaded_storage_keys = self._process_unified_media(validated_data, request)
+        validated_data, uploaded_storage_keys = self._process_unified_media(
+            validated_data, request
+        )
 
         translation_data = {
             "language_code": validated_data.pop("language_code", "en"),
@@ -516,10 +527,13 @@ class ArticleCreateUpdateSerializer(
         FA: به‌روزرسانی مقاله و ترجمه را به همراه پردازش تاریخ انتشار و آپلود یکپارچه رسانه‌ها مدیریت می‌کند.
         """
         from django.db import transaction
+
         from .models import ArticleTranslation
 
         request = self.context.get("request")
-        validated_data, uploaded_storage_keys = self._process_unified_media(validated_data, request)
+        validated_data, uploaded_storage_keys = self._process_unified_media(
+            validated_data, request
+        )
 
         language_code = validated_data.pop("language_code", "en")
         translation_fields = [
