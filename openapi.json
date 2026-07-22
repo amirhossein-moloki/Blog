@@ -144,7 +144,7 @@
             },
             "post": {
                 "operationId": "articles_create",
-                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "description": "EN: Creates an article inside a transaction.\nRemoves any uploaded files from storage on failure.",
                 "tags": [
                     "articles"
                 ],
@@ -348,7 +348,7 @@
             },
             "put": {
                 "operationId": "articles_update",
-                "description": "EN:\nViewSet for managing blog articles.\nProvides advanced filtering, searching, and dynamic field selection.\nHandles complex queryset optimizations and access control for drafts/scheduled articles.\n\nFA:\nViewSet برای مدیریت مقاله‌های بلاگ.\nفیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.\nبهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.",
+                "description": "EN: Updates an article inside a transaction.\nRemoves any uploaded files from storage on failure.",
                 "parameters": [
                     {
                         "in": "path",

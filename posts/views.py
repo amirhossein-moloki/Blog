@@ -86,6 +86,48 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             return ArticleDetailSerializer
         return ArticleListSerializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        EN: Creates an article inside a transaction.
+        Removes any uploaded files from storage on failure.
+        """
+        from django.db import transaction
+        from django.core.files.storage import default_storage
+
+        request._uploaded_media = []
+        try:
+            with transaction.atomic():
+                return super().create(request, *args, **kwargs)
+        except Exception as exc:
+            for storage_key in getattr(request, "_uploaded_media", []):
+                try:
+                    if default_storage.exists(storage_key):
+                        default_storage.delete(storage_key)
+                except Exception:
+                    pass
+            raise exc
+
+    def update(self, request, *args, **kwargs):
+        """
+        EN: Updates an article inside a transaction.
+        Removes any uploaded files from storage on failure.
+        """
+        from django.db import transaction
+        from django.core.files.storage import default_storage
+
+        request._uploaded_media = []
+        try:
+            with transaction.atomic():
+                return super().update(request, *args, **kwargs)
+        except Exception as exc:
+            for storage_key in getattr(request, "_uploaded_media", []):
+                try:
+                    if default_storage.exists(storage_key):
+                        default_storage.delete(storage_key)
+                except Exception:
+                    pass
+            raise exc
+
     def get_queryset(self):
         """
         EN:
