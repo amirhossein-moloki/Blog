@@ -364,10 +364,19 @@ class ArticleCreateUpdateSerializer(
         # Process uploaded files if request is available
         pending_attachments = []
         if request:
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            from common.validators import validate_file
+
             # 1. Process cover_image
             if "cover_image" in request.FILES:
+                cover_file = request.FILES["cover_image"]
+                try:
+                    validate_file(cover_file)
+                except DjangoValidationError as e:
+                    raise serializers.ValidationError({"cover_image": e.messages})
+
                 cover_media = create_media_from_file(
-                    request.FILES["cover_image"], request.user
+                    cover_file, request.user
                 )
                 if not hasattr(request, "_uploaded_media"):
                     request._uploaded_media = []
@@ -377,8 +386,14 @@ class ArticleCreateUpdateSerializer(
 
             # 2. Process og_image
             if "og_image" in request.FILES:
+                og_file = request.FILES["og_image"]
+                try:
+                    validate_file(og_file)
+                except DjangoValidationError as e:
+                    raise serializers.ValidationError({"og_image": e.messages})
+
                 og_media = create_media_from_file(
-                    request.FILES["og_image"], request.user
+                    og_file, request.user
                 )
                 if not hasattr(request, "_uploaded_media"):
                     request._uploaded_media = []
@@ -393,6 +408,11 @@ class ArticleCreateUpdateSerializer(
                 if match:
                     upload_id = match.group(1)
                     uploaded_file = request.FILES[key]
+                    try:
+                        validate_file(uploaded_file)
+                    except DjangoValidationError as e:
+                        raise serializers.ValidationError({key: e.messages})
+
                     media_obj = create_media_from_file(uploaded_file, request.user)
                     if not hasattr(request, "_uploaded_media"):
                         request._uploaded_media = []
