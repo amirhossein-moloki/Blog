@@ -82,6 +82,7 @@ class MediaAPITest(TestCase):
         uploaded directly as files in the same request.
         """
         from posts.models import AuthorProfile, Article
+
         AuthorProfile.objects.get_or_create(
             user=self.user, display_name=self.user.username
         )
@@ -115,12 +116,15 @@ class MediaAPITest(TestCase):
         uploaded, and substituted with real media URLs.
         """
         from posts.models import AuthorProfile, Article
+
         AuthorProfile.objects.get_or_create(
             user=self.user, display_name=self.user.username
         )
 
         inline_file = self._create_dummy_image(name="inline_image.jpg")
-        content = '<p>Check out this image:</p><img src="inline_image.jpg" alt="inline" />'
+        content = (
+            '<p>Check out this image:</p><img src="inline_image.jpg" alt="inline" />'
+        )
 
         data = {
             "title": "Article with Inline Image",
@@ -139,7 +143,7 @@ class MediaAPITest(TestCase):
         translation = article.translations.get(language_code="en")
 
         # Verify that the src in translation.content was updated
-        self.assertNotIn("src=\"inline_image.jpg\"", translation.content)
+        self.assertNotIn('src="inline_image.jpg"', translation.content)
         self.assertIn("/media/inline_image", translation.content)
 
         # Verify that the media attachment was linked as in-content

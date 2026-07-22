@@ -48,6 +48,7 @@ class HybridMediaField(serializers.Field):
 
     def to_internal_value(self, data):
         from django.apps import apps
+
         Media = apps.get_model("medias", "Media")
 
         if not data:
@@ -62,18 +63,23 @@ class HybridMediaField(serializers.Field):
 
         # Check if the data is an uploaded file
         from django.core.files.uploadedfile import UploadedFile
+
         if isinstance(data, UploadedFile) or hasattr(data, "read"):
             request = self.context.get("request")
             if not request or not request.user or request.user.is_anonymous:
-                raise serializers.ValidationError("Authentication is required to upload files.")
+                raise serializers.ValidationError(
+                    "Authentication is required to upload files."
+                )
 
             from common.validators import validate_file
+
             try:
                 validate_file(data)
             except Exception as e:
                 raise serializers.ValidationError(str(e))
 
             from medias.services import create_media_from_file
+
             try:
                 media_instance = create_media_from_file(data, request.user)
                 # Track this processed media file to avoid reprocessing in inline content parsing
@@ -86,12 +92,15 @@ class HybridMediaField(serializers.Field):
             except Exception as e:
                 raise serializers.ValidationError(f"File upload failed: {str(e)}")
 
-        raise serializers.ValidationError("Invalid input. Must be an integer ID or a file.")
+        raise serializers.ValidationError(
+            "Invalid input. Must be an integer ID or a file."
+        )
 
     def to_representation(self, value):
         if not value:
             return None
         from medias.serializers import MediaDetailSerializer
+
         return MediaDetailSerializer(value, context=self.context).data
 
 
@@ -457,7 +466,9 @@ class ArticleCreateUpdateSerializer(
                     try:
                         validate_file(file_obj)
                     except Exception as e:
-                        raise serializers.ValidationError(f"Inline file validation failed: {str(e)}")
+                        raise serializers.ValidationError(
+                            f"Inline file validation failed: {str(e)}"
+                        )
 
                     media_instance = create_media_from_file(file_obj, request.user)
                     img_tag["src"] = media_instance.url
@@ -489,7 +500,9 @@ class ArticleCreateUpdateSerializer(
             "seo_description": validated_data.pop("seo_description", ""),
         }
         if "content" in translation_data:
-            translation_data["content"] = self._process_inline_files(translation_data["content"])
+            translation_data["content"] = self._process_inline_files(
+                translation_data["content"]
+            )
 
         if not translation_data["slug"]:
             from django.utils.text import slugify
@@ -529,7 +542,9 @@ class ArticleCreateUpdateSerializer(
                 translation_data[field] = validated_data.pop(field)
 
         if "content" in translation_data:
-            translation_data["content"] = self._process_inline_files(translation_data["content"])
+            translation_data["content"] = self._process_inline_files(
+                translation_data["content"]
+            )
 
         validated_data = self._handle_publication_date(validated_data)
 
