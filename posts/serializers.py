@@ -332,6 +332,108 @@ class ArticleCreateUpdateSerializer(
         read_only_fields = ("views_count",)
         extra_kwargs = {"slug": {"required": False}}
 
+    def to_internal_value(self, data):
+        import json
+        import re
+
+        from medias.services import create_media_from_file
+
+        request = self.context.get("request")
+
+        # Check if we are using Workflow A (New) or Workflow B (Legacy)
+        if "article" in data:
+            article_data = data["article"]
+            if isinstance(article_data, str):
+                try:
+                    article_data = json.loads(article_data)
+                except json.JSONDecodeError as e:
+                    raise serializers.ValidationError(
+                        {"article": f"Invalid JSON format: {str(e)}"}
+                    )
+            if not isinstance(article_data, dict):
+                raise serializers.ValidationError(
+                    {"article": "Article data must be a JSON object."}
+                )
+        else:
+            # Workflow B (Legacy) or direct field dictionary
+            if hasattr(data, "copy"):
+                article_data = data.copy()
+            else:
+                article_data = dict(data)
+
+        # Process uploaded files if request is available
+        pending_attachments = []
+        if request:
+            # 1. Process cover_image
+            if "cover_image" in request.FILES:
+                cover_media = create_media_from_file(
+                    request.FILES["cover_image"], request.user
+                )
+                if not hasattr(request, "_uploaded_media"):
+                    request._uploaded_media = []
+                request._uploaded_media.append(cover_media.storage_key)
+                article_data["cover_image_id"] = cover_media.id
+                article_data.pop("cover_image", None)
+
+            # 2. Process og_image
+            if "og_image" in request.FILES:
+                og_media = create_media_from_file(
+                    request.FILES["og_image"], request.user
+                )
+                if not hasattr(request, "_uploaded_media"):
+                    request._uploaded_media = []
+                request._uploaded_media.append(og_media.storage_key)
+                article_data["og_image_id"] = og_media.id
+                article_data.pop("og_image", None)
+
+            # 3. Process files[<upload_id>]
+            upload_id_to_media = {}
+            for key in request.FILES:
+                match = re.match(r"^files\[(.*)\]$", key)
+                if match:
+                    upload_id = match.group(1)
+                    uploaded_file = request.FILES[key]
+                    media_obj = create_media_from_file(uploaded_file, request.user)
+                    if not hasattr(request, "_uploaded_media"):
+                        request._uploaded_media = []
+                    request._uploaded_media.append(media_obj.storage_key)
+                    upload_id_to_media[upload_id] = media_obj
+
+            # 4. Rewrite temporary image references in content
+            content = article_data.get("content", "")
+            replaced_upload_ids = set()
+            if content and isinstance(content, str):
+                from bs4 import BeautifulSoup
+
+                soup = BeautifulSoup(content, "html.parser")
+                modified = False
+                for img in soup.find_all("img"):
+                    if img.has_attr("data-upload-id"):
+                        upload_id = img["data-upload-id"]
+                        if upload_id in upload_id_to_media:
+                            media_obj = upload_id_to_media[upload_id]
+                            img["src"] = media_obj.url
+                            del img["data-upload-id"]
+                            replaced_upload_ids.add(upload_id)
+                            modified = True
+                if modified:
+                    article_data["content"] = str(soup)
+
+            # 5. Handle any files not embedded in content as pending attachments
+            for upload_id, media_obj in upload_id_to_media.items():
+                if upload_id not in replaced_upload_ids:
+                    prefix_match = re.match(r"^([a-zA-Z_-]+)", upload_id)
+                    attachment_type = (
+                        prefix_match.group(1).lower() if prefix_match else "attachment"
+                    )
+                    if attachment_type in ["img", "image"]:
+                        attachment_type = "image"
+                    pending_attachments.append((media_obj, attachment_type))
+
+        validated_data = super().to_internal_value(article_data)
+        validated_data["_pending_attachments"] = pending_attachments
+        return validated_data
+
     def _handle_publication_date(self, validated_data):
         """
         EN:
@@ -378,6 +480,8 @@ class ArticleCreateUpdateSerializer(
 
         from .models import ArticleTranslation
 
+        pending_attachments = validated_data.pop("_pending_attachments", [])
+
         translation_data = {
             "language_code": validated_data.pop("language_code", "en"),
             "title": validated_data.pop("title"),
@@ -399,6 +503,16 @@ class ArticleCreateUpdateSerializer(
             article = super().create(validated_data)
             ArticleTranslation.objects.create(article=article, **translation_data)
 
+            # Create ArticleMedia relations for pending non-content attachments
+            from medias.models import ArticleMedia
+
+            for media_obj, attachment_type in pending_attachments:
+                ArticleMedia.objects.update_or_create(
+                    article=article,
+                    media=media_obj,
+                    defaults={"attachment_type": attachment_type},
+                )
+
         return article
 
     def update(self, instance, validated_data):
@@ -409,6 +523,8 @@ class ArticleCreateUpdateSerializer(
         from django.db import transaction
 
         from .models import ArticleTranslation
+
+        pending_attachments = validated_data.pop("_pending_attachments", [])
 
         language_code = validated_data.pop("language_code", "en")
         translation_fields = [
@@ -434,6 +550,16 @@ class ArticleCreateUpdateSerializer(
                     article=article,
                     language_code=language_code,
                     defaults=translation_data,
+                )
+
+            # Create ArticleMedia relations for pending non-content attachments
+            from medias.models import ArticleMedia
+
+            for media_obj, attachment_type in pending_attachments:
+                ArticleMedia.objects.update_or_create(
+                    article=article,
+                    media=media_obj,
+                    defaults={"attachment_type": attachment_type},
                 )
 
         return article

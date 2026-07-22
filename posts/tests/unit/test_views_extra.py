@@ -396,3 +396,138 @@ class ArticleSerializerTests(APITestCase):
         self.client.force_login(user=user_no_profile)
         response = self.client.post(url, {}, format="multipart")
         self.assertIn(response.status_code, [403, 302])
+
+
+class ArticleUnifiedWorkflowTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="author_wf", password="password")
+        self.author_profile = AuthorProfile.objects.create(
+            user=self.user, display_name="Workflow Author"
+        )
+        self.list_url = reverse("posts:article-list")
+
+    def _create_dummy_image(self, name):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        file = io.BytesIO()
+        image = Image.new("RGB", size=(10, 10), color=(0, 120, 0))
+        image.save(file, "png")
+        file.name = name
+        file.seek(0)
+        return SimpleUploadedFile(name, file.read(), content_type="image/png")
+
+    def test_new_workflow_multipart_success(self):
+        import json
+
+        self.client.force_authenticate(user=self.user)
+
+        # Create dummy files
+        cover_image = self._create_dummy_image("cover.png")
+        og_image = self._create_dummy_image("og.png")
+        img1 = self._create_dummy_image("content1.png")
+        gallery1 = self._create_dummy_image("gallery1.png")
+
+        article_data = {
+            "title": "Unified Workflow Test",
+            "excerpt": "This is an excerpt",
+            "content": '<p>Hello</p><img data-upload-id="img1"><p>World</p>',
+            "status": "draft",
+        }
+
+        payload = {
+            "article": json.dumps(article_data),
+            "cover_image": cover_image,
+            "og_image": og_image,
+            "files[img1]": img1,
+            "files[gallery1]": gallery1,
+        }
+
+        response = self.client.post(self.list_url, payload, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Check database records
+        article = Article.objects.get(id=response.data["id"])
+        self.assertIsNotNone(article.cover_image)
+        self.assertIsNotNone(article.og_image)
+
+        # Check translation and content replacement
+        translation = article.translations.get(language_code="en")
+        self.assertNotIn("data-upload-id", translation.content)
+        self.assertIn('src="', translation.content)
+        self.assertIn("content1", translation.content)
+
+        # Check ArticleMedia relationships
+        attachments = article.media_attachments.all()
+        attachment_types = [a.attachment_type for a in attachments]
+        self.assertIn("cover", attachment_types)
+        self.assertIn("og-image", attachment_types)
+        self.assertIn("in-content", attachment_types)
+        self.assertIn("gallery", attachment_types)
+
+    def test_legacy_workflow_backward_compatibility(self):
+        self.client.force_authenticate(user=self.user)
+
+        from medias.models import ArticleMedia, Media
+
+        # Manually create media first
+        cover_media = Media.objects.create(
+            storage_key="cover.png",
+            url="/media/cover.png",
+            type="image",
+            mime="image/png",
+            uploaded_by=self.user,
+        )
+
+        payload = {
+            "title": "Legacy Test Article",
+            "excerpt": "Legacy excerpt",
+            "content": "<p>Legacy content</p>",
+            "status": "draft",
+            "cover_image_id": cover_media.id,
+        }
+
+        response = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        article = Article.objects.get(id=response.data["id"])
+        self.assertEqual(article.cover_image, cover_media)
+
+        # Verify cover relationship is synced
+        self.assertTrue(
+            ArticleMedia.objects.filter(
+                article=article, media=cover_media, attachment_type="cover"
+            ).exists()
+        )
+
+    def test_transaction_rollback_and_storage_cleanup_on_failure(self):
+        import json
+
+        self.client.force_authenticate(user=self.user)
+
+        cover_image = self._create_dummy_image("fail_cover.png")
+
+        # Excerpt is a required field, omitting it will cause validation failure in the serializer
+        article_data = {
+            "title": "Failure Test Article",
+            "content": "<p>Will Fail</p>",
+            "status": "draft",
+        }
+
+        payload = {
+            "article": json.dumps(article_data),
+            "cover_image": cover_image,
+        }
+
+        from medias.models import Media
+
+        # Capture pre-existing keys to verify no leaks
+        pre_existing_medias_count = Media.objects.count()
+
+        response = self.client.post(self.list_url, payload, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Ensure no new Media records are persistent in the DB (rolled back)
+        self.assertEqual(Media.objects.count(), pre_existing_medias_count)

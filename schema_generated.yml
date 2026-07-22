@@ -106,15 +106,8 @@ paths:
     post:
       operationId: articles_create
       description: |-
-        EN:
-        ViewSet for managing blog articles.
-        Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled articles.
-
-        FA:
-        ViewSet برای مدیریت مقاله‌های بلاگ.
-        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
+        EN: Creates an article inside a transaction.
+        Removes any uploaded files from storage on failure.
       tags:
       - articles
       requestBody:
@@ -242,15 +235,8 @@ paths:
     put:
       operationId: articles_update
       description: |-
-        EN:
-        ViewSet for managing blog articles.
-        Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled articles.
-
-        FA:
-        ViewSet برای مدیریت مقاله‌های بلاگ.
-        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
+        EN: Updates an article inside a transaction.
+        Removes any uploaded files from storage on failure.
       parameters:
       - in: path
         name: slug
