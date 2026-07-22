@@ -531,3 +531,62 @@ class ArticleUnifiedWorkflowTests(APITestCase):
 
         # Ensure no new Media records are persistent in the DB (rolled back)
         self.assertEqual(Media.objects.count(), pre_existing_medias_count)
+
+    def test_new_workflow_invalid_file_extension(self):
+        import json
+
+        self.client.force_authenticate(user=self.user)
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        invalid_file = SimpleUploadedFile(
+            "danger.exe", b"binarycontent", content_type="application/octet-stream"
+        )
+
+        article_data = {
+            "title": "Invalid Extension Article",
+            "excerpt": "This is an excerpt",
+            "content": "<p>Content</p>",
+            "status": "draft",
+        }
+
+        payload = {
+            "article": json.dumps(article_data),
+            "cover_image": invalid_file,
+        }
+
+        response = self.client.post(self.list_url, payload, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(
+            any("cover_image" in msg for msg in response.data.get("messagesList", []))
+        )
+
+    def test_new_workflow_file_too_large(self):
+        import json
+
+        self.client.force_authenticate(user=self.user)
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        # 11 MB of zero bytes
+        large_file = SimpleUploadedFile(
+            "large_image.jpg", b"0" * (11 * 1024 * 1024), content_type="image/jpeg"
+        )
+
+        article_data = {
+            "title": "Too Large Article",
+            "excerpt": "This is an excerpt",
+            "content": "<p>Content</p>",
+            "status": "draft",
+        }
+
+        payload = {
+            "article": json.dumps(article_data),
+            "cover_image": large_file,
+        }
+
+        response = self.client.post(self.list_url, payload, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(
+            any("cover_image" in msg for msg in response.data.get("messagesList", []))
+        )

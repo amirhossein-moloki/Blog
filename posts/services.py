@@ -1,5 +1,4 @@
 import logging
-import re
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -92,16 +91,20 @@ def sync_article_media(obj):
     # EN: Handle in-content media (tied to the content, which exists in ArticleTranslation)
     # FA: مدیریت رسانه‌های درون محتوا (متصل به محتوا، که در ArticleTranslation وجود دارد)
     if content:
-        # EN: Parse content to find media mentioned in <img> tags (supports both double and single quotes)
-        # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img> (پشتیبانی از هر دو نوع کوتیشن)
+        from bs4 import BeautifulSoup
+
+        # EN: Parse content to find media mentioned in <img> tags using BeautifulSoup instead of regex
+        # FA: تجزیه محتوا برای یافتن رسانه‌های ذکر شده در تگ‌های <img> با استفاده از BeautifulSoup به جای رگرکس
+        soup = BeautifulSoup(content, "html.parser")
         media_paths_in_content = set()
-        urls = re.findall(r'<img [^>]*src="([^"]+)"', content) + re.findall(
-            r"<img [^>]*src='([^']+)'", content
-        )
-        for url in urls:
-            path = urlparse(url).path
-            if path.startswith(settings.MEDIA_URL):
-                media_paths_in_content.add(path[len(settings.MEDIA_URL) :].lstrip("/"))
+        for img in soup.find_all("img"):
+            src = img.get("src")
+            if src:
+                path = urlparse(src).path
+                if path.startswith(settings.MEDIA_URL):
+                    media_paths_in_content.add(
+                        path[len(settings.MEDIA_URL) :].lstrip("/")
+                    )
 
         linked_media_ids = set(
             Media.objects.filter(storage_key__in=media_paths_in_content).values_list(
@@ -125,9 +128,6 @@ def sync_article_media(obj):
 
         # EN: Remove media attachments that are no longer in content
         # FA: حذف پیوست‌های رسانه‌ای که دیگر در محتوا نیستند
-        # Note: In a multi-language setup, a media might be used in one translation but not another.
-        # For simplicity, we keep it if it is used in ANY translation or we just manage it per sync.
-        # Here we follow the original logic: remove what's not in the CURRENTly syncing content.
         ids_to_remove = current_media_ids - linked_media_ids
         if ids_to_remove:
             article.media_attachments.filter(
