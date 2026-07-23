@@ -9,7 +9,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from common.cache import cache_manager, build_cache_key
+from common.cache import build_cache_key, cache_manager
 from common.mixins import DynamicSerializerViewMixin
 from common.pagination import CustomPageNumberPagination
 from common.permissions import (
@@ -94,7 +94,9 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         """
         lang = request.query_params.get("lang", "en")
         params = request.query_params.dict()
-        cache_key = build_cache_key("posts", "article_list", "list", params=params, lang=lang)
+        cache_key = build_cache_key(
+            "posts", "article_list", "list", params=params, lang=lang
+        )
 
         def rebuild():
             queryset = self.filter_queryset(self.get_queryset())
@@ -110,7 +112,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             rebuild_callback=rebuild,
             group="latest_articles",
             soft_ttl_sec=300,
-            hard_ttl_sec=900
+            hard_ttl_sec=900,
         )
         return Response(data)
 
@@ -233,12 +235,18 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         obj.save(update_fields=["views_count"])
 
         try:
-            slug = obj.translations.first().slug if obj.translations.exists() else str(obj.id)
+            slug = (
+                obj.translations.first().slug
+                if obj.translations.exists()
+                else str(obj.id)
+            )
         except Exception:
             slug = str(obj.id)
 
         lang = request.query_params.get("lang", "en")
-        cache_key = build_cache_key("posts", "article_detail", slug, params={"lang": lang}, lang=lang)
+        cache_key = build_cache_key(
+            "posts", "article_detail", slug, params={"lang": lang}, lang=lang
+        )
 
         def rebuild():
             serializer = self.get_serializer(obj)
@@ -250,7 +258,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             group="article_detail",
             tags=[f"article_detail:{slug}"],
             soft_ttl_sec=600,
-            hard_ttl_sec=1800
+            hard_ttl_sec=1800,
         )
         return Response(data)
 
@@ -331,7 +339,9 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن به همراه کشینگ پیشرفته.
         """
         lang = request.query_params.get("lang", "en")
-        cache_key = build_cache_key("posts", "article_by_slug", slug, params={"lang": lang}, lang=lang)
+        cache_key = build_cache_key(
+            "posts", "article_by_slug", slug, params={"lang": lang}, lang=lang
+        )
 
         def rebuild():
             try:
@@ -341,12 +351,22 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                     .first()
                 )
                 if not article:
-                    article = self.get_queryset().filter(translations__slug=slug).first()
+                    article = (
+                        self.get_queryset().filter(translations__slug=slug).first()
+                    )
 
                 if not article:
-                    return {"_negative_cache_": True, "status_code": 404, "detail": "No article was found with this slug."}
+                    return {
+                        "_negative_cache_": True,
+                        "status_code": 404,
+                        "detail": "No article was found with this slug.",
+                    }
             except Exception:
-                return {"_negative_cache_": True, "status_code": 404, "detail": "No article was found with this slug."}
+                return {
+                    "_negative_cache_": True,
+                    "status_code": 404,
+                    "detail": "No article was found with this slug.",
+                }
 
             serializer = ArticleDetailSerializer(
                 article, context=self.get_serializer_context()
@@ -359,7 +379,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             group="article_detail",
             tags=[f"article_detail:{slug}"],
             soft_ttl_sec=600,
-            hard_ttl_sec=1800
+            hard_ttl_sec=1800,
         )
 
         if isinstance(data, dict) and data.get("_negative_cache_", False):
@@ -517,7 +537,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             rebuild_callback=rebuild,
             group="categories",
             soft_ttl_sec=86400,
-            hard_ttl_sec=604800
+            hard_ttl_sec=604800,
         )
         return Response(data)
 
@@ -549,7 +569,7 @@ class TagViewSet(viewsets.ModelViewSet):
             rebuild_callback=rebuild,
             group="tags",
             soft_ttl_sec=86400,
-            hard_ttl_sec=604800
+            hard_ttl_sec=604800,
         )
         return Response(data)
 

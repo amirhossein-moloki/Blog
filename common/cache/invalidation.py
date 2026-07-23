@@ -4,7 +4,7 @@ FA: ردیاب‌های ابطال کش بر اساس نسخه، برچسب‌ه
 """
 
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +80,9 @@ class InvalidationManager:
                 new_version = (int(val) if val else 1) + 1
                 self.cache_client.set(key, new_version)
         except Exception as e:
-            logger.error(f"Failed to increment cache version for {group}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to increment cache version for {group}: {e}", exc_info=True
+            )
             new_version = 2  # EN: Safe fallback
 
         # EN: Invalidate parent dependencies in the graph
@@ -137,7 +139,9 @@ class InvalidationManager:
         """
         for parent, children in self.DEPENDENCY_GRAPH.items():
             if child_item in children:
-                logger.info(f"Dependency triggered: invalidating parent '{parent}' because child '{child_item}' changed.")
+                logger.info(
+                    f"Dependency triggered: invalidating parent '{parent}' because child '{child_item}' changed."
+                )
                 # EN: Increment parent's version to invalidate parent cache
                 # FA: افزایش نسخه والد جهت ابطال کش والد
                 self.increment_version(parent)

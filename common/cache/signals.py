@@ -4,7 +4,8 @@ FA: شنونده‌های ابطال کش رویدادمحور و پیش‌گر�
 """
 
 import logging
-from django.db.models.signals import post_save, post_delete
+
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 # EN: Dynamic imports to prevent circular references
@@ -21,7 +22,11 @@ def invalidate_article_cache(sender, instance, **kwargs) -> None:
     FA: ابطال کش‌های مرتبط با مقاله در زمان ذخیره یا حذف مقاله.
     """
     try:
-        slug = instance.translations.first().slug if hasattr(instance, "translations") and instance.translations.exists() else str(instance.id)
+        slug = (
+            instance.translations.first().slug
+            if hasattr(instance, "translations") and instance.translations.exists()
+            else str(instance.id)
+        )
     except Exception:
         slug = str(instance.id)
 
@@ -43,7 +48,7 @@ def invalidate_article_cache(sender, instance, **kwargs) -> None:
     # FA: ۳. آغاز پیش‌گرم کردن پیش‌بینانه انتخابی
     warmup_service.warmup_after_mutation(
         article_slug=slug,
-        category_slug=instance.category.slug if instance.category else None
+        category_slug=instance.category.slug if instance.category else None,
     )
 
 
@@ -78,7 +83,12 @@ def invalidate_comment_cache(sender, instance, **kwargs) -> None:
     """
     if instance.article:
         try:
-            slug = instance.article.translations.first().slug if hasattr(instance.article, "translations") and instance.article.translations.exists() else str(instance.article.id)
+            slug = (
+                instance.article.translations.first().slug
+                if hasattr(instance.article, "translations")
+                and instance.article.translations.exists()
+                else str(instance.article.id)
+            )
         except Exception:
             slug = str(instance.article.id)
 
@@ -104,34 +114,62 @@ def register_cache_signals() -> None:
     FA: اتصال سیگنال‌های جنگو به مدیریت‌کننده‌های ابطال کش.
     """
     try:
-        from posts.models import Article, Category, Tag
         from interactions.models import Comment
         from pages.models import Page
+        from posts.models import Article, Category, Tag
 
         # EN: Article Signals
         # FA: سیگنال‌های مقاله
-        post_save.connect(invalidate_article_cache, sender=Article, dispatch_uid="cache_article_save")
-        post_delete.connect(invalidate_article_cache, sender=Article, dispatch_uid="cache_article_delete")
+        post_save.connect(
+            invalidate_article_cache, sender=Article, dispatch_uid="cache_article_save"
+        )
+        post_delete.connect(
+            invalidate_article_cache,
+            sender=Article,
+            dispatch_uid="cache_article_delete",
+        )
 
         # EN: Category Signals
         # FA: سیگنال‌های دسته‌بندی
-        post_save.connect(invalidate_category_cache, sender=Category, dispatch_uid="cache_category_save")
-        post_delete.connect(invalidate_category_cache, sender=Category, dispatch_uid="cache_category_delete")
+        post_save.connect(
+            invalidate_category_cache,
+            sender=Category,
+            dispatch_uid="cache_category_save",
+        )
+        post_delete.connect(
+            invalidate_category_cache,
+            sender=Category,
+            dispatch_uid="cache_category_delete",
+        )
 
         # EN: Tag Signals
         # FA: سیگنال‌های برچسب
-        post_save.connect(invalidate_tag_cache, sender=Tag, dispatch_uid="cache_tag_save")
-        post_delete.connect(invalidate_tag_cache, sender=Tag, dispatch_uid="cache_tag_delete")
+        post_save.connect(
+            invalidate_tag_cache, sender=Tag, dispatch_uid="cache_tag_save"
+        )
+        post_delete.connect(
+            invalidate_tag_cache, sender=Tag, dispatch_uid="cache_tag_delete"
+        )
 
         # EN: Comment Signals
         # FA: سیگنال‌های نظر
-        post_save.connect(invalidate_comment_cache, sender=Comment, dispatch_uid="cache_comment_save")
-        post_delete.connect(invalidate_comment_cache, sender=Comment, dispatch_uid="cache_comment_delete")
+        post_save.connect(
+            invalidate_comment_cache, sender=Comment, dispatch_uid="cache_comment_save"
+        )
+        post_delete.connect(
+            invalidate_comment_cache,
+            sender=Comment,
+            dispatch_uid="cache_comment_delete",
+        )
 
         # EN: Page Signals
         # FA: سیگنال‌های صفحه
-        post_save.connect(invalidate_page_cache, sender=Page, dispatch_uid="cache_page_save")
-        post_delete.connect(invalidate_page_cache, sender=Page, dispatch_uid="cache_page_delete")
+        post_save.connect(
+            invalidate_page_cache, sender=Page, dispatch_uid="cache_page_save"
+        )
+        post_delete.connect(
+            invalidate_page_cache, sender=Page, dispatch_uid="cache_page_delete"
+        )
 
         logger.info("Enterprise Cache Signals registered successfully.")
     except Exception as e:

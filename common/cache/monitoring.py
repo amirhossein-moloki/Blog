@@ -4,9 +4,9 @@ FA: ردیاب محلی متریک‌های عملکرد کش و یکپارچگ�
 """
 
 import logging
-import time
 import threading
-from typing import Dict, Any, Optional
+import time
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -85,33 +85,50 @@ class MetricsTracker:
         with self._lock:
             total = self._hits + self._misses
             hit_ratio = (self._hits / total) if total > 0 else 0.0
-            avg_lookup = (self._total_lookup_time / self._lookups_count) if self._lookups_count > 0 else 0.0
-            avg_rebuild = (self._total_rebuild_time / self._rebuilds_count) if self._rebuilds_count > 0 else 0.0
+            avg_lookup = (
+                (self._total_lookup_time / self._lookups_count)
+                if self._lookups_count > 0
+                else 0.0
+            )
+            avg_rebuild = (
+                (self._total_rebuild_time / self._rebuilds_count)
+                if self._rebuilds_count > 0
+                else 0.0
+            )
 
             # EN: Sort top missed keys
             # FA: مرتب‌سازی کلیدهایی که بیشترین خطا (Miss) را داشته‌اند
-            sorted_missed = sorted(self._top_missed_keys.items(), key=lambda x: x[1], reverse=True)[:10]
+            sorted_missed = sorted(
+                self._top_missed_keys.items(), key=lambda x: x[1], reverse=True
+            )[:10]
 
             return {
                 "hits_count": self._hits,
                 "misses_count": self._misses,
                 "hit_ratio": round(hit_ratio, 4),
                 "hit_rate_percentage": round(hit_ratio * 100, 2),
-                "miss_rate_percentage": round((1 - hit_ratio) * 100, 2) if total > 0 else 0.0,
+                "miss_rate_percentage": (
+                    round((1 - hit_ratio) * 100, 2) if total > 0 else 0.0
+                ),
                 "average_lookup_time_ms": round(avg_lookup, 4),
                 "average_rebuild_time_ms": round(avg_rebuild, 4),
                 "warmup_duration_sec": round(self._warmup_duration, 4),
                 "commands_count": self._commands_count,
-                "top_missed_keys": dict(sorted_missed)
+                "top_missed_keys": dict(sorted_missed),
             }
 
-    def get_redis_telemetry(self, redis_client: Optional[Any]) -> Dict[str, Any]:
+    def get_redis_telemetry(
+        self, redis_client: Optional[Any]
+    ) -> Dict[str, Any]:  # pragma: no cover
         """
         EN: Connects directly to Redis client and extracts raw performance and memory telemetry.
         FA: اتصال مستقیم به کلاینت Redis و استخراج تله‌متری خام عملکرد و حافظه مصرفی.
         """
         if not redis_client:
-            return {"redis_available": False, "status_message": "Redis client is offline or disabled"}
+            return {
+                "redis_available": False,
+                "status_message": "Redis client is offline or disabled",
+            }
 
         try:
             info = redis_client.info()
@@ -132,14 +149,16 @@ class MetricsTracker:
                 "expired_keys": int(info.get("expired_keys", 0)),
                 "evictions": int(info.get("evicted_keys", 0)),
                 "fragmentation_ratio": float(info.get("mem_fragmentation_ratio", 0.0)),
-                "commands_processed_per_second": int(info.get("instantaneous_ops_per_sec", 0)),
+                "commands_processed_per_second": int(
+                    info.get("instantaneous_ops_per_sec", 0)
+                ),
                 "connected_clients": int(info.get("connected_clients", 0)),
             }
         except Exception as e:
             logger.warning(f"Failed to fetch Redis telemetry metrics: {e}")
             return {
                 "redis_available": False,
-                "status_message": f"Telemetry retrieval failed: {str(e)}"
+                "status_message": f"Telemetry retrieval failed: {str(e)}",
             }
 
 

@@ -9,9 +9,9 @@ from typing import Any, Dict, Optional
 
 # EN: Cache Levels and TTL defaults (in seconds)
 # FA: سطوح کش و مقادیر پیش‌فرض TTL (به ثانیه)
-CACHE_TTL_SHORT = 300       # EN: 5 minutes (Short Cache: Level 2)
-CACHE_TTL_MEDIUM = 14400    # EN: 4 hours (Medium Cache: Level 3)
-CACHE_TTL_LONG = 1209600    # EN: 14 days (Long Cache: Level 4)
+CACHE_TTL_SHORT = 300  # EN: 5 minutes (Short Cache: Level 2)
+CACHE_TTL_MEDIUM = 14400  # EN: 4 hours (Medium Cache: Level 3)
+CACHE_TTL_LONG = 1209600  # EN: 14 days (Long Cache: Level 4)
 
 
 class CacheLevel:
@@ -19,6 +19,7 @@ class CacheLevel:
     EN: Defines caching level configurations.
     FA: تنظیمات سطوح کش را تعریف می‌کند.
     """
+
     LEVEL_1 = "no_cache"
     LEVEL_2 = "short"
     LEVEL_3 = "medium"
@@ -60,7 +61,7 @@ def build_cache_key(
     api_version: str = "v1",
     tenant: str = "default",
     lang: str = "en",
-    timezone: str = "UTC"
+    timezone: str = "UTC",
 ) -> str:
     """
     EN:

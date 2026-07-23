@@ -4,13 +4,14 @@ FA: سرویس‌های پیش‌گرم کردن کش (Warmup) و پیش‌خو�
 """
 
 import logging
+import threading
 import time
 from typing import Any, Dict, List, Optional
-import threading
 
 from django.conf import settings
-from .policies import build_cache_key
+
 from .monitoring import metrics_tracker
+from .policies import build_cache_key
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,16 @@ class WarmupService:
         # FA: ردیابی مسیرها یا سازنده‌های ثبت شده برای پیش‌گرم کردن کش
         self._builders: Dict[str, tuple] = {}
 
-    def register_builder(self, name: str, key: str, callback: Any, group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl: int = 300, hard_ttl: int = 600) -> None:
+    def register_builder(
+        self,
+        name: str,
+        key: str,
+        callback: Any,
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl: int = 300,
+        hard_ttl: int = 600,
+    ) -> None:
         """
         EN: Registers a data builder callback for a specific cache key.
         FA: ثبت کالبک سازنده داده برای یک کلید کش خاص.
@@ -55,7 +65,7 @@ class WarmupService:
                 group=group,
                 tags=tags,
                 soft_ttl_sec=soft_ttl,
-                hard_ttl_sec=hard_ttl
+                hard_ttl_sec=hard_ttl,
             )
             duration = time.time() - start_time
             metrics_tracker.record_warmup(duration)
@@ -76,9 +86,13 @@ class WarmupService:
             if self.trigger_warmup_for(name):
                 count += 1
         duration = time.time() - start_time
-        logger.info(f"Cache warmup completed. Warmed up {count}/{len(self._builders)} keys in {duration:.4f} seconds.")
+        logger.info(
+            f"Cache warmup completed. Warmed up {count}/{len(self._builders)} keys in {duration:.4f} seconds."
+        )
 
-    def warmup_after_mutation(self, article_slug: Optional[str] = None, category_slug: Optional[str] = None) -> None:
+    def warmup_after_mutation(
+        self, article_slug: Optional[str] = None, category_slug: Optional[str] = None
+    ) -> None:
         """
         EN:
         Triggered after save/delete of Article/Category to regenerate:
@@ -94,7 +108,9 @@ class WarmupService:
         - صفحه دسته‌بندی
         - فیدها و نقشه‌های سایت
         """
-        logger.info(f"Mutation detected (Article: {article_slug}, Category: {category_slug}). Triggering selective warmup.")
+        logger.info(
+            f"Mutation detected (Article: {article_slug}, Category: {category_slug}). Triggering selective warmup."
+        )
 
         # EN: Warm up homepage
         # FA: پیش‌گرم کردن صفحه اصلی
@@ -131,7 +147,9 @@ class PrefetchService:
     FA: سرویس پیش‌خوانی پیش‌بینانه جهت بازسازی کلیدهای پربازدید پیش از منقضی شدن کامل.
     """
 
-    def __init__(self, cache_manager_instance: Any, check_interval_sec: int = 60) -> None:
+    def __init__(
+        self, cache_manager_instance: Any, check_interval_sec: int = 60
+    ) -> None:
         self.cache_manager = cache_manager_instance
         self.check_interval_sec = check_interval_sec
         self._hot_keys: Dict[str, Dict[str, Any]] = {}
@@ -139,7 +157,15 @@ class PrefetchService:
         self._is_running = False
         self._thread: Optional[threading.Thread] = None
 
-    def register_hot_key(self, key: str, callback: Any, group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl: int = 300, hard_ttl: int = 600) -> None:
+    def register_hot_key(
+        self,
+        key: str,
+        callback: Any,
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl: int = 300,
+        hard_ttl: int = 600,
+    ) -> None:
         """
         EN: Registers a hot key for predictive prefetch tracking.
         FA: ثبت کلید پربازدید برای ردیابی و پیش‌خوانی پیش‌بینانه.
@@ -151,7 +177,7 @@ class PrefetchService:
                 "tags": tags,
                 "soft_ttl": soft_ttl,
                 "hard_ttl": hard_ttl,
-                "last_prefetched": time.time()
+                "last_prefetched": time.time(),
             }
 
     def start_background_loop(self) -> None:
@@ -163,7 +189,9 @@ class PrefetchService:
             if self._is_running:
                 return
             self._is_running = True
-            self._thread = threading.Thread(target=self._run_loop, daemon=True, name="cache-prefetch-loop")
+            self._thread = threading.Thread(
+                target=self._run_loop, daemon=True, name="cache-prefetch-loop"
+            )
             self._thread.start()
             logger.info("Predictive Prefetch background loop started.")
 
@@ -215,7 +243,7 @@ class PrefetchService:
                     group=config["group"],
                     tags=config["tags"],
                     soft_ttl_sec=config["soft_ttl"],
-                    hard_ttl_sec=config["hard_ttl"]
+                    hard_ttl_sec=config["hard_ttl"],
                 )
                 with self._lock:
                     if key in self._hot_keys:

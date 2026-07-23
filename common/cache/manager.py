@@ -5,19 +5,24 @@ FA: سرویس مرکزی مدیریت کش. پیاده‌سازی الگوها�
 
 import asyncio
 import logging
-import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from django.core.cache import caches
 from django.conf import settings
+from django.core.cache import caches
 
 from .compressors import BaseCacheCompressor, GzipCompressor, ZstdCompressor
 from .invalidation import InvalidationManager
 from .locks import DistributedLock
 from .monitoring import metrics_tracker
-from .policies import build_cache_key, get_ttl_by_level, get_ttl_with_jitter, CACHE_TTL_MEDIUM
+from .policies import (
+    CACHE_TTL_MEDIUM,
+    build_cache_key,
+    get_ttl_by_level,
+    get_ttl_with_jitter,
+)
 from .serializers import BaseCacheSerializer, JSONSerializer, MessagePackSerializer
 
 logger = logging.getLogger(__name__)
@@ -52,7 +57,9 @@ class CacheManager:
 
         # EN: Thread pool for background non-blocking revalidation (Stale-While-Revalidate)
         # FA: استخر نخ‌ها برای اجرای پس‌زمینه و غیرمسدودکننده بازسازی کش (Stale-While-Revalidate)
-        self._executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="cache-revalidate")
+        self._executor = ThreadPoolExecutor(
+            max_workers=10, thread_name_prefix="cache-revalidate"
+        )
 
         # EN: Setup underlying Django Cache connection
         # FA: راه‌اندازی اتصال به موتور کش جنگو
@@ -74,7 +81,9 @@ class CacheManager:
         FA: تلاش ایمن برای تشخیص کلاینت خام Redis.
         """
         try:
-            if hasattr(self._django_cache, "client") and hasattr(self._django_cache.client, "get_client"):
+            if hasattr(self._django_cache, "client") and hasattr(
+                self._django_cache.client, "get_client"
+            ):
                 # EN: django-redis client
                 # FA: کلاینت مخصوص django-redis
                 self._redis_client = self._django_cache.client.get_client()
@@ -83,7 +92,9 @@ class CacheManager:
                 self._redis_client.ping()
                 self._is_redis_available = True
         except Exception as e:
-            logger.warning(f"Redis not available or not configured: {e}. Falling back to Django cache backend.")
+            logger.warning(
+                f"Redis not available or not configured: {e}. Falling back to Django cache backend."
+            )
             self._redis_client = None
             self._is_redis_available = False
 
@@ -110,7 +121,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> Optional[bytes]:
         """
         EN: Serializes, compresses, and wraps cache object in an envelope with metadata.
@@ -121,7 +132,9 @@ class CacheManager:
             serialized_len = len(serialized)
 
             if serialized_len > self.max_object_size_bytes:
-                logger.warning(f"Payload size {serialized_len} exceeds cache limit {self.max_object_size_bytes}. Rejecting.")
+                logger.warning(
+                    f"Payload size {serialized_len} exceeds cache limit {self.max_object_size_bytes}. Rejecting."
+                )
                 return None
 
             compressed = False
@@ -150,7 +163,7 @@ class CacheManager:
                 "t": tags or [],
                 "tv": tag_versions,
                 "st": now + (soft_ttl_sec or 300),
-                "ht": now + (hard_ttl_sec or 600)
+                "ht": now + (hard_ttl_sec or 600),
             }
 
             # EN: Serialize the entire envelope with JSON
@@ -184,7 +197,9 @@ class CacheManager:
             if group:
                 current_group_ver = self.invalidation.get_version(group)
                 if envelope.get("gv", 1) < current_group_ver:
-                    logger.debug(f"Cache stale: group '{group}' version changed from {envelope.get('gv')} to {current_group_ver}")
+                    logger.debug(
+                        f"Cache stale: group '{group}' version changed from {envelope.get('gv')} to {current_group_ver}"
+                    )
                     return None, False
 
             # EN: Check tag versions validity
@@ -193,7 +208,9 @@ class CacheManager:
             for tag, stored_ver in tag_versions.items():
                 current_tag_ver = self.invalidation.get_tag_version(tag)
                 if stored_ver < current_tag_ver:
-                    logger.debug(f"Cache stale: tag '{tag}' version changed from {stored_ver} to {current_tag_ver}")
+                    logger.debug(
+                        f"Cache stale: tag '{tag}' version changed from {stored_ver} to {current_tag_ver}"
+                    )
                     return None, False
 
             # EN: Check expiration times
@@ -274,7 +291,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> bool:
         """
         EN: Synchronous set operation.
@@ -286,7 +303,9 @@ class CacheManager:
         # EN: Generate random jitter on hard TTL
         # FA: تولید جیتر تصادفی برای انقضای سخت
         hard_ttl_sec = hard_ttl_sec or CACHE_TTL_MEDIUM
-        soft_ttl_sec = soft_ttl_sec or int(hard_ttl_sec * 0.7)  # EN: default soft TTL to 70% of hard TTL
+        soft_ttl_sec = soft_ttl_sec or int(
+            hard_ttl_sec * 0.7
+        )  # EN: default soft TTL to 70% of hard TTL
 
         hard_ttl_jittered = get_ttl_with_jitter(hard_ttl_sec)
 
@@ -295,7 +314,7 @@ class CacheManager:
             group=group,
             tags=tags,
             soft_ttl_sec=soft_ttl_sec,
-            hard_ttl_sec=hard_ttl_jittered
+            hard_ttl_sec=hard_ttl_jittered,
         )
         if envelope is None:
             return False
@@ -305,7 +324,9 @@ class CacheManager:
             metrics_tracker.record_command()
             return True
         except Exception as e:
-            logger.error(f"Error in cache set: {e}. PostgreSQL remains the single source of truth.")
+            logger.error(
+                f"Error in cache set: {e}. PostgreSQL remains the single source of truth."
+            )
             return False
 
     async def set_async(
@@ -315,7 +336,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> bool:
         """
         EN: Asynchronous set operation.
@@ -330,7 +351,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> bool:
         """EN: CamelCase alias for SetAsync. FA: نام مستعار SetAsync."""
         return await self.set_async(key, value, group, tags, soft_ttl_sec, hard_ttl_sec)
@@ -400,7 +421,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> Any:
         """
         EN:
@@ -417,7 +438,9 @@ class CacheManager:
         try:
             raw_data = self._django_cache.get(key)
         except Exception as e:
-            logger.error(f"Cache engine error during get_or_create: {e}. PostgreSQL fallback.")
+            logger.error(
+                f"Cache engine error during get_or_create: {e}. PostgreSQL fallback."
+            )
             raw_data = None
 
         if raw_data is not None:
@@ -429,8 +452,12 @@ class CacheManager:
                 if is_stale:
                     # EN: Trigger background non-blocking revalidation
                     # FA: آغاز فرآیند غیرمسدودکننده پس‌زمینه برای بازسازی کش
-                    logger.debug(f"Soft expiry triggered for {key}. Revalidating in background.")
-                    self._trigger_background_rebuild(key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec)
+                    logger.debug(
+                        f"Soft expiry triggered for {key}. Revalidating in background."
+                    )
+                    self._trigger_background_rebuild(
+                        key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec
+                    )
 
                 return data
 
@@ -472,7 +499,9 @@ class CacheManager:
         else:
             # EN: Lock timed out, fallback directly to DB query to prevent blocking request
             # FA: خطای انقضای زمان دریافت قفل، اجرای مستقیم کوئری پایگاه داده برای جلوگیری از فریز شدن کلاینت
-            logger.warning(f"Cache lock timeout for {key}. Falling back directly to Single Source of Truth.")
+            logger.warning(
+                f"Cache lock timeout for {key}. Falling back directly to Single Source of Truth."
+            )
             return rebuild_callback()
 
     async def get_or_create_async(
@@ -482,7 +511,7 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> Any:
         """
         EN: Asynchronous GetOrCreate operation.
@@ -490,7 +519,9 @@ class CacheManager:
         """
         # EN: Django's sync callback can be executed in executor if async context is preferred.
         # FA: کالبک همزمان جنگو را می‌توان در استخر نخ‌ها اجرا کرد در صورتی که کانتکست ناهمزمان ترجیح داده شود.
-        return self.get_or_create(key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec)
+        return self.get_or_create(
+            key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec
+        )
 
     async def GetOrCreateAsync(
         self,
@@ -499,10 +530,12 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> Any:
         """EN: CamelCase alias for GetOrCreateAsync. FA: نام مستعار GetOrCreateAsync."""
-        return await self.get_or_create_async(key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec)
+        return await self.get_or_create_async(
+            key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec
+        )
 
     def _trigger_background_rebuild(
         self,
@@ -511,12 +544,13 @@ class CacheManager:
         group: Optional[str] = None,
         tags: Optional[List[str]] = None,
         soft_ttl_sec: Optional[int] = None,
-        hard_ttl_sec: Optional[int] = None
+        hard_ttl_sec: Optional[int] = None,
     ) -> None:
         """
         EN: Dispatches the revalidation callback to thread pool.
         FA: ارسال فرآیند بازسازی کش به استخر نخ‌ها به صورت پس‌زمینه.
         """
+
         def task():
             lock = DistributedLock(self._get_raw_client(), f"rebuild:{key}")
             # EN: Lock with no block to ensure only one thread triggers background revalidation
@@ -527,7 +561,10 @@ class CacheManager:
                     new_value = rebuild_callback()
                     self.set(key, new_value, group, tags, soft_ttl_sec, hard_ttl_sec)
                 except Exception as e:
-                    logger.error(f"Error in background revalidation task for {key}: {e}", exc_info=True)
+                    logger.error(
+                        f"Error in background revalidation task for {key}: {e}",
+                        exc_info=True,
+                    )
                 finally:
                     lock.release()
 
@@ -535,7 +572,9 @@ class CacheManager:
 
     # --- DISTRIBUTED LOCK IMPLEMENTATION ---
 
-    def try_acquire_lock(self, lock_key: str, expire_sec: int = 10, timeout_sec: int = 5) -> Tuple[bool, Optional[str]]:
+    def try_acquire_lock(
+        self, lock_key: str, expire_sec: int = 10, timeout_sec: int = 5
+    ) -> Tuple[bool, Optional[str]]:
         """
         EN: Tries to acquire a lock, returning (success_boolean, token).
         FA: تلاش برای دریافت قفل همزمانی. مقدار برگشتی (success_boolean, token) است.
@@ -544,7 +583,9 @@ class CacheManager:
         success = lock.acquire(expire_sec, timeout_sec)
         return success, lock.token
 
-    async def TryAcquireLock(self, lock_key: str, expire_sec: int = 10, timeout_sec: int = 5) -> Tuple[bool, Optional[str]]:
+    async def TryAcquireLock(
+        self, lock_key: str, expire_sec: int = 10, timeout_sec: int = 5
+    ) -> Tuple[bool, Optional[str]]:
         """EN: CamelCase alias. FA: نام مستعار."""
         return self.try_acquire_lock(lock_key, expire_sec, timeout_sec)
 
@@ -563,7 +604,15 @@ class CacheManager:
 
     # --- WARMUP / REFRESH INTERFACES ---
 
-    def refresh(self, key: str, rebuild_callback: Callable[[], Any], group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl_sec: Optional[int] = None, hard_ttl_sec: Optional[int] = None) -> Any:
+    def refresh(
+        self,
+        key: str,
+        rebuild_callback: Callable[[], Any],
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl_sec: Optional[int] = None,
+        hard_ttl_sec: Optional[int] = None,
+    ) -> Any:
         """
         EN: Forces cache rebuild and returns the fresh value.
         FA: اجبار بازسازی کامل کش و ذخیره مقدار تازه.
@@ -572,24 +621,62 @@ class CacheManager:
         self.set(key, new_val, group, tags, soft_ttl_sec, hard_ttl_sec)
         return new_val
 
-    async def refresh_async(self, key: str, rebuild_callback: Callable[[], Any], group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl_sec: Optional[int] = None, hard_ttl_sec: Optional[int] = None) -> Any:
+    async def refresh_async(
+        self,
+        key: str,
+        rebuild_callback: Callable[[], Any],
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl_sec: Optional[int] = None,
+        hard_ttl_sec: Optional[int] = None,
+    ) -> Any:
         """EN: Asynchronous cache refresh. FA: بازسازی کش ناهمزمان."""
-        return self.refresh(key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec)
+        return self.refresh(
+            key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec
+        )
 
-    async def RefreshAsync(self, key: str, rebuild_callback: Callable[[], Any], group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl_sec: Optional[int] = None, hard_ttl_sec: Optional[int] = None) -> Any:
+    async def RefreshAsync(
+        self,
+        key: str,
+        rebuild_callback: Callable[[], Any],
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl_sec: Optional[int] = None,
+        hard_ttl_sec: Optional[int] = None,
+    ) -> Any:
         """EN: CamelCase alias. FA: نام مستعار."""
-        return await self.refresh_async(key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec)
+        return await self.refresh_async(
+            key, rebuild_callback, group, tags, soft_ttl_sec, hard_ttl_sec
+        )
 
-    async def warmup_async(self, key: str, value: Any, group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl_sec: Optional[int] = None, hard_ttl_sec: Optional[int] = None) -> bool:
+    async def warmup_async(
+        self,
+        key: str,
+        value: Any,
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl_sec: Optional[int] = None,
+        hard_ttl_sec: Optional[int] = None,
+    ) -> bool:
         """
         EN: Warmup caches asynchronously.
         FA: پیش‌گرم کردن کش به صورت ناهمزمان.
         """
         return self.set(key, value, group, tags, soft_ttl_sec, hard_ttl_sec)
 
-    async def WarmupAsync(self, key: str, value: Any, group: Optional[str] = None, tags: Optional[List[str]] = None, soft_ttl_sec: Optional[int] = None, hard_ttl_sec: Optional[int] = None) -> bool:
+    async def WarmupAsync(
+        self,
+        key: str,
+        value: Any,
+        group: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        soft_ttl_sec: Optional[int] = None,
+        hard_ttl_sec: Optional[int] = None,
+    ) -> bool:
         """EN: CamelCase alias. FA: نام مستعار."""
-        return await self.warmup_async(key, value, group, tags, soft_ttl_sec, hard_ttl_sec)
+        return await self.warmup_async(
+            key, value, group, tags, soft_ttl_sec, hard_ttl_sec
+        )
 
 
 # EN: Singleton instance of CacheManager

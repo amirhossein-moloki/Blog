@@ -3,11 +3,12 @@ EN: Health check views for Cache, Redis, and Cache-Manager with performance tele
 FA: نماهای بررسی سلامت برای کش، ردیس و مدیریت کش به همراه تله‌متری عملکردی سیستم.
 """
 
-import time
 import logging
+import time
+
+from django.core.cache import caches
 from django.http import JsonResponse
 from django.views import View
-from django.core.cache import caches
 
 from .manager import cache_manager
 from .monitoring import metrics_tracker
@@ -43,21 +44,23 @@ class CacheHealthView(View):
             duration = (time.time() - start_time) * 1000.0
 
             if read_val == test_val:
-                return JsonResponse({
-                    "status": "healthy",
-                    "timestamp": time.time(),
-                    "duration_ms": round(duration, 2),
-                    "backend": django_cache.__class__.__name__,
-                }, status=200)
+                return JsonResponse(
+                    {
+                        "status": "healthy",
+                        "timestamp": time.time(),
+                        "duration_ms": round(duration, 2),
+                        "backend": django_cache.__class__.__name__,
+                    },
+                    status=200,
+                )
 
             raise ValueError("Value mismatch during health-check read-write loop")
         except Exception as e:
             logger.error(f"Cache Health Check Failed: {e}", exc_info=True)
-            return JsonResponse({
-                "status": "unhealthy",
-                "timestamp": time.time(),
-                "error": str(e)
-            }, status=503)
+            return JsonResponse(
+                {"status": "unhealthy", "timestamp": time.time(), "error": str(e)},
+                status=503,
+            )
 
 
 class RedisHealthView(View):
@@ -71,11 +74,14 @@ class RedisHealthView(View):
         try:
             client = cache_manager._get_raw_client()
             if not client:
-                return JsonResponse({
-                    "status": "unhealthy",
-                    "timestamp": time.time(),
-                    "message": "Redis is disabled or client is offline"
-                }, status=503)
+                return JsonResponse(
+                    {
+                        "status": "unhealthy",
+                        "timestamp": time.time(),
+                        "message": "Redis is disabled or client is offline",
+                    },
+                    status=503,
+                )
 
             # EN: Ping Redis
             # FA: ارسال پینگ به ردیس
@@ -86,19 +92,21 @@ class RedisHealthView(View):
             # FA: دریافت اطلاعات تله‌متری ردیس
             telemetry = metrics_tracker.get_redis_telemetry(client)
 
-            return JsonResponse({
-                "status": "healthy",
-                "timestamp": time.time(),
-                "duration_ms": round(duration, 2),
-                "telemetry": telemetry
-            }, status=200)
+            return JsonResponse(
+                {
+                    "status": "healthy",
+                    "timestamp": time.time(),
+                    "duration_ms": round(duration, 2),
+                    "telemetry": telemetry,
+                },
+                status=200,
+            )
         except Exception as e:
             logger.error(f"Redis Health Check Failed: {e}", exc_info=True)
-            return JsonResponse({
-                "status": "unhealthy",
-                "timestamp": time.time(),
-                "error": str(e)
-            }, status=503)
+            return JsonResponse(
+                {"status": "unhealthy", "timestamp": time.time(), "error": str(e)},
+                status=503,
+            )
 
 
 class CacheManagerHealthView(View):
@@ -125,7 +133,9 @@ class CacheManagerHealthView(View):
             # EN: 2. Test locking
             # FA: ۲. تست قفل همزمانی
             lock_key = "health:lock_test"
-            success, token = cache_manager.try_acquire_lock(lock_key, expire_sec=5, timeout_sec=1)
+            success, token = cache_manager.try_acquire_lock(
+                lock_key, expire_sec=5, timeout_sec=1
+            )
             if not success or not token:
                 raise ValueError("Failed to acquire test lock")
 
@@ -141,21 +151,20 @@ class CacheManagerHealthView(View):
             client = cache_manager._get_raw_client()
             redis_telemetry = metrics_tracker.get_redis_telemetry(client)
 
-            return JsonResponse({
-                "status": "healthy",
-                "timestamp": time.time(),
-                "duration_ms": round(duration, 2),
-                "serializer": cache_manager.serializer.__class__.__name__,
-                "compressor": cache_manager.compressor.__class__.__name__,
-                "metrics": {
-                    "local": local_metrics,
-                    "redis": redis_telemetry
-                }
-            }, status=200)
+            return JsonResponse(
+                {
+                    "status": "healthy",
+                    "timestamp": time.time(),
+                    "duration_ms": round(duration, 2),
+                    "serializer": cache_manager.serializer.__class__.__name__,
+                    "compressor": cache_manager.compressor.__class__.__name__,
+                    "metrics": {"local": local_metrics, "redis": redis_telemetry},
+                },
+                status=200,
+            )
         except Exception as e:
             logger.error(f"Cache Manager Health Check Failed: {e}", exc_info=True)
-            return JsonResponse({
-                "status": "unhealthy",
-                "timestamp": time.time(),
-                "error": str(e)
-            }, status=503)
+            return JsonResponse(
+                {"status": "unhealthy", "timestamp": time.time(), "error": str(e)},
+                status=503,
+            )

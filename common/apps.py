@@ -4,6 +4,7 @@ FA: کلاس تنظیمات برای اپلیکیشن common. ثبت سیگنا�
 """
 
 import logging
+
 from django.apps import AppConfig
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ class CommonConfig(AppConfig):
     EN: AppConfig class for common module. Registers signal handlers and warmup builders.
     FA: کلاس AppConfig برای ماژول common. ثبت سیگنال‌های ابطال کش و سازنده‌های پیش‌گرم کردن کش.
     """
+
     name = "common"
     default_auto_field = "django.db.models.BigAutoField"
 
@@ -25,19 +27,22 @@ class CommonConfig(AppConfig):
         # EN: 1. Register Signals
         # FA: ۱. ثبت سیگنال‌ها
         from common.cache.signals import register_cache_signals
+
         register_cache_signals()
 
         # EN: 2. Register Warmup Builders
         # FA: ۲. ثبت سازنده‌های پیش‌گرم کردن کش
         try:
-            from common.cache import warmup_service, build_cache_key
+            from common.cache import build_cache_key, warmup_service
             from posts.models import Article, Category
             from posts.serializers import ArticleListSerializer, CategorySerializer
 
             def build_homepage() -> dict:
                 # EN: Fetch latest 10 published articles for homepage cache
                 # FA: دریافت ۱۰ مقاله آخر منتشر شده برای کش صفحه اصلی
-                articles = Article.objects.filter(status="published").order_by("-published_at", "-id")[:10]
+                articles = Article.objects.filter(status="published").order_by(
+                    "-published_at", "-id"
+                )[:10]
                 serializer = ArticleListSerializer(articles, many=True)
                 return {
                     "data": serializer.data,
@@ -46,9 +51,9 @@ class CommonConfig(AppConfig):
                         "pageSize": 10,
                         "totalPage": 1,
                         "totalCount": len(articles),
-                        "lastId": None
+                        "lastId": None,
                     },
-                    "messagesList": []
+                    "messagesList": [],
                 }
 
             def build_categories_list() -> list:
@@ -59,14 +64,20 @@ class CommonConfig(AppConfig):
 
             # EN: Build keys and register
             # FA: ساخت کلیدها و ثبت آن‌ها در سرویس پیش‌گرم کردن
-            homepage_key = build_cache_key("posts", "article_list", "list", params={"page": "1", "pagesize": "10"}, lang="en")
+            homepage_key = build_cache_key(
+                "posts",
+                "article_list",
+                "list",
+                params={"page": "1", "pagesize": "10"},
+                lang="en",
+            )
             warmup_service.register_builder(
                 name="homepage",
                 key=homepage_key,
                 callback=build_homepage,
                 group="homepage",
                 soft_ttl=300,
-                hard_ttl=900
+                hard_ttl=900,
             )
 
             categories_key = build_cache_key("posts", "category_list", "list")
@@ -76,7 +87,7 @@ class CommonConfig(AppConfig):
                 callback=build_categories_list,
                 group="categories",
                 soft_ttl=86400,
-                hard_ttl=604800
+                hard_ttl=604800,
             )
 
             logger.info("Enterprise Cache Warmup builders registered successfully.")

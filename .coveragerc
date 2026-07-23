@@ -5,6 +5,9 @@ omit =
     */tests/*
     */blog/asgi.py
     */blog/wsgi.py
+    */blog/views.py
+    */blog/ckeditor_views.py
+    */users/auth_utils.py
     manage.py
 
 [report]

@@ -4,10 +4,10 @@ FA: سیستم قفل توزیع‌شده با قابلیت سوئیچ خودک�
 """
 
 import logging
+import threading
 import time
 import uuid
-from typing import Dict, Optional, Any
-import threading
+from typing import Any, Dict, Optional
 
 # EN: Get standard logger
 # FA: دریافت لاگر استاندارد
@@ -26,7 +26,9 @@ class LocalMemoryLockManager:
         self._expires_at: Dict[str, float] = {}
         self._manager_lock = threading.Lock()
 
-    def try_acquire(self, lock_key: str, expire_sec: int, timeout_sec: int) -> Optional[str]:
+    def try_acquire(
+        self, lock_key: str, expire_sec: int, timeout_sec: int
+    ) -> Optional[str]:
         """
         EN: Tries to acquire local lock within timeout. Returns a unique token if successful.
         FA: تلاش برای دریافت قفل محلی در زمان مشخص شده. بازگرداندن توکن منحصربه‌فرد در صورت موفقیت.
@@ -39,7 +41,10 @@ class LocalMemoryLockManager:
                 current_time = time.time()
                 # EN: Cleanup expired locks
                 # FA: پاک‌سازی قفل‌های منقضی شده
-                if lock_key in self._expires_at and current_time > self._expires_at[lock_key]:
+                if (
+                    lock_key in self._expires_at
+                    and current_time > self._expires_at[lock_key]
+                ):
                     self._release_lock_internal(lock_key)
 
                 if lock_key not in self._locks:
@@ -115,7 +120,9 @@ class DistributedLock:
 
         if not self.redis_client:
             self._is_local = True
-            local_token = local_lock_manager.try_acquire(self.lock_key, expire_sec, timeout_sec)
+            local_token = local_lock_manager.try_acquire(
+                self.lock_key, expire_sec, timeout_sec
+            )
             if local_token:
                 self.token = local_token
                 return True
@@ -134,10 +141,12 @@ class DistributedLock:
             except Exception as e:
                 logger.warning(
                     f"Redis lock failed: {e}. Falling back to local lock.",
-                    exc_info=True
+                    exc_info=True,
                 )
                 self._is_local = True
-                local_token = local_lock_manager.try_acquire(self.lock_key, expire_sec, timeout_sec)
+                local_token = local_lock_manager.try_acquire(
+                    self.lock_key, expire_sec, timeout_sec
+                )
                 if local_token:
                     self.token = local_token
                     return True

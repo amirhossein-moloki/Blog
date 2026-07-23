@@ -43,6 +43,7 @@ class CustomEncoder(json.JSONEncoder):
     EN: Custom JSON encoder supporting datetime, date, UUID, and decimal.
     FA: انکودر سفارشی JSON برای پشتیبانی از datetime، date، UUID و decimal.
     """
+
     def default(self, o: Any) -> Any:
         if isinstance(o, (datetime.datetime, datetime.date)):
             return {"__datetime__": True, "value": o.isoformat()}

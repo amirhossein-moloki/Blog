@@ -6,7 +6,7 @@ FA: نماها برای مدیریت صفحات استاتیک با قابلیت
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from common.cache import cache_manager, build_cache_key
+from common.cache import build_cache_key, cache_manager
 from common.permissions import IsAdminUserOrReadOnly
 
 from .models import Page
@@ -47,6 +47,6 @@ class PageViewSet(viewsets.ModelViewSet):
             group="pages",
             tags=[f"page:{slug}"],
             soft_ttl_sec=86400,
-            hard_ttl_sec=604800
+            hard_ttl_sec=604800,
         )
         return Response(data)
