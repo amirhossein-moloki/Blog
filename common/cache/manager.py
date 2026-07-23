@@ -3,27 +3,22 @@ EN: Central Cache Manager service. Implements Cache-Aside, Stale-While-Revalidat
 FA: سرویس مرکزی مدیریت کش. پیاده‌سازی الگوهای Cache-Aside و Stale-While-Revalidate، محدودیت‌های حجم داده و سوئیچ اضطراری.
 """
 
-import asyncio
 import logging
-import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple
 
-from django.conf import settings
 from django.core.cache import caches
 
-from .compressors import BaseCacheCompressor, GzipCompressor, ZstdCompressor
+from .compressors import BaseCacheCompressor, ZstdCompressor
 from .invalidation import InvalidationManager
 from .locks import DistributedLock
 from .monitoring import metrics_tracker
 from .policies import (
     CACHE_TTL_MEDIUM,
-    build_cache_key,
-    get_ttl_by_level,
     get_ttl_with_jitter,
 )
-from .serializers import BaseCacheSerializer, JSONSerializer, MessagePackSerializer
+from .serializers import BaseCacheSerializer, MessagePackSerializer
 
 logger = logging.getLogger(__name__)
 

@@ -5,41 +5,29 @@ FA: تست‌های جامع واحد، یکپارچه‌سازی و کارای�
 
 import asyncio
 import datetime
-import time
 import uuid
 from unittest import mock
 
-from django.http import JsonResponse
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from common.cache import (
-    CacheLevel,
     build_cache_key,
-    cache_manager,
     metrics_tracker,
     prefetch_service,
     warmup_service,
 )
 from common.cache.compressors import GzipCompressor, ZstdCompressor
-from common.cache.invalidation import InvalidationManager
 from common.cache.locks import (
     DistributedLock,
     LocalMemoryLockManager,
-    local_lock_manager,
 )
 from common.cache.manager import CacheManager
 from common.cache.serializers import JSONSerializer, MessagePackSerializer
-from common.cache.views import (
-    CacheHealthView,
-    CacheManagerHealthView,
-    RedisHealthView,
-)
-from interactions.models import Comment
 from pages.models import Page
-from posts.models import Article, Category, Tag
+from posts.models import Category
 
 
 class CacheSubsystemTests(TestCase):

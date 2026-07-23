@@ -6,7 +6,6 @@ FA: شنونده‌های ابطال کش رویدادمحور و پیش‌گر�
 import logging
 
 from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
 # EN: Dynamic imports to prevent circular references
 # FA: ایمپورت‌های پویا برای جلوگیری از رفرنس‌های حلقوی

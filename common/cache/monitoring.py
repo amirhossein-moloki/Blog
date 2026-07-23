@@ -5,7 +5,6 @@ FA: ردیاب محلی متریک‌های عملکرد کش و یکپارچگ�
 
 import logging
 import threading
-import time
 from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)

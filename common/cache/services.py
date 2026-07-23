@@ -8,10 +8,7 @@ import threading
 import time
 from typing import Any, Dict, List, Optional
 
-from django.conf import settings
-
 from .monitoring import metrics_tracker
-from .policies import build_cache_key
 
 logger = logging.getLogger(__name__)
 
