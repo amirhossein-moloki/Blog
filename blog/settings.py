@@ -519,7 +519,7 @@ AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
 # EN: Celery configuration for background tasks and scheduled events.
 # FA: تنظیمات Celery برای تسک‌های پس‌زمینه و رویدادهای زمان‌بندی شده.
-if "test" in sys.argv or "pytest" in sys.modules:
+if is_testing:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_BROKER_URL = "memory://"
     CELERY_RESULT_BACKEND = "cache+memory://"
@@ -563,7 +563,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-if "test" in sys.argv or "pytest" in sys.modules:
+if is_testing:
     CELERY_TASK_ALWAYS_EAGER = True
     # Disable guardian's anonymous user during tests to prevent test failures
     ANONYMOUS_USER_NAME = None
