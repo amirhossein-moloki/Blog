@@ -106,36 +106,30 @@ class WarmupService:
         - فیدها و نقشه‌های سایت
         """
         logger.info(
-            f"Mutation detected (Article: {article_slug}, Category: {category_slug}). Triggering selective warmup."
+            f"Mutation detected (Article: {article_slug}, Category: {category_slug}). Triggering selective async warmup."
         )
 
-        # EN: Warm up homepage
-        # FA: پیش‌گرم کردن صفحه اصلی
-        if "homepage" in self._builders:
-            self.trigger_warmup_for("homepage")
+        from common.cache.tasks import (
+            warmup_article_detail,
+            warmup_category_pages,
+            warmup_homepage,
+            warmup_related_content,
+        )
 
-        # EN: Warm up feeds & category lists
-        # FA: پیش‌گرم کردن فیدها و لیست دسته‌بندی‌ها
-        if "categories_list" in self._builders:
-            self.trigger_warmup_for("categories_list")
+        # Dispatch homepage warmup (which covers categories_list as well)
+        warmup_homepage.delay()
+        metrics_tracker.record_warmup_queued()
 
-        # EN: Warm up specific mutated elements if builders exist
-        # FA: پیش‌گرم کردن المان‌های تغییریافته خاص در صورت وجود سازنده
         if article_slug:
-            builder_name = f"article_detail_{article_slug}"
-            if builder_name in self._builders:
-                self.trigger_warmup_for(builder_name)
+            warmup_article_detail.delay(article_slug)
+            metrics_tracker.record_warmup_queued()
 
-            # EN: Related articles warmup
-            # FA: پیش‌گرم کردن مقالات مرتبط
-            related_name = f"related_articles_{article_slug}"
-            if related_name in self._builders:
-                self.trigger_warmup_for(related_name)
+            warmup_related_content.delay(article_slug)
+            metrics_tracker.record_warmup_queued()
 
         if category_slug:
-            cat_name = f"category_detail_{category_slug}"
-            if cat_name in self._builders:
-                self.trigger_warmup_for(cat_name)
+            warmup_category_pages.delay(category_slug)
+            metrics_tracker.record_warmup_queued()
 
 
 class PrefetchService:
@@ -218,35 +212,57 @@ class PrefetchService:
         EN: Iterates through registered hot keys and preemptively rebuilds them if close to expiration.
         FA: پیمایش کلیدهای پربازدید ثبت‌شده و بازسازی پیش‌دستانه آن‌ها در صورت نزدیکی به زمان انقضا.
         """
-        logger.info("Running predictive prefetch sweep...")
-        now = time.time()
-        keys_to_prefetch = []
+        from .locks import DistributedLock
 
-        with self._lock:
-            for key, config in self._hot_keys.items():
-                last_pref = config["last_prefetched"]
-                soft_ttl = config["soft_ttl"]
-                # EN: Prefetch if we are past 80% of soft TTL duration
-                # FA: پیش‌خوانی در صورتی که بیش از ۸۰ درصد زمان انقضای نرم گذشته باشد
-                if (now - last_pref) >= (soft_ttl * 0.8):
-                    keys_to_prefetch.append((key, config))
-
-        for key, config in keys_to_prefetch:
+        client = None
+        if self.cache_manager:
             try:
-                logger.info(f"Predictive prefetch: refreshing hot key '{key}'")
-                self.cache_manager.refresh(
-                    key=key,
-                    rebuild_callback=config["callback"],
-                    group=config["group"],
-                    tags=config["tags"],
-                    soft_ttl_sec=config["soft_ttl"],
-                    hard_ttl_sec=config["hard_ttl"],
-                )
-                with self._lock:
-                    if key in self._hot_keys:
-                        self._hot_keys[key]["last_prefetched"] = time.time()
+                client = self.cache_manager._get_raw_client()
             except Exception as e:
-                logger.error(f"Failed predictive prefetch for key '{key}': {e}")
+                logger.warning(f"Error getting raw client for prefetch locking: {e}")
+
+        lock = DistributedLock(client, "cache:prefetch:global-lock")
+        if not lock.acquire(expire_sec=90, timeout_sec=0):
+            logger.info(
+                "Predictive prefetch lock is held by another instance or thread. Skipping sweep."
+            )
+            return
+
+        try:
+            logger.info("Running predictive prefetch sweep...")
+            now = time.time()
+            keys_to_prefetch = []
+
+            with self._lock:
+                for key, config in self._hot_keys.items():
+                    last_pref = config["last_prefetched"]
+                    soft_ttl = config["soft_ttl"]
+                    # EN: Prefetch if we are past 80% of soft TTL duration
+                    # FA: پیش‌خوانی در صورتی که بیش از ۸۰ درصد زمان انقضای نرم گذشته باشد
+                    if (now - last_pref) >= (soft_ttl * 0.8):
+                        keys_to_prefetch.append((key, config))
+
+            for key, config in keys_to_prefetch:
+                try:
+                    logger.info(f"Predictive prefetch: refreshing hot key '{key}'")
+                    self.cache_manager.refresh(
+                        key=key,
+                        rebuild_callback=config["callback"],
+                        group=config["group"],
+                        tags=config["tags"],
+                        soft_ttl_sec=config["soft_ttl"],
+                        hard_ttl_sec=config["hard_ttl"],
+                    )
+                    with self._lock:
+                        if key in self._hot_keys:
+                            self._hot_keys[key]["last_prefetched"] = time.time()
+                except Exception as e:
+                    logger.error(f"Failed predictive prefetch for key '{key}': {e}")
+        finally:
+            try:
+                lock.release()
+            except Exception as e:
+                logger.error(f"Failed to release prefetch lock: {e}")
 
 
 # EN: Global service singletons

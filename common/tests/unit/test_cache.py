@@ -126,6 +126,184 @@ class CacheSubsystemTests(TestCase):
                 fallback_zstd.compress(test_bytes), gzip_comp.compress(test_bytes)
             )
 
+    def test_zstd_compression_hardening(self) -> None:
+        """EN: Verifies Zstandard compressor level configuration, default production compressor and fallback behavior."""
+        test_bytes = b"enterprise cache production hardening " * 50
+
+        # 1. Verify with different levels
+        comp_level_1 = ZstdCompressor(level=1)
+        comp_level_9 = ZstdCompressor(level=9)
+
+        c1 = comp_level_1.compress(test_bytes)
+        c9 = comp_level_9.compress(test_bytes)
+
+        self.assertEqual(comp_level_1.decompress(c1), test_bytes)
+        self.assertEqual(comp_level_9.decompress(c9), test_bytes)
+
+        # 2. Verify Zstd is the default production compressor when zstd is available
+        from common.cache.compressors import zstd as actual_zstd
+
+        if actual_zstd is not None:
+            mgr = CacheManager()
+            self.assertIsInstance(mgr.compressor, ZstdCompressor)
+            self.assertIsNone(mgr.compressor._fallback)
+
+        # 3. Verify compression fallback behavior explicitly when zstd is simulated missing
+        with mock.patch("common.cache.compressors.zstd", None):
+            fallback_comp = ZstdCompressor()
+            self.assertIsNotNone(fallback_comp._fallback)
+            self.assertIsInstance(fallback_comp._fallback, GzipCompressor)
+
+            # Compress using fallback
+            c_fallback = fallback_comp.compress(test_bytes)
+            self.assertEqual(fallback_comp.decompress(c_fallback), test_bytes)
+
+    def test_distributed_prefetch_coordination(self) -> None:
+        """EN: Verifies prefetch locking, concurrency exclusion, expiration, and Redis unavailable scenarios."""
+        # Setup mocks and state
+        prefetch_calls = 0
+
+        def cb():
+            nonlocal prefetch_calls
+            prefetch_calls += 1
+            return "ok"
+
+        original_warmup_mgr = warmup_service.cache_manager
+        original_prefetch_mgr = prefetch_service.cache_manager
+
+        try:
+            warmup_service.cache_manager = self.mgr
+            prefetch_service.cache_manager = self.mgr
+
+            prefetch_service.register_hot_key(
+                key="test_lock_key",
+                callback=cb,
+                soft_ttl=0,  # force immediate prefetch on check
+                hard_ttl=10,
+            )
+
+            # 1. Single instance execution (with local fallback lock if redis is None)
+            prefetch_service.run_predictive_prefetch()
+            self.assertEqual(prefetch_calls, 1)
+
+            # 2. Multiple instances attempting prefetch simultaneously
+            # We mock DistributedLock.acquire to return False on second attempt
+            with mock.patch(
+                "common.cache.locks.DistributedLock.acquire", side_effect=[True, False]
+            ):
+                prefetch_service.run_predictive_prefetch()  # succeeds
+                self.assertEqual(prefetch_calls, 2)
+
+                prefetch_service.run_predictive_prefetch()  # skipped because lock acquisition returns False
+                self.assertEqual(prefetch_calls, 2)
+
+            # 3. Lock expiration recovery
+            # If lock.acquire returns False then True, we can verify recovery
+            with mock.patch(
+                "common.cache.locks.DistributedLock.acquire", side_effect=[False, True]
+            ):
+                prefetch_service.run_predictive_prefetch()  # fails/skipped
+                self.assertEqual(prefetch_calls, 2)
+
+                prefetch_service.run_predictive_prefetch()  # recovers and executes
+                self.assertEqual(prefetch_calls, 3)
+
+            # 4. Redis unavailable scenario: falling back to local memory lock
+            with mock.patch.object(self.mgr, "_get_raw_client", return_value=None):
+                prefetch_service.run_predictive_prefetch()  # should execute using local fallback
+                self.assertEqual(prefetch_calls, 4)
+
+        finally:
+            warmup_service.cache_manager = original_warmup_mgr
+            prefetch_service.cache_manager = original_prefetch_mgr
+
+    def test_celery_cache_warmup_tasks(self) -> None:
+        """EN: Tests Celery tasks dispatch, duplicate prevention, retries, and cache regeneration."""
+        # 1. Test signals dispatch Celery tasks
+        from common.cache.signals import (
+            invalidate_article_cache,
+            invalidate_category_cache,
+        )
+        from posts.models import Article, Category
+        from posts.serializers import ArticleListSerializer, CategorySerializer
+
+        cat = Category(id=99, name="Hardening", slug="hardening")
+
+        with (
+            mock.patch(
+                "common.cache.tasks.warmup_homepage.delay"
+            ) as mock_homepage_delay,
+            mock.patch(
+                "common.cache.tasks.warmup_category_pages.delay"
+            ) as mock_cat_delay,
+        ):
+            invalidate_category_cache(sender=Category, instance=cat)
+            mock_homepage_delay.assert_called_once()
+            mock_cat_delay.assert_called_once_with("hardening")
+
+        # 2. Test warmup task execution
+        # Let's mock Article and Category queries and serializer data
+        with (
+            mock.patch(
+                "posts.models.Article.objects.with_translations"
+            ) as mock_with_trans,
+            mock.patch("posts.models.Category.objects.select_related") as mock_cats,
+        ):
+
+            mock_with_trans.return_value.filter.return_value.order_by.return_value = []
+            mock_cats.return_value.all.return_value = []
+
+            from common.cache.tasks import warmup_homepage
+
+            # Let's execute warmup_homepage
+            # First reset metrics
+            metrics_tracker._warmup_success = 0
+            # Since warmup_homepage is a celery task, we want to call it with self.mgr as its cache manager if needed,
+            # but since tasks import the global cache_manager, we can mock it or we can set self.mgr's underlying cache to be tested.
+            # Let's check: warmup_homepage uses the global cache_manager. Let's make sure the global cache_manager gets updated.
+            from common.cache import cache_manager as global_mgr
+
+            warmup_homepage()
+            self.assertEqual(metrics_tracker._warmup_success, 1)
+
+            # Check that keys are written to cache
+            homepage_key_en = build_cache_key(
+                "posts",
+                "article_list",
+                "list",
+                params={"page": "1", "pagesize": "10"},
+                lang="en",
+            )
+            self.assertIsNotNone(global_mgr.get(homepage_key_en))
+
+        # 3. Test duplicate task prevention
+        # We mock lock to simulate duplicate running task
+        with mock.patch(
+            "common.cache.manager.CacheManager.try_acquire_lock",
+            return_value=(False, None),
+        ):
+            from common.cache.tasks import warmup_homepage as dup_warmup
+
+            metrics_tracker._warmup_success = 1  # current value
+            dup_warmup()
+            # success count should not increment because it returns early (skipping duplicate)
+            self.assertEqual(metrics_tracker._warmup_success, 1)
+
+        # 4. Test failed task retry
+        from common.cache.tasks import warmup_homepage as fail_warmup
+
+        with mock.patch(
+            "posts.models.Article.objects.with_translations",
+            side_effect=Exception("Database failure"),
+        ):
+            with mock.patch(
+                "celery.app.task.Task.retry", side_effect=Exception("Retried")
+            ) as mock_retry:
+                with self.assertRaises(Exception) as context:
+                    fail_warmup()
+                self.assertEqual(str(context.exception), "Retried")
+                mock_retry.assert_called_once()
+
     def test_size_limits(self) -> None:
         """EN: Checks that objects exceeding max size are rejected. FA: بررسی عدم پذیرش اشیای فراتر از سقف حجم مجاز."""
         large_data = {"junk": "a" * 2000}

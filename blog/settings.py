@@ -509,7 +509,11 @@ AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
 # EN: Celery configuration for background tasks and scheduled events.
 # FA: تنظیمات Celery برای تسک‌های پس‌زمینه و رویدادهای زمان‌بندی شده.
-if USE_REDIS:
+if "test" in sys.argv or "pytest" in sys.modules:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+elif USE_REDIS:
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
 else:
