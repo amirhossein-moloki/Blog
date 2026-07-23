@@ -221,11 +221,9 @@ class CacheSubsystemTests(TestCase):
         """EN: Tests Celery tasks dispatch, duplicate prevention, retries, and cache regeneration."""
         # 1. Test signals dispatch Celery tasks
         from common.cache.signals import (
-            invalidate_article_cache,
             invalidate_category_cache,
         )
-        from posts.models import Article, Category
-        from posts.serializers import ArticleListSerializer, CategorySerializer
+        from posts.models import Category
 
         cat = Category(id=99, name="Hardening", slug="hardening")
 

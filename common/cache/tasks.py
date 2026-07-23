@@ -7,7 +7,6 @@ import logging
 import time
 
 from celery import shared_task
-from django.utils import timezone
 
 from common.cache import build_cache_key, cache_manager, metrics_tracker
 
