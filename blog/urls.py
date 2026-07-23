@@ -18,6 +18,7 @@ from rest_framework_simplejwt.views import (
 
 from posts.ckeditor_views import ckeditor_upload_view
 
+from common.cache.views import CacheHealthView, RedisHealthView, CacheManagerHealthView
 from .ckeditor_views import ckeditor5_upload
 from .sitemaps import (
     ArticleSitemap,
@@ -68,6 +69,11 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
+    # --- Cache Subsystem Health Checks ---
+    path("health/cache", CacheHealthView.as_view(), name="health-cache"),
+    path("health/redis", RedisHealthView.as_view(), name="health-redis"),
+    path("health/cache-manager", CacheManagerHealthView.as_view(), name="health-cache-manager"),
+
     # --- App URLs ---
     path("api/", include("users.urls")),
     path("api/", include("posts.urls", namespace="posts")),
