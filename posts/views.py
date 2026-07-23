@@ -9,6 +9,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from common.cache import build_cache_key, cache_manager
 from common.mixins import DynamicSerializerViewMixin
 from common.pagination import CustomPageNumberPagination
 from common.permissions import (
@@ -85,6 +86,35 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return ArticleDetailSerializer
         return ArticleListSerializer
+
+    def list(self, request, *args, **kwargs):
+        """
+        EN: Lists articles with advanced caching and fallback.
+        FA: مقاله‌ها را با قابلیت کشینگ پیشرفته و پشتیبانی اضطراری لیست می‌کند.
+        """
+        lang = request.query_params.get("lang", "en")
+        params = request.query_params.dict()
+        cache_key = build_cache_key(
+            "posts", "article_list", "list", params=params, lang=lang
+        )
+
+        def rebuild():
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data).data
+            serializer = self.get_serializer(queryset, many=True)
+            return serializer.data
+
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="latest_articles",
+            soft_ttl_sec=300,
+            hard_ttl_sec=900,
+        )
+        return Response(data)
 
     def get_queryset(self):
         """
@@ -197,14 +227,40 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         """
-        EN: Increments the view count and returns article details.
-        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را بازمی‌گرداند.
+        EN: Increments the view count and returns article details with advanced caching.
+        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را با کشینگ پیشرفته بازمی‌گرداند.
         """
         obj = self.get_object()
         obj.views_count += 1
         obj.save(update_fields=["views_count"])
-        serializer = self.get_serializer(obj)
-        return Response(serializer.data)
+
+        try:
+            slug = (
+                obj.translations.first().slug
+                if obj.translations.exists()
+                else str(obj.id)
+            )
+        except Exception:
+            slug = str(obj.id)
+
+        lang = request.query_params.get("lang", "en")
+        cache_key = build_cache_key(
+            "posts", "article_detail", slug, params={"lang": lang}, lang=lang
+        )
+
+        def rebuild():
+            serializer = self.get_serializer(obj)
+            return serializer.data
+
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="article_detail",
+            tags=[f"article_detail:{slug}"],
+            soft_ttl_sec=600,
+            hard_ttl_sec=1800,
+        )
+        return Response(data)
 
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
@@ -279,32 +335,57 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")
     def by_slug(self, request, slug=None):
         """
-        EN: Endpoint to retrieve a single article by its slug and language.
-        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن.
+        EN: Endpoint to retrieve a single article by its slug and language with advanced caching.
+        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن به همراه کشینگ پیشرفته.
         """
         lang = request.query_params.get("lang", "en")
-        try:
-            # EN: Filter by translation slug
-            # FA: فیلتر بر اساس اسلاگ ترجمه
-            article = (
-                self.get_queryset()
-                .filter(translations__slug=slug, translations__language_code=lang)
-                .first()
-            )
-            if not article:
-                # EN: Fallback: Try default language if translation not found for requested lang
-                # FA: جایگزین: تلاش برای زبان پیش‌فرض اگر ترجمه برای زبان درخواستی یافت نشد
-                article = self.get_queryset().filter(translations__slug=slug).first()
-
-            if not article:
-                raise Article.DoesNotExist
-        except Article.DoesNotExist:
-            raise NotFound("No article was found with this slug.")
-
-        serializer = ArticleDetailSerializer(
-            article, context=self.get_serializer_context()
+        cache_key = build_cache_key(
+            "posts", "article_by_slug", slug, params={"lang": lang}, lang=lang
         )
-        return Response(serializer.data)
+
+        def rebuild():
+            try:
+                article = (
+                    self.get_queryset()
+                    .filter(translations__slug=slug, translations__language_code=lang)
+                    .first()
+                )
+                if not article:
+                    article = (
+                        self.get_queryset().filter(translations__slug=slug).first()
+                    )
+
+                if not article:
+                    return {
+                        "_negative_cache_": True,
+                        "status_code": 404,
+                        "detail": "No article was found with this slug.",
+                    }
+            except Exception:
+                return {
+                    "_negative_cache_": True,
+                    "status_code": 404,
+                    "detail": "No article was found with this slug.",
+                }
+
+            serializer = ArticleDetailSerializer(
+                article, context=self.get_serializer_context()
+            )
+            return serializer.data
+
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="article_detail",
+            tags=[f"article_detail:{slug}"],
+            soft_ttl_sec=600,
+            hard_ttl_sec=1800,
+        )
+
+        if isinstance(data, dict) and data.get("_negative_cache_", False):
+            raise NotFound(data.get("detail", "No article was found with this slug."))
+
+        return Response(data)
 
 
 @extend_schema(
@@ -439,6 +520,27 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
 
+    def list(self, request, *args, **kwargs):
+        """
+        EN: Lists categories with Level 4 (Long Cache).
+        FA: لیست دسته‌بندی‌ها را با کش طولانی‌مدت بازمی‌گرداند.
+        """
+        cache_key = build_cache_key("posts", "category_list", "list")
+
+        def rebuild():
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return serializer.data
+
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="categories",
+            soft_ttl_sec=86400,
+            hard_ttl_sec=604800,
+        )
+        return Response(data)
+
 
 class TagViewSet(viewsets.ModelViewSet):
     """
@@ -449,6 +551,27 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminUserOrReadOnly]
+
+    def list(self, request, *args, **kwargs):
+        """
+        EN: Lists tags with Level 4 (Long Cache).
+        FA: لیست برچسب‌ها را با کش طولانی‌مدت بازمی‌گرداند.
+        """
+        cache_key = build_cache_key("posts", "tag_list", "list")
+
+        def rebuild():
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=True)
+            return serializer.data
+
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="tags",
+            soft_ttl_sec=86400,
+            hard_ttl_sec=604800,
+        )
+        return Response(data)
 
 
 class SeriesViewSet(viewsets.ModelViewSet):
