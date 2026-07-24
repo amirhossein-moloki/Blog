@@ -1,17 +1,19 @@
 import os
 import shutil
 import tarfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from common.bdr_crypto import encrypt_stream
+
 
 class Command(BaseCommand):
     help = (
-        "EN: Safely packages and backs up deployment configurations and secrets, masking sensitive fields in logs.\n"
-        "FA: پشتیبان‌گیری و بسته‌بندی امن تنظیمات استقرار و اسرار با ماسک کردن مقادیر حساس در لاگ‌ها."
+        "EN: Safely packages, AES-256-GCM encrypts and backs up deployment configurations and secrets, masking sensitive fields in logs.\n"
+        "FA: پشتیبان‌گیری و بسته‌بندی امن و رمزگذاری شده با AES-256-GCM تنظیمات استقرار و اسرار با ماسک کردن مقادیر حساس در لاگ‌ها."
     )
 
     def add_arguments(self, parser):
@@ -23,6 +25,37 @@ class Command(BaseCommand):
         parser.add_argument(
             "--no-cleanup", action="store_true", help="Skip the retention cleanup phase"
         )
+
+    def get_encryption_key(self):
+        """
+        Derives a safe passphrase string from BACKUP_ENCRYPTION_KEY or Django's SECRET_KEY.
+        """
+        raw_key = os.environ.get("BACKUP_ENCRYPTION_KEY") or getattr(
+            settings, "BACKUP_ENCRYPTION_KEY", None
+        )
+        if not raw_key:
+            raw_key = settings.SECRET_KEY
+        if isinstance(raw_key, bytes):
+            return raw_key.decode("utf-8")
+        return str(raw_key)
+
+    def mask_sensitive_value(self, log_str):
+        """
+        Masks common sensitive variable values like password/secret key in log lines.
+        """
+        sensitive_keywords = ["SECRET_KEY", "PASSWORD", "KEY", "TOKEN", "JWT", "AUTH"]
+        lines = []
+        for line in log_str.splitlines():
+            matched = False
+            for kw in sensitive_keywords:
+                if kw in line.upper() and "=" in line:
+                    parts = line.split("=", 1)
+                    lines.append(f"{parts[0]}=******** [MASKED]")
+                    matched = True
+                    break
+            if not matched:
+                lines.append(line)
+        return "\n".join(lines)
 
     def handle(self, *args, **options):
         # 1. Resolve output directory
@@ -49,12 +82,12 @@ class Command(BaseCommand):
         temp_dir = output_path / f"temp_config_{timestamp}"
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        final_tar_name = f"config_backup_{timestamp}.tar.gz"
+        temp_tar_path = output_path / f"temp_config_backup_{timestamp}.tar.gz"
+        final_tar_name = f"config_backup_{timestamp}.tar.gz.enc"
         final_tar_path = output_path / final_tar_name
 
         try:
             # 2. Identify deployment files to backup
-            # Typically .env files, docker-compose.yml, Nginx configurations
             files_to_backup = [
                 Path(settings.BASE_DIR) / ".env",
                 Path(settings.BASE_DIR) / ".env.example",
@@ -88,28 +121,55 @@ class Command(BaseCommand):
 
             # 3. Create Gzipped Tar archive
             self.stdout.write("Packaging files into compressed tarball...")
-            with tarfile.open(final_tar_path, "w:gz") as tar:
+            with tarfile.open(temp_tar_path, "w:gz") as tar:
                 for f_item in temp_dir.iterdir():
                     tar.add(f_item, arcname=f_item.name)
 
+            # 4. Encrypt Tar archive using streaming AES-256-GCM
+            self.stdout.write("Encrypting configuration backup using AES-256-GCM...")
+            passphrase = self.get_encryption_key()
+            with open(temp_tar_path, "rb") as f_in, open(final_tar_path, "wb") as f_out:
+                encrypt_stream(f_in, f_out, passphrase)
+
+            # Clean up unencrypted temp tar file
+            if temp_tar_path.exists():
+                temp_tar_path.unlink()
+
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Configuration backup saved successfully to: {final_tar_path}"
+                    f"Configuration backup saved successfully to (encrypted): {final_tar_path}"
                 )
             )
 
-            # 4. Cleanup temporary config directory
+            # 5. Cleanup temporary config directory
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
 
-            # 5. Retention Cleanup
+            # 6. Retention Cleanup
             if not options.get("no_cleanup"):
                 self.perform_retention_cleanup(output_path)
 
+            # Update SRE metrics
+            from common.bdr_metrics import update_sre_metric
+
+            update_sre_metric(
+                "last_successful_config_backup", datetime.utcnow().isoformat()
+            )
+            update_sre_metric("config_backup_status", "SUCCESS")
+
         except Exception as e:
-            # Safely cleanup temp dir
+            # Safely cleanup temp files/dir
+            if temp_tar_path.exists():
+                temp_tar_path.unlink()
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
+            from common.bdr_metrics import update_sre_metric
+
+            update_sre_metric(
+                "last_failed_config_backup", datetime.utcnow().isoformat()
+            )
+            update_sre_metric("config_backup_status", "FAILED")
+            update_sre_metric("config_backup_error", str(e))
             self.stderr.write(
                 self.style.ERROR(f"Backup configuration process failed: {str(e)}")
             )
@@ -117,24 +177,8 @@ class Command(BaseCommand):
 
     def perform_retention_cleanup(self, backup_path):
         """
-        Deletes configuration backups older than the configured BACKUP_RETENTION_DAYS (defaults to 7).
+        Deletes configuration backups using Grandfather-Father-Son (GFS) retention rules.
         """
-        retention_days = int(
-            os.environ.get("BACKUP_RETENTION_DAYS")
-            or getattr(settings, "BACKUP_RETENTION_DAYS", 7)
-        )
-        self.stdout.write(
-            f"Initiating retention cleanup (retention threshold: {retention_days} days)..."
-        )
+        from common.bdr_retention import perform_gfs_retention_cleanup
 
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
-
-        # Scan backup directory for config_backup files
-        for item in backup_path.iterdir():
-            if item.is_file() and (item.name.startswith("config_backup_")):
-                mtime = datetime.utcfromtimestamp(item.stat().st_mtime)
-                if mtime < cutoff_date:
-                    self.stdout.write(
-                        f"Deleting expired config backup: {item.name} (mtime: {mtime})"
-                    )
-                    item.unlink()
+        perform_gfs_retention_cleanup(backup_path, "config_backup_", stdout=self.stdout)
