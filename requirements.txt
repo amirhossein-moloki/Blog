@@ -426,3 +426,4 @@ zope-interface==7.2
 # pip
 # setuptools
 isort==6.0.0
+zstandard==0.22.0

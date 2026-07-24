@@ -26,6 +26,11 @@ class MetricsTracker:
         self._warmup_duration = 0.0
         self._commands_count = 0
         self._top_missed_keys: Dict[str, int] = {}
+        self._warmup_queued = 0
+        self._warmup_success = 0
+        self._warmup_failure = 0
+        self._total_celery_execution_time = 0.0
+        self._celery_execution_count = 0
         self._lock = threading.Lock()
 
     def record_hit(self, lookup_time_ms: float) -> None:
@@ -68,6 +73,40 @@ class MetricsTracker:
         with self._lock:
             self._warmup_duration = duration_sec
 
+    def record_warmup_queued(self) -> None:
+        """
+        EN: Records a warmup task being queued.
+        FA: ثبت صف‌بندی شدن تسک پیش‌گرم کردن کش.
+        """
+        with self._lock:
+            self._warmup_queued += 1
+
+    def record_warmup_success(self, duration_sec: float) -> None:
+        """
+        EN: Records a successful warmup task execution.
+        FA: ثبت موفقیت‌آمیز بودن تسک پیش‌گرم کردن کش.
+        """
+        with self._lock:
+            self._warmup_success += 1
+            self._warmup_duration = duration_sec
+
+    def record_warmup_failure(self) -> None:
+        """
+        EN: Records a failed warmup task execution.
+        FA: ثبت خطای تسک پیش‌گرم کردن کش.
+        """
+        with self._lock:
+            self._warmup_failure += 1
+
+    def record_celery_execution(self, duration_sec: float) -> None:
+        """
+        EN: Records the Celery task execution duration.
+        FA: ثبت زمان اجرای تسک Celery.
+        """
+        with self._lock:
+            self._celery_execution_count += 1
+            self._total_celery_execution_time += duration_sec
+
     def record_command(self) -> None:
         """
         EN: Increments general Redis/cache operation counter.
@@ -101,6 +140,12 @@ class MetricsTracker:
                 self._top_missed_keys.items(), key=lambda x: x[1], reverse=True
             )[:10]
 
+            avg_celery = (
+                (self._total_celery_execution_time / self._celery_execution_count)
+                if self._celery_execution_count > 0
+                else 0.0
+            )
+
             return {
                 "hits_count": self._hits,
                 "misses_count": self._misses,
@@ -112,6 +157,10 @@ class MetricsTracker:
                 "average_lookup_time_ms": round(avg_lookup, 4),
                 "average_rebuild_time_ms": round(avg_rebuild, 4),
                 "warmup_duration_sec": round(self._warmup_duration, 4),
+                "warmup_queued_count": self._warmup_queued,
+                "warmup_success_count": self._warmup_success,
+                "warmup_failure_count": self._warmup_failure,
+                "average_celery_execution_time_sec": round(avg_celery, 4),
                 "commands_count": self._commands_count,
                 "top_missed_keys": dict(sorted_missed),
             }

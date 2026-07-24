@@ -149,7 +149,12 @@ ASGI_APPLICATION = "blog.asgi.application"
 
 # EN: Database configuration with support for environment-driven URLs and SQLite fallback for tests.
 # FA: تنظیمات پایگاه داده با پشتیبانی از آدرس‌های مبتنی بر محیط و جایگزین SQLite برای تست‌ها.
-is_testing_db = "test" in sys.argv or "pytest" in sys.modules
+is_testing_db = (
+    "test" in sys.argv
+    or "pytest" in sys.modules
+    or any("test" in arg for arg in sys.argv)
+    or any("pytest" in arg for arg in sys.argv)
+)
 
 if is_testing_db:
     DATABASES = {
@@ -472,7 +477,12 @@ else:
 
 # EN: Force HTTPS in production environments.
 # FA: اجبار استفاده از HTTPS در محیط‌های تولید.
-is_testing = "test" in sys.argv or "pytest" in sys.modules
+is_testing = (
+    "test" in sys.argv
+    or "pytest" in sys.modules
+    or any("test" in arg for arg in sys.argv)
+    or any("pytest" in arg for arg in sys.argv)
+)
 
 SECURE_SSL_REDIRECT = not DEBUG and not is_testing
 # In production, use secure cookies.
@@ -509,7 +519,11 @@ AXES_NEVER_LOCKOUT_CALLABLE = "users.auth_utils.should_never_lockout_staff"
 
 # EN: Celery configuration for background tasks and scheduled events.
 # FA: تنظیمات Celery برای تسک‌های پس‌زمینه و رویدادهای زمان‌بندی شده.
-if USE_REDIS:
+if is_testing:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+elif USE_REDIS:
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
 else:
@@ -549,7 +563,7 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-if "test" in sys.argv or "pytest" in sys.modules:
+if is_testing:
     CELERY_TASK_ALWAYS_EAGER = True
     # Disable guardian's anonymous user during tests to prevent test failures
     ANONYMOUS_USER_NAME = None
