@@ -1,5 +1,4 @@
 import gzip
-import hashlib
 import os
 import shutil
 import tarfile
@@ -7,12 +6,16 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 
-from common.bdr_crypto import GzipEncryptionStream, decrypt_and_decompress_stream, decrypt_stream, encrypt_stream
+from common.bdr_crypto import (
+    GzipEncryptionStream,
+    decrypt_and_decompress_stream,
+    decrypt_stream,
+    encrypt_stream,
+)
 from common.bdr_retention import perform_gfs_retention_cleanup
 from common.tasks import (
     backup_config_task,
@@ -73,6 +76,7 @@ class BackupDatabaseTest(TestCase):
 
         # Decrypt stream to verify
         import io
+
         dec_out = io.BytesIO()
         passphrase = "test_super_secret_key"
         with open(enc_file, "rb") as f_in:
@@ -152,7 +156,10 @@ class BackupDatabaseTest(TestCase):
 
         self.assertTrue(b1.exists(), "Newest backup must be kept.")
         self.assertTrue(b2.exists(), "GFS daily backup within threshold must be kept.")
-        self.assertFalse(b_expired.exists(), "Expired backup outside retention windows must be purged.")
+        self.assertFalse(
+            b_expired.exists(),
+            "Expired backup outside retention windows must be purged.",
+        )
 
 
 class BackupMediaTest(TestCase):
@@ -194,7 +201,10 @@ class BackupMediaTest(TestCase):
             call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
 
         # Deleted file in source must NOT be deleted in target backup
-        self.assertTrue((self.temp_dst_dir / "pic1.jpg").exists(), "Backup must protect against deletion in source.")
+        self.assertTrue(
+            (self.temp_dst_dir / "pic1.jpg").exists(),
+            "Backup must protect against deletion in source.",
+        )
 
     @patch("boto3.client")
     @override_settings(STORAGE_BACKEND="s3", AWS_STORAGE_BUCKET_NAME="test-bucket")
@@ -253,8 +263,13 @@ class BackupConfigTest(TestCase):
         passphrase = "test_super_secret_key"
         try:
             # Patch get_encryption_key to return deterministic passphrase during backup command execution
-            with patch("common.management.commands.backup_config.Command.get_encryption_key", return_value=passphrase):
-                call_command("backup_config", "--output-dir", str(out_dir), "--no-cleanup")
+            with patch(
+                "common.management.commands.backup_config.Command.get_encryption_key",
+                return_value=passphrase,
+            ):
+                call_command(
+                    "backup_config", "--output-dir", str(out_dir), "--no-cleanup"
+                )
 
             # Check archive exists (encrypted version)
             archives = list(out_dir.glob("*.tar.gz.enc"))
@@ -301,6 +316,7 @@ class RestoreSystemTest(TestCase):
 
         # Build memory-safe encrypted Gzip stream
         import io
+
         enc_buf = io.BytesIO()
         passphrase = "recovery_pass"
         crypto_stream = GzipEncryptionStream(enc_buf, passphrase)
@@ -323,6 +339,7 @@ class RestoreSystemTest(TestCase):
         """
         sql_content = b"CREATE TABLE restore_test (id int);"
         import io
+
         enc_buf = io.BytesIO()
         # Encrypted with correct key
         crypto_stream = GzipEncryptionStream(enc_buf, "correct_pass")
@@ -334,7 +351,10 @@ class RestoreSystemTest(TestCase):
         enc_file.write_bytes(enc_buf.getvalue())
 
         # Attempt to restore with a WRONG key
-        with patch("common.management.commands.restore_system.Command.get_encryption_key", return_value="wrong_pass"):
+        with patch(
+            "common.management.commands.restore_system.Command.get_encryption_key",
+            return_value="wrong_pass",
+        ):
             with self.assertRaises(ValueError):
                 call_command("restore_system", "--db-file", str(enc_file), "--decrypt")
 
@@ -345,6 +365,7 @@ class RestoreSystemTest(TestCase):
         """
         sql_content = b"CREATE TABLE restore_test (id int);"
         import io
+
         enc_buf = io.BytesIO()
         crypto_stream = GzipEncryptionStream(enc_buf, "correct_pass")
         with gzip.GzipFile(fileobj=crypto_stream, mode="wb") as f_gz:
@@ -372,6 +393,7 @@ class RestoreSystemTest(TestCase):
 
         # Package into tar.gz
         import io
+
         tar_buf = io.BytesIO()
         with tarfile.open(fileobj=tar_buf, mode="w:gz") as tar:
             tarinfo = tarfile.TarInfo(name=".env")

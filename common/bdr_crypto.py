@@ -1,10 +1,12 @@
-import os
 import io
+import os
 import struct
 import zlib
+
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes
+
 
 def derive_key(passphrase: str, salt: bytes, iterations: int = 100000) -> bytes:
     """
@@ -18,11 +20,13 @@ def derive_key(passphrase: str, salt: bytes, iterations: int = 100000) -> bytes:
     )
     return kdf.derive(passphrase.encode("utf-8"))
 
+
 class GzipEncryptionStream:
     """
     A file-like object that intercepts compressed bytes written to it,
     buffers them, and writes them out as AES-256-GCM encrypted chunks.
     """
+
     def __init__(self, out_file, passphrase):
         self.out_file = out_file
         self.passphrase = passphrase
@@ -136,7 +140,9 @@ def decrypt_stream(instream, outstream, passphrase: str):
     while True:
         len_bytes = instream.read(4)
         if len(len_bytes) < 4:
-            raise ValueError("Corrupted backup: unexpected EOF while reading chunk length.")
+            raise ValueError(
+                "Corrupted backup: unexpected EOF while reading chunk length."
+            )
         chunk_len = struct.unpack(">I", len_bytes)[0]
 
         if chunk_len == 0:
@@ -154,7 +160,9 @@ def decrypt_stream(instream, outstream, passphrase: str):
         try:
             plaintext = aesgcm.decrypt(nonce, ciphertext, aad)
         except Exception as e:
-            raise ValueError("Decryption failed. Password may be incorrect, or the backup is corrupted/tampered.") from e
+            raise ValueError(
+                "Decryption failed. Password may be incorrect, or the backup is corrupted/tampered."
+            ) from e
 
         outstream.write(plaintext)
         chunk_index += 1
@@ -188,7 +196,9 @@ def decrypt_and_decompress_stream(instream, outstream, passphrase: str):
     while True:
         len_bytes = instream.read(4)
         if len(len_bytes) < 4:
-            raise ValueError("Corrupted backup: unexpected EOF while reading chunk length.")
+            raise ValueError(
+                "Corrupted backup: unexpected EOF while reading chunk length."
+            )
         chunk_len = struct.unpack(">I", len_bytes)[0]
 
         if chunk_len == 0:
@@ -206,7 +216,9 @@ def decrypt_and_decompress_stream(instream, outstream, passphrase: str):
         try:
             plaintext_gzip_chunk = aesgcm.decrypt(nonce, ciphertext, aad)
         except Exception as e:
-            raise ValueError("Decryption failed. Password may be incorrect, or the backup is corrupted/tampered.") from e
+            raise ValueError(
+                "Decryption failed. Password may be incorrect, or the backup is corrupted/tampered."
+            ) from e
 
         decompressed_data = decompressor.decompress(plaintext_gzip_chunk)
         if decompressed_data:

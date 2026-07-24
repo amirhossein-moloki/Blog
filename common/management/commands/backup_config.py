@@ -1,13 +1,14 @@
 import os
 import shutil
 import tarfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from common.bdr_crypto import encrypt_stream
+
 
 class Command(BaseCommand):
     help = (
@@ -150,7 +151,10 @@ class Command(BaseCommand):
 
             # Update SRE metrics
             from common.bdr_metrics import update_sre_metric
-            update_sre_metric("last_successful_config_backup", datetime.utcnow().isoformat())
+
+            update_sre_metric(
+                "last_successful_config_backup", datetime.utcnow().isoformat()
+            )
             update_sre_metric("config_backup_status", "SUCCESS")
 
         except Exception as e:
@@ -160,7 +164,10 @@ class Command(BaseCommand):
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
             from common.bdr_metrics import update_sre_metric
-            update_sre_metric("last_failed_config_backup", datetime.utcnow().isoformat())
+
+            update_sre_metric(
+                "last_failed_config_backup", datetime.utcnow().isoformat()
+            )
             update_sre_metric("config_backup_status", "FAILED")
             update_sre_metric("config_backup_error", str(e))
             self.stderr.write(
@@ -173,4 +180,5 @@ class Command(BaseCommand):
         Deletes configuration backups using Grandfather-Father-Son (GFS) retention rules.
         """
         from common.bdr_retention import perform_gfs_retention_cleanup
+
         perform_gfs_retention_cleanup(backup_path, "config_backup_", stdout=self.stdout)

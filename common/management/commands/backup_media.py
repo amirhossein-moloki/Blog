@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 
 try:
     import boto3
-    from botocore.config import Config
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
@@ -49,7 +49,9 @@ class Command(BaseCommand):
         storage_backend = getattr(settings, "STORAGE_BACKEND", "local")
         if storage_backend == "s3":
             return True
-        if os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None):
+        if os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
+            settings, "AWS_STORAGE_BUCKET_NAME", None
+        ):
             return True
         storages_config = getattr(settings, "STORAGES", {})
         default_backend = storages_config.get("default", {}).get("BACKEND", "")
@@ -93,19 +95,35 @@ class Command(BaseCommand):
         use_s3 = self.is_s3_storage()
 
         if use_s3:
-            self.stdout.write("S3-compatible storage backend detected. Starting bucket sync...")
+            self.stdout.write(
+                "S3-compatible storage backend detected. Starting bucket sync..."
+            )
             if not HAS_BOTO3:
-                raise ImportError("boto3 package is required for S3 synchronization but not installed.")
+                raise ImportError(
+                    "boto3 package is required for S3 synchronization but not installed."
+                )
 
             # Resolve S3 connection credentials
-            bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
-            access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(settings, "AWS_ACCESS_KEY_ID", None)
-            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
-            endpoint_url = os.environ.get("AWS_S3_ENDPOINT_URL") or getattr(settings, "AWS_S3_ENDPOINT_URL", None)
-            region_name = os.environ.get("AWS_S3_REGION_NAME") or getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
+            bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
+                settings, "AWS_STORAGE_BUCKET_NAME", None
+            )
+            access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(
+                settings, "AWS_ACCESS_KEY_ID", None
+            )
+            secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(
+                settings, "AWS_SECRET_ACCESS_KEY", None
+            )
+            endpoint_url = os.environ.get("AWS_S3_ENDPOINT_URL") or getattr(
+                settings, "AWS_S3_ENDPOINT_URL", None
+            )
+            region_name = os.environ.get("AWS_S3_REGION_NAME") or getattr(
+                settings, "AWS_S3_REGION_NAME", "us-east-1"
+            )
 
             if not bucket_name:
-                raise ValueError("S3 bucket name is not configured. Specify AWS_STORAGE_BUCKET_NAME.")
+                raise ValueError(
+                    "S3 bucket name is not configured. Specify AWS_STORAGE_BUCKET_NAME."
+                )
 
             # Create boto3 S3 Client
             s3_client = boto3.client(
@@ -118,7 +136,9 @@ class Command(BaseCommand):
 
             try:
                 # List objects in bucket
-                self.stdout.write(f" -> Accessing S3/compatible bucket: '{bucket_name}'...")
+                self.stdout.write(
+                    f" -> Accessing S3/compatible bucket: '{bucket_name}'..."
+                )
                 paginator = s3_client.get_paginator("list_objects_v2")
                 pages = paginator.paginate(Bucket=bucket_name)
 
@@ -145,7 +165,6 @@ class Command(BaseCommand):
                                         # Strict comparison: compare ETag or calculate hash if needed
                                         # Standard AWS ETag is often MD5 of object (in quotes)
                                         # For absolute safety we can calculate local md5/sha256
-                                        local_sha = self.calculate_sha256(target_file_path)
                                         # (Check if object has SHA256 metadata or use local md5 vs Etag)
                                         # Let's bypass to avoid remote API overhead unless mismatch
                                         should_copy = False
@@ -161,7 +180,9 @@ class Command(BaseCommand):
 
                         except Exception as e:
                             self.stderr.write(
-                                self.style.ERROR(f"Failed to sync S3 object '{key}': {str(e)}")
+                                self.style.ERROR(
+                                    f"Failed to sync S3 object '{key}': {str(e)}"
+                                )
                             )
                             failed_files += 1
 
@@ -183,7 +204,9 @@ class Command(BaseCommand):
                 raise RuntimeError(f"S3 synchronization failed: {str(e)}")
 
         else:
-            self.stdout.write("Local storage backend detected. Starting local incremental sync...")
+            self.stdout.write(
+                "Local storage backend detected. Starting local incremental sync..."
+            )
             # 3. Incremental Local Sync logic
             for root, _, files in os.walk(source_dir):
                 for filename in files:
@@ -203,7 +226,10 @@ class Command(BaseCommand):
                             # Primary check: size and modification time match
                             if source_stat.st_size == target_stat.st_size:
                                 if not strict_mode:
-                                    if abs(source_stat.st_mtime - target_stat.st_mtime) < 2.0:
+                                    if (
+                                        abs(source_stat.st_mtime - target_stat.st_mtime)
+                                        < 2.0
+                                    ):
                                         should_copy = False
                                 else:
                                     src_sha = self.calculate_sha256(source_file_path)
@@ -220,7 +246,9 @@ class Command(BaseCommand):
 
                     except Exception as e:
                         self.stderr.write(
-                            self.style.ERROR(f"Failed to copy '{relative_path}': {str(e)}")
+                            self.style.ERROR(
+                                f"Failed to copy '{relative_path}': {str(e)}"
+                            )
                         )
                         failed_files += 1
 
@@ -247,17 +275,23 @@ class Command(BaseCommand):
         self.stdout.write("---------------------------\n")
 
         if failed_files > 0:
-            from common.bdr_metrics import update_sre_metric
             from datetime import datetime
+
+            from common.bdr_metrics import update_sre_metric
+
             update_sre_metric("last_failed_media_backup", datetime.utcnow().isoformat())
             update_sre_metric("media_backup_status", "FAILED")
             raise RuntimeError(
                 f"Media backup sync finished with errors. Failed transfers: {failed_files}"
             )
         else:
-            from common.bdr_metrics import update_sre_metric
             from datetime import datetime
-            update_sre_metric("last_successful_media_backup", datetime.utcnow().isoformat())
+
+            from common.bdr_metrics import update_sre_metric
+
+            update_sre_metric(
+                "last_successful_media_backup", datetime.utcnow().isoformat()
+            )
             update_sre_metric("media_backup_status", "SUCCESS")
             update_sre_metric("media_backup_copied_files", copied_files)
             update_sre_metric("media_backup_skipped_files", skipped_files)

@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
@@ -18,7 +18,8 @@ from common.bdr_metrics import update_sre_metric
 
 # Attempt to import cryptography
 try:
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+    import cryptography  # noqa: F401
+
     HAS_CRYPTOGRAPHY = True
 except ImportError:
     HAS_CRYPTOGRAPHY = False
@@ -34,7 +35,9 @@ def file_lock(lock_path):
         with os.fdopen(fd, "w") as f:
             f.write(str(os.getpid()))
     except FileExistsError:
-        raise RuntimeError("Concurrency limit hit: Another database backup/restore operation is currently running.")
+        raise RuntimeError(
+            "Concurrency limit hit: Another database backup/restore operation is currently running."
+        )
     try:
         yield
     finally:
@@ -141,7 +144,8 @@ class Command(BaseCommand):
             timestamp_str = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
             encrypt_enabled = (
                 options.get("encrypt")
-                or os.environ.get("BACKUP_ENCRYPT", "false").lower() in ("true", "1", "t")
+                or os.environ.get("BACKUP_ENCRYPT", "false").lower()
+                in ("true", "1", "t")
                 or getattr(settings, "BACKUP_ENCRYPT", False)
             )
 
@@ -166,7 +170,9 @@ class Command(BaseCommand):
 
                 with open(final_path, "wb") as final_file_handle:
                     if encrypt_enabled:
-                        crypto_stream = GzipEncryptionStream(final_file_handle, passphrase)
+                        crypto_stream = GzipEncryptionStream(
+                            final_file_handle, passphrase
+                        )
                         compressor = gzip.GzipFile(fileobj=crypto_stream, mode="wb")
                     else:
                         crypto_stream = None
@@ -177,7 +183,11 @@ class Command(BaseCommand):
                             self.stdout.write(
                                 "Streaming PostgreSQL pg_dump (Plain SQL text format)..."
                             )
-                            is_testing = "test" in sys.argv or "pytest" in sys.modules or "pytest" in sys.argv
+                            is_testing = (
+                                "test" in sys.argv
+                                or "pytest" in sys.modules
+                                or "pytest" in sys.argv
+                            )
                             if is_testing and not shutil.which("pg_dump"):
                                 compressor.write(b"-- Mock pg_dump Output --\n")
                             else:
@@ -198,7 +208,10 @@ class Command(BaseCommand):
                                 # Start the process redirecting stderr to a file to prevent pipe deadlocks
                                 with open(temp_err_file, "w") as err_f:
                                     process = subprocess.Popen(
-                                        cmd, stdout=subprocess.PIPE, stderr=err_f, env=env
+                                        cmd,
+                                        stdout=subprocess.PIPE,
+                                        stderr=err_f,
+                                        env=env,
                                     )
 
                                 try:
@@ -215,13 +228,23 @@ class Command(BaseCommand):
                                 if return_code != 0:
                                     err_msg = ""
                                     if temp_err_file.exists():
-                                        err_msg = temp_err_file.read_text(errors="ignore")
-                                    raise RuntimeError(f"pg_dump failed with exit code {return_code}: {err_msg}")
+                                        err_msg = temp_err_file.read_text(
+                                            errors="ignore"
+                                        )
+                                    raise RuntimeError(
+                                        f"pg_dump failed with exit code {return_code}: {err_msg}"
+                                    )
 
                         elif "sqlite3" in engine:
                             self.stdout.write("Streaming SQLite database...")
-                            if not db_name or db_name == ":memory:" or "mode=memory" in db_name:
-                                compressor.write(b"-- Mock SQLite In-Memory Database Backup --\n")
+                            if (
+                                not db_name
+                                or db_name == ":memory:"
+                                or "mode=memory" in db_name
+                            ):
+                                compressor.write(
+                                    b"-- Mock SQLite In-Memory Database Backup --\n"
+                                )
                             else:
                                 if os.path.exists(db_name):
                                     with open(db_name, "rb") as f_sqlite:
@@ -231,7 +254,9 @@ class Command(BaseCommand):
                                                 break
                                             compressor.write(chunk)
                                 else:
-                                    compressor.write(b"-- Fallback Mock SQLite Database Backup --\n")
+                                    compressor.write(
+                                        b"-- Fallback Mock SQLite Database Backup --\n"
+                                    )
                         else:
                             raise NotImplementedError(
                                 f"Database engine '{engine}' is not supported for backup."
@@ -242,11 +267,15 @@ class Command(BaseCommand):
                             crypto_stream.close()
 
                 self.stdout.write(
-                    self.style.SUCCESS(f"Compressed & encrypted backup saved to: {final_path}")
+                    self.style.SUCCESS(
+                        f"Compressed & encrypted backup saved to: {final_path}"
+                    )
                 )
 
                 # 4. Integrity Verification
-                self.stdout.write("Validating backup integrity (streaming AES-256-GCM)...")
+                self.stdout.write(
+                    "Validating backup integrity (streaming AES-256-GCM)..."
+                )
                 self.validate_backup_integrity(final_path, encrypt_enabled)
                 self.stdout.write(self.style.SUCCESS("Integrity validation PASSED."))
 
@@ -260,10 +289,17 @@ class Command(BaseCommand):
 
                 # Update SRE metrics
                 duration = time.time() - start_time
-                update_sre_metric("last_successful_db_backup", datetime.utcnow().isoformat())
+                update_sre_metric(
+                    "last_successful_db_backup", datetime.utcnow().isoformat()
+                )
                 update_sre_metric("last_db_backup_duration_sec", duration)
-                update_sre_metric("last_db_backup_size_bytes", final_path.stat().st_size)
-                update_sre_metric("last_db_backup_encryption_status", "AES-256-GCM" if encrypt_enabled else "None")
+                update_sre_metric(
+                    "last_db_backup_size_bytes", final_path.stat().st_size
+                )
+                update_sre_metric(
+                    "last_db_backup_encryption_status",
+                    "AES-256-GCM" if encrypt_enabled else "None",
+                )
                 update_sre_metric("db_backup_status", "SUCCESS")
 
             except Exception as e:
@@ -271,7 +307,9 @@ class Command(BaseCommand):
                 if final_path.exists():
                     final_path.unlink()
                 # Update SRE metrics
-                update_sre_metric("last_failed_db_backup", datetime.utcnow().isoformat())
+                update_sre_metric(
+                    "last_failed_db_backup", datetime.utcnow().isoformat()
+                )
                 update_sre_metric("db_backup_status", "FAILED")
                 update_sre_metric("db_backup_error", str(e))
                 self.stderr.write(
@@ -321,6 +359,7 @@ class Command(BaseCommand):
             raise FileNotFoundError(f"Backup file at '{file_path}' does not exist.")
 
         import io
+
         class NullStream(io.RawIOBase):
             def write(self, b):
                 return len(b)
@@ -343,4 +382,5 @@ class Command(BaseCommand):
         Deletes database backups and manifests using Grandfather-Father-Son (GFS) retention rules.
         """
         from common.bdr_retention import perform_gfs_retention_cleanup
+
         perform_gfs_retention_cleanup(backup_path, "db_backup_", stdout=self.stdout)

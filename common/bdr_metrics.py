@@ -1,8 +1,9 @@
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 METRICS_PATH = Path("/app/backups/sre_metrics.json")
+
 
 def update_sre_metric(key: str, value):
     """
@@ -11,6 +12,7 @@ def update_sre_metric(key: str, value):
     try:
         # If in test mode, write to test backup path
         import sys
+
         if "test" in sys.argv or "pytest" in sys.modules:
             metrics_file = Path("/app/test_restore_temp/sre_metrics.json")
         else:
