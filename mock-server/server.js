@@ -369,7 +369,6 @@ createCrudHandlers('revisions', 'revisions');
 createCrudHandlers('media', 'medias');
 createCrudHandlers('comments', 'comments');
 createCrudHandlers('reactions', 'reactions');
-createCrudHandlers('pages', 'pages');
 createCrudHandlers('menus', 'menus');
 createCrudHandlers('menu-items', 'menuItems');
 

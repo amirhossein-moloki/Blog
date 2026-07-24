@@ -8,7 +8,6 @@ from faker import Faker
 
 from interactions.models import Comment, Reaction
 from medias.models import Media
-from pages.models import Page
 from posts.models import (
     Article,
     AuthorProfile,
@@ -116,16 +115,6 @@ class SeriesFactory(factory.django.DjangoModelFactory):
     title = factory.LazyAttribute(lambda _: fake.sentence())
     slug = factory.LazyAttribute(lambda o: fake.slug(o.title))
     description = factory.LazyAttribute(lambda _: fake.paragraph())
-
-
-class PageFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Page
-
-    title = factory.LazyAttribute(lambda _: fake.sentence())
-    slug = factory.LazyAttribute(lambda o: fake.slug(o.title))
-    content = factory.LazyAttribute(lambda _: fake.text())
-    status = "published"
 
 
 class ArticleFactory(factory.django.DjangoModelFactory):
