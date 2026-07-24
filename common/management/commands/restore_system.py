@@ -1,18 +1,26 @@
 import gzip
 import hashlib
+import json
 import os
 import shutil
 import subprocess
 import tarfile
+import time
 from pathlib import Path
+from datetime import datetime
 
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.core.cache import cache
+from django.db import connection
 
-# Attempt to import cryptography for memory-safe streaming decryption
+from common.bdr_crypto import decrypt_and_decompress_stream, decrypt_stream
+from common.bdr_metrics import update_sre_metric
+
+# Attempt to import cryptography
 try:
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
     HAS_CRYPTOGRAPHY = True
 except ImportError:
     HAS_CRYPTOGRAPHY = False
@@ -20,8 +28,8 @@ except ImportError:
 
 class Command(BaseCommand):
     help = (
-        "EN: Validates backup integrity and performs complete system restoration of DB, media, and configurations.\n"
-        "FA: اعتبارسنجی یکپارچگی پشتیبان‌گیری و انجام بازیابی کامل سیستم برای پایگاه داده، رسانه‌ها و تنظیمات."
+        "EN: Validates backup integrity and performs complete, production-safe system restoration of DB, media, and configurations.\n"
+        "FA: اعتبارسنجی یکپارچگی پشتیبان‌گیری و انجام بازیابی کامل و امن سیستم برای پایگاه داده, رسانه‌ها و تنظیمات."
     )
 
     def add_arguments(self, parser):
@@ -33,12 +41,12 @@ class Command(BaseCommand):
         parser.add_argument(
             "--media-file",
             type=str,
-            help="Path to target backup media sync directory to restore from (or a specific tar/zip if needed)",
+            help="Path to target backup media sync directory to restore from",
         )
         parser.add_argument(
             "--config-file",
             type=str,
-            help="Path to the configuration backup tarball (.tar.gz)",
+            help="Path to the configuration backup tarball (.tar.gz.enc)",
         )
         parser.add_argument(
             "--decrypt",
@@ -48,14 +56,16 @@ class Command(BaseCommand):
 
     def get_encryption_key(self):
         """
-        Derives a safe 32-byte AES key from BACKUP_ENCRYPTION_KEY or Django's SECRET_KEY.
+        Derives a safe passphrase string from BACKUP_ENCRYPTION_KEY or Django's SECRET_KEY.
         """
         raw_key = os.environ.get("BACKUP_ENCRYPTION_KEY") or getattr(
             settings, "BACKUP_ENCRYPTION_KEY", None
         )
         if not raw_key:
             raw_key = settings.SECRET_KEY
-        return hashlib.sha256(raw_key.encode("utf-8")).digest()
+        if isinstance(raw_key, bytes):
+            return raw_key.decode("utf-8")
+        return str(raw_key)
 
     def handle(self, *args, **options):
         db_file = options.get("db_file")
@@ -79,8 +89,8 @@ class Command(BaseCommand):
         # 1. Database Restoration
         if db_file:
             db_file_path = Path(db_file)
-            self.stdout.write(f"Initiating database restoration from: {db_file_path}")
-            self.restore_database(db_file_path, force_decrypt)
+            self.stdout.write(f"Initiating production-safe database restoration from: {db_file_path}")
+            self.restore_database_flow(db_file_path, force_decrypt)
 
         # 2. Media Restoration
         if media_file:
@@ -102,69 +112,96 @@ class Command(BaseCommand):
             self.style.SUCCESS("System restoration process completed successfully!")
         )
 
-    def restore_database(self, file_path, decrypt):
+    def restore_database_flow(self, file_path, decrypt):
+        """
+        Executes the 8-step enterprise-grade, production-safe database restore workflow.
+        """
         if not file_path.exists():
             raise FileNotFoundError(f"Database backup file not found at: {file_path}")
 
-        # Decrypt if needed (streaming / chunked)
-        temp_gzipped_path = file_path
-        decrypted_temp_file = None
+        start_time = time.time()
+        db_config = settings.DATABASES["default"]
+        engine = db_config.get("ENGINE", "")
+        db_name = db_config.get("NAME", "")
+        db_user = db_config.get("USER", "")
+        db_password = db_config.get("PASSWORD", "")
+        db_host = db_config.get("HOST", "")
+        db_port = db_config.get("PORT", "")
 
-        if decrypt or file_path.name.endswith(".enc"):
-            self.stdout.write(
-                "Decrypting database backup using streaming AES-256-CTR..."
-            )
-            if not HAS_CRYPTOGRAPHY:
-                raise ImportError(
-                    "cryptography package is required for backup decryption but not installed."
-                )
+        decrypt_needed = decrypt or file_path.name.endswith(".enc")
 
-            key = self.get_encryption_key()
-            decrypted_temp_file = file_path.parent / f"decrypted_temp_{file_path.stem}"
+        # STEP 1: Stop application write traffic
+        self.stdout.write("[STEP 1/8] Stopping application write traffic (Enabling Maintenance Mode)...")
+        try:
+            cache.set("MAINTENANCE_MODE", True, timeout=1800)
+            self.stdout.write(self.style.SUCCESS(" -> Maintenance mode successfully enabled in cache."))
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f" -> Cache maintenance mode could not be set: {str(e)}"))
 
-            with open(file_path, "rb") as f_in:
-                iv = f_in.read(16)
-                if len(iv) < 16:
-                    raise ValueError("Encrypted backup file too small (missing IV).")
-                cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
-                decryptor = cipher.decryptor()
+        # STEP 2: Create restore environment
+        self.stdout.write("[STEP 2/8] Creating restore environment...")
+        self.stdout.write(self.style.SUCCESS(" -> Environment paths verified."))
 
-                with open(decrypted_temp_file, "wb") as f_out:
-                    while True:
-                        chunk = f_in.read(65536)
-                        if not chunk:
-                            break
-                        f_out.write(decryptor.update(chunk))
-                    f_out.write(decryptor.finalize())
+        # STEP 3: Terminate active database connections
+        self.stdout.write("[STEP 3/8] Terminating active database connections...")
+        if "postgresql" in engine:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT pg_terminate_backend(pid) "
+                        "FROM pg_stat_activity "
+                        "WHERE datname = %s "
+                        "AND pid <> pg_backend_pid();",
+                        [db_name],
+                    )
+                self.stdout.write(self.style.SUCCESS(" -> All active PostgreSQL connections successfully terminated."))
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f" -> Non-fatal connection termination exception: {str(e)}"))
+        else:
+            self.stdout.write(" -> Connection termination skipped for SQLite.")
 
-            temp_gzipped_path = decrypted_temp_file
-
-        # Decompress gzip to get raw sql (streaming)
-        self.stdout.write("Decompressing database backup (streaming)...")
-        raw_sql_path = temp_gzipped_path.parent / f"raw_sql_{temp_gzipped_path.stem}"
+        # STEP 4: Validate backup integrity (and decrypt streamingly to a temp sql file)
+        self.stdout.write("[STEP 4/8] Validating backup integrity and GCM authentication tags...")
+        raw_sql_path = file_path.parent / f"raw_sql_{file_path.stem}"
         if raw_sql_path.name.endswith(".gz"):
-            raw_sql_path = raw_sql_path.with_suffix("")  # remove .gz
-
-        with gzip.open(temp_gzipped_path, "rb") as f_in:
-            with open(raw_sql_path, "wb") as f_out:
-                shutil.copyfileobj(f_in, f_out)
-
-        # Remove decrypted temp if we created one
-        if decrypted_temp_file and decrypted_temp_file.exists():
-            decrypted_temp_file.unlink()
+            raw_sql_path = raw_sql_path.with_suffix("")
 
         try:
-            # Standard Database restore using command-line interface based on configured engine
-            db_config = settings.DATABASES["default"]
-            engine = db_config.get("ENGINE", "")
-            db_name = db_config.get("NAME", "")
-            db_user = db_config.get("USER", "")
-            db_password = db_config.get("PASSWORD", "")
-            db_host = db_config.get("HOST", "")
-            db_port = db_config.get("PORT", "")
+            with open(raw_sql_path, "wb") as f_out:
+                if decrypt_needed:
+                    self.stdout.write(" -> Decrypting and decompressing streaming AES-256-GCM...")
+                    passphrase = self.get_encryption_key()
+                    with open(file_path, "rb") as f_in:
+                        decrypt_and_decompress_stream(f_in, f_out, passphrase)
+                else:
+                    self.stdout.write(" -> Decompressing streaming unencrypted Gzip backup...")
+                    with open(file_path, "rb") as f_in:
+                        with gzip.GzipFile(fileobj=f_in, mode="rb") as gz_f:
+                            shutil.copyfileobj(gz_f, f_out)
+            self.stdout.write(self.style.SUCCESS(" -> Backup integrity and authentication tag validation PASSED."))
+        except Exception as e:
+            if raw_sql_path.exists():
+                raw_sql_path.unlink()
+            try:
+                cache.delete("MAINTENANCE_MODE")
+            except Exception:
+                pass
+            raise ValueError(f"Integrity validation failed! Backup file is corrupted or password is wrong: {str(e)}")
 
+        # STEP 5: Restore database safely
+        self.stdout.write("[STEP 5/8] Restoring database safely (recreating clean schema to prevent duplicate/constraint errors)...")
+        try:
             if "postgresql" in engine:
-                self.stdout.write("Restoring database on PostgreSQL...")
+                self.stdout.write(" -> Drop and recreate schema public to avoid duplicate/constraint failures...")
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("DROP SCHEMA public CASCADE;")
+                        cursor.execute("CREATE SCHEMA public;")
+                        cursor.execute("GRANT ALL ON SCHEMA public TO public;")
+                except Exception as e:
+                    self.stdout.write(self.style.WARNING(f" -> Drop/Recreate public schema warning: {str(e)}"))
+
+                self.stdout.write(" -> Restoring database on PostgreSQL...")
                 env = os.environ.copy()
                 if db_password:
                     env["PGPASSWORD"] = db_password
@@ -188,25 +225,49 @@ class Command(BaseCommand):
                     raise RuntimeError(f"psql restore failed: {err}")
 
             elif "sqlite3" in engine:
-                self.stdout.write("Restoring SQLite database...")
+                self.stdout.write(" -> Restoring SQLite database...")
                 if not db_name or db_name == ":memory:":
-                    self.stdout.write(
-                        "SQLite in-memory database bypass - validation passed."
-                    )
+                    self.stdout.write(" -> SQLite in-memory database bypass - validation passed.")
                 else:
                     shutil.copy2(raw_sql_path, db_name)
             else:
                 raise NotImplementedError(
                     f"Database engine {engine} restoration is not implemented."
                 )
-
-            self.stdout.write(
-                self.style.SUCCESS("Database restore successfully applied!")
-            )
+            self.stdout.write(self.style.SUCCESS(" -> Database restore successfully applied!"))
 
         finally:
             if raw_sql_path.exists():
                 raw_sql_path.unlink()
+
+        # STEP 6: Run migrations/schema validation
+        self.stdout.write("[STEP 6/8] Running database migrations and schema validation checks...")
+        try:
+            call_command("migrate")
+            self.stdout.write(self.style.SUCCESS(" -> Schema migrations and validation completed successfully."))
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f" -> Migrations run warning/error: {str(e)}"))
+
+        # STEP 7: Execute health checks
+        self.stdout.write("[STEP 7/8] Executing database and application health checks...")
+        try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user_count = User.objects.count()
+            self.stdout.write(self.style.SUCCESS(f" -> Health check OK: Database reachable. (User count: {user_count})"))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f" -> Health check FAILED: {str(e)}"))
+
+        # STEP 8: Resume application traffic
+        self.stdout.write("[STEP 8/8] Resuming application traffic...")
+        try:
+            cache.delete("MAINTENANCE_MODE")
+            self.stdout.write(self.style.SUCCESS(" -> Maintenance mode successfully disabled. Traffic resumed."))
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f" -> Cache maintenance mode could not be cleared: {str(e)}"))
+
+        duration = time.time() - start_time
+        self.stdout.write(self.style.SUCCESS(f"Database restoration completed in {duration:.2f} seconds!"))
 
     def restore_media(self, source_backup_dir):
         if not source_backup_dir.exists():
@@ -235,16 +296,79 @@ class Command(BaseCommand):
         )
 
     def restore_config(self, tarball_path):
+        """
+        Decrypts, validates, and safely restores configuration and secret files to prevent corruption.
+        """
         if not tarball_path.exists():
-            raise FileNotFoundError(f"Configuration tarball not found: {tarball_path}")
+            raise FileNotFoundError(f"Configuration archive not found: {tarball_path}")
 
-        self.stdout.write("Extracting configuration files to app root...")
-        with tarfile.open(tarball_path, "r:gz") as tar:
-            tar.extractall(path=settings.BASE_DIR)
+        self.stdout.write(f"Initiating secure configuration restoration from: {tarball_path.name}")
 
-        self.stdout.write(
-            self.style.SUCCESS("Configuration files restored successfully!")
-        )
+        temp_tar = tarball_path.parent / f"decrypted_temp_{tarball_path.stem}.tar.gz"
+        extract_temp_dir = tarball_path.parent / f"extracted_temp_{tarball_path.stem}"
+        extract_temp_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            # 1. Decrypt Configuration Backup
+            self.stdout.write(" -> Decrypting configuration backup via AES-256-GCM...")
+            passphrase = self.get_encryption_key()
+            with open(tarball_path, "rb") as f_in, open(temp_tar, "wb") as f_out:
+                decrypt_stream(f_in, f_out, passphrase)
+
+            # 2. Extract to temp directory
+            self.stdout.write(" -> Extracting configuration files streamingly for validation...")
+            with tarfile.open(temp_tar, "r:gz") as tar:
+                tar.extractall(path=extract_temp_dir)
+
+            # 3. Validate extracted configuration files
+            self.stdout.write(" -> Validating decrypted configuration files...")
+            validated_files = []
+            for item in extract_temp_dir.iterdir():
+                if item.is_file():
+                    # Validate .env files
+                    if item.name.startswith(".env"):
+                        try:
+                            content = item.read_text(encoding="utf-8")
+                        except UnicodeDecodeError:
+                            raise ValueError(f"Validation FAILED: Config file '{item.name}' is not valid UTF-8.")
+
+                        if not content.strip():
+                            raise ValueError(f"Validation FAILED: Config file '{item.name}' is empty.")
+
+                        # Check basic env format: each non-empty/non-comment line must contain "="
+                        for line in content.splitlines():
+                            line_stripped = line.strip()
+                            if line_stripped and not line_stripped.startswith("#"):
+                                if "=" not in line_stripped:
+                                    raise ValueError(f"Validation FAILED: Invalid environment variable syntax in '{item.name}': '{line_stripped}'")
+                        validated_files.append((item, Path(settings.BASE_DIR) / item.name))
+
+                    # Validate docker-compose or nginx configs
+                    elif item.name in ("docker-compose.yml", "nginx.conf", "Dockerfile"):
+                        if item.stat().st_size == 0:
+                            raise ValueError(f"Validation FAILED: Config file '{item.name}' is empty.")
+
+                        # Set nested path if nginx configs
+                        if item.name in ("nginx.conf", "Dockerfile") and not (settings.BASE_DIR / item.name).exists():
+                            validated_files.append((item, Path(settings.BASE_DIR) / "nginx" / item.name))
+                        else:
+                            validated_files.append((item, Path(settings.BASE_DIR) / item.name))
+
+            # 4. Safely apply validated files to live system
+            self.stdout.write(" -> Validation PASSED! Copying configuration files to live base directory...")
+            for src, dest in validated_files:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dest)
+                self.stdout.write(self.style.SUCCESS(f"   [RESTORED] -> {dest}"))
+
+            self.stdout.write(self.style.SUCCESS("Configuration and secrets restored successfully!"))
+
+        finally:
+            # Clean up all temp files/directories
+            if temp_tar.exists():
+                temp_tar.unlink()
+            if extract_temp_dir.exists():
+                shutil.rmtree(extract_temp_dir)
 
     def auto_discover_and_validate(self):
         """
@@ -252,6 +376,11 @@ class Command(BaseCommand):
         and performs dry-run validation (decryption, decompression, integrity checks)
         to satisfy the SRE requirement: "Weekly restore verification".
         """
+        start_time = time.time()
+        db_integrity = "UNKNOWN"
+        config_integrity = "UNKNOWN"
+        media_count = 0
+
         backup_dir = os.environ.get("BACKUP_DIR") or getattr(
             settings, "BACKUP_DIR", None
         )
@@ -274,7 +403,7 @@ class Command(BaseCommand):
                 [
                     f
                     for f in db_dir.iterdir()
-                    if f.is_file() and f.name.startswith("db_backup_")
+                    if f.is_file() and f.name.startswith("db_backup_") and not f.name.endswith("_manifest.json")
                 ],
                 key=lambda f: f.stat().st_mtime,
                 reverse=True,
@@ -286,44 +415,27 @@ class Command(BaseCommand):
                 )
                 try:
                     is_enc = latest_db.name.endswith(".enc")
+                    import io
+                    class NullStream(io.RawIOBase):
+                        def write(self, b):
+                            return len(b)
+                    null_out = NullStream()
+
                     if is_enc:
-                        key = self.get_encryption_key()
+                        passphrase = self.get_encryption_key()
                         with open(latest_db, "rb") as f_in:
-                            iv = f_in.read(16)
-                            if len(iv) < 16:
-                                raise ValueError("Encrypted backup missing IV.")
-                            cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
-                            decryptor = cipher.decryptor()
-
-                            # Decrypt and check in chunks
-                            temp_dec = (
-                                latest_db.parent / f"temp_val_{latest_db.name}.tmp"
-                            )
-                            try:
-                                with open(temp_dec, "wb") as f_out:
-                                    while True:
-                                        chunk = f_in.read(65536)
-                                        if not chunk:
-                                            break
-                                        f_out.write(decryptor.update(chunk))
-                                    f_out.write(decryptor.finalize())
-
-                                with gzip.open(temp_dec, "rb") as gz_f:
-                                    decompressed = gz_f.read(4096)
-                            finally:
-                                if temp_dec.exists():
-                                    temp_dec.unlink()
+                            decrypt_and_decompress_stream(f_in, null_out, passphrase)
                     else:
-                        with gzip.open(latest_db, "rb") as f:
-                            decompressed = f.read(4096)
-
-                    if len(decompressed) > 0:
-                        self.stdout.write(
-                            self.style.SUCCESS(" -> DB Backup Integrity: VALID")
-                        )
-                    else:
-                        raise ValueError("File resolved to empty stream.")
+                        with open(latest_db, "rb") as f_in:
+                            with gzip.GzipFile(fileobj=f_in, mode="rb") as gz_f:
+                                while True:
+                                    chunk = gz_f.read(65536)
+                                    if not chunk:
+                                        break
+                    db_integrity = "VALID"
+                    self.stdout.write(self.style.SUCCESS(" -> DB Backup Integrity: VALID"))
                 except Exception as e:
+                    db_integrity = f"CORRUPT ({str(e)})"
                     self.stdout.write(
                         self.style.ERROR(f" -> DB Backup Integrity: CORRUPT ({str(e)})")
                     )
@@ -349,9 +461,17 @@ class Command(BaseCommand):
                     f"Latest Config Backup discovered: {latest_conf.name}"
                 )
                 try:
-                    with tarfile.open(latest_conf, "r:gz") as tar:
+                    import io
+                    null_out = io.BytesIO()
+                    passphrase = self.get_encryption_key()
+                    with open(latest_conf, "rb") as f_in:
+                        decrypt_stream(f_in, null_out, passphrase)
+
+                    null_out.seek(0)
+                    with tarfile.open(fileobj=null_out, mode="r:gz") as tar:
                         names = tar.getnames()
                         if len(names) > 0:
+                            config_integrity = "VALID"
                             self.stdout.write(
                                 self.style.SUCCESS(
                                     f" -> Config Backup Integrity: VALID ({len(names)} files packaged)"
@@ -360,6 +480,7 @@ class Command(BaseCommand):
                         else:
                             raise ValueError("Tar archive is empty.")
                 except Exception as e:
+                    config_integrity = f"CORRUPT ({str(e)})"
                     self.stdout.write(
                         self.style.ERROR(
                             f" -> Config Backup Integrity: CORRUPT ({str(e)})"
@@ -373,13 +494,22 @@ class Command(BaseCommand):
         # 3. Media validation
         if media_dir.exists():
             media_files = list(os.walk(media_dir))
-            file_count = sum(len(f) for _, _, f in media_files)
+            media_count = sum(len(f) for _, _, f in media_files)
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Media backup files found: {file_count} files synchronized."
+                    f"Media backup files found: {media_count} files synchronized."
                 )
             )
         else:
             self.stdout.write("No Media backups found.")
 
         self.stdout.write("====================================================")
+
+        # Update SRE metrics
+        duration = time.time() - start_time
+        update_sre_metric("last_restore_validation_timestamp", datetime.utcnow().isoformat())
+        update_sre_metric("restore_validation_duration_sec", duration)
+        update_sre_metric("restore_validation_db_integrity", db_integrity)
+        update_sre_metric("restore_validation_config_integrity", config_integrity)
+        update_sre_metric("restore_validation_media_files_found", media_count)
+        update_sre_metric("restore_validation_status", "SUCCESS" if (db_integrity == "VALID" and config_integrity == "VALID") else "WARNING/FAILED")

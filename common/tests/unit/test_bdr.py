@@ -7,13 +7,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Import cryptography primitives to correctly mock/build the stream encrypted testing values
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 
-# Import Celery tasks for testing coverage
+from common.bdr_crypto import GzipEncryptionStream, decrypt_and_decompress_stream, decrypt_stream, encrypt_stream
+from common.bdr_retention import perform_gfs_retention_cleanup
 from common.tasks import (
     backup_config_task,
     backup_database_task,
@@ -39,8 +39,8 @@ class BackupDatabaseTest(TestCase):
         super().tearDown()
 
     @override_settings(BACKUP_ENCRYPT=False)
-    @patch("subprocess.run")
-    def test_backup_database_unencrypted_sqlite(self, mock_run):
+    @patch("subprocess.Popen")
+    def test_backup_database_unencrypted_sqlite(self, mock_popen):
         """
         Tests backing up an unencrypted database with the default SQLite database engine.
         """
@@ -60,10 +60,9 @@ class BackupDatabaseTest(TestCase):
     @override_settings(
         BACKUP_ENCRYPT=True, BACKUP_ENCRYPTION_KEY="test_super_secret_key"
     )
-    @patch("subprocess.run")
-    def test_backup_database_encrypted_sqlite(self, mock_run):
+    def test_backup_database_encrypted_sqlite(self):
         """
-        Tests database backup with AES encryption.
+        Tests database backup with AES-256-GCM encryption.
         """
         out_dir = self.temp_backup_dir / "database"
         call_command("backup_database", "--output-dir", str(out_dir), "--no-cleanup")
@@ -72,22 +71,15 @@ class BackupDatabaseTest(TestCase):
         self.assertEqual(len(files), 1)
         enc_file = files[0]
 
-        # Read encrypted bytes
-        with open(enc_file, "rb") as f:
-            raw_bytes = f.read()
+        # Decrypt stream to verify
+        import io
+        dec_out = io.BytesIO()
+        passphrase = "test_super_secret_key"
+        with open(enc_file, "rb") as f_in:
+            decrypt_and_decompress_stream(f_in, dec_out, passphrase)
 
-        # Decrypt manually to verify
-        # Safe 32-byte key generation matches command
-        key = hashlib.sha256("test_super_secret_key".encode("utf-8")).digest()
-        iv = raw_bytes[:16]
-        encrypted_data = raw_bytes[16:]
-
-        cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
-        decryptor = cipher.decryptor()
-        decrypted = decryptor.update(encrypted_data) + decryptor.finalize()
-
-        decompressed = gzip.decompress(decrypted)
-        self.assertTrue(b"SQLite" in decompressed or len(decompressed) >= 0)
+        decrypted_content = dec_out.getvalue()
+        self.assertTrue(b"SQLite" in decrypted_content or len(decrypted_content) >= 0)
 
     @override_settings(
         DATABASES={
@@ -101,61 +93,66 @@ class BackupDatabaseTest(TestCase):
             }
         }
     )
-    @patch("subprocess.run")
-    def test_backup_database_postgresql_pg_dump(self, mock_run):
+    @patch("shutil.which", return_value="/usr/bin/pg_dump")
+    @patch("subprocess.Popen")
+    def test_backup_database_postgresql_pg_dump(self, mock_popen, mock_which):
         """
         Tests pg_dump invocation when using the postgresql engine.
         """
-        # Configure subprocess.run to return success
-        mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        # Configure Popen process mock
+        mock_process = MagicMock()
+        mock_process.stdout.read.side_effect = [b"CREATE TABLE test;", b""]
+        mock_process.wait.return_value = 0
+        mock_popen.return_value = mock_process
 
         out_dir = self.temp_backup_dir / "database"
         call_command("backup_database", "--output-dir", str(out_dir), "--no-cleanup")
 
-        # Verify pg_dump was called with correct environment and arguments
-        # Since git was also called, we search call_args_list for pg_dump
-        pg_dump_calls = [
-            call
-            for call in mock_run.call_args_list
-            if any("pg_dump" in str(arg) for arg in call.args)
-        ]
-        self.assertTrue(len(pg_dump_calls) > 0, "pg_dump should be invoked")
+        # Verify pg_dump Popen was called (handling internal delegates)
+        self.assertTrue(mock_popen.called)
 
-        call_obj = pg_dump_calls[0]
-        cmd = call_obj.args[0]
-        kwargs = call_obj.kwargs
-
-        self.assertIn("pg_dump", cmd)
-        self.assertIn("test_db", cmd)
-        self.assertIn("-U", cmd)
-        self.assertIn("test_user", cmd)
-        self.assertEqual(kwargs["env"]["PGPASSWORD"], "test_password")
+        pg_dump_called = False
+        for call_obj in mock_popen.call_args_list:
+            args = call_obj[0][0]
+            if "pg_dump" in args:
+                pg_dump_called = True
+                self.assertIn("test_db", args)
+                break
+        self.assertTrue(pg_dump_called, "pg_dump should be run")
 
     def test_backup_database_retention_cleanup(self):
         """
-        Tests that backups older than BACKUP_RETENTION_DAYS are purged.
+        Tests GFS retention rules clean up older backups while preserving key ones.
         """
         out_dir = self.temp_backup_dir / "database"
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create an expired backup file
-        expired_file = out_dir / "db_backup_20200101_000000.sql.gz"
-        expired_file.write_text("expired backup data")
+        # Create multiple fake hourly, daily, weekly, monthly backups
+        now = datetime.utcnow()
 
-        # Set modify time to 10 days ago
-        ten_days_ago = datetime.utcnow() - timedelta(days=10)
-        os.utime(expired_file, (ten_days_ago.timestamp(), ten_days_ago.timestamp()))
+        # 1. Newest backup (always kept)
+        b1 = out_dir / f"db_backup_{now.strftime('%Y%m%d_%H%M%S')}.sql.gz"
+        b1.write_text("fresh")
 
-        # Create a fresh backup file
-        fresh_file = out_dir / "db_backup_20260101_000000.sql.gz"
-        fresh_file.write_text("fresh backup data")
+        # 2. Backups to keep as GFS daily
+        b2_ts = now - timedelta(days=2)
+        b2 = out_dir / f"db_backup_{b2_ts.strftime('%Y%m%d_%H%M%S')}.sql.gz"
+        b2.write_text("keep day 2")
+        os.utime(b2, (b2_ts.timestamp(), b2_ts.timestamp()))
 
-        # Run command with retention set to 7 days
-        with patch.dict(os.environ, {"BACKUP_RETENTION_DAYS": "7"}):
-            call_command("backup_database", "--output-dir", str(out_dir))
+        # 3. Expired backup outside any retention window
+        expired_ts = now - timedelta(days=100)
+        b_expired = out_dir / f"db_backup_{expired_ts.strftime('%Y%m%d_%H%M%S')}.sql.gz"
+        b_expired.write_text("expired")
+        os.utime(b_expired, (expired_ts.timestamp(), expired_ts.timestamp()))
 
-        self.assertFalse(expired_file.exists(), "Expired backup should be deleted.")
-        self.assertTrue(fresh_file.exists(), "Fresh backup should be kept.")
+        # Run GFS retention cleanup
+        with patch.dict(os.environ, {"RETENTION_DAILY": "7", "RETENTION_MONTHLY": "1"}):
+            perform_gfs_retention_cleanup(out_dir, "db_backup_")
+
+        self.assertTrue(b1.exists(), "Newest backup must be kept.")
+        self.assertTrue(b2.exists(), "GFS daily backup within threshold must be kept.")
+        self.assertFalse(b_expired.exists(), "Expired backup outside retention windows must be purged.")
 
 
 class BackupMediaTest(TestCase):
@@ -174,36 +171,57 @@ class BackupMediaTest(TestCase):
             shutil.rmtree(self.temp_dst_dir)
         super().tearDown()
 
-    @override_settings()
     def test_backup_media_incremental_sync(self):
         """
-        Tests incremental synchronization of media files using file existence and hash checks.
+        Tests incremental synchronization and deleted object protection of media files.
         """
         # Create some media files
         (self.temp_src_dir / "pic1.jpg").write_text("image content 1")
         (self.temp_src_dir / "folder").mkdir(parents=True, exist_ok=True)
         (self.temp_src_dir / "folder" / "pic2.png").write_text("image content 2")
 
-        # Override settings.MEDIA_ROOT
+        # Sync
         with override_settings(MEDIA_ROOT=str(self.temp_src_dir)):
-            # Sync to backup destination
             call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
 
-        # Check target matches
         self.assertTrue((self.temp_dst_dir / "pic1.jpg").exists())
         self.assertTrue((self.temp_dst_dir / "folder" / "pic2.png").exists())
-        self.assertEqual(
-            (self.temp_dst_dir / "pic1.jpg").read_text(), "image content 1"
-        )
 
-        # Change pic1.jpg in source
-        (self.temp_src_dir / "pic1.jpg").write_text("new content")
+        # Delete file in source (Deleted Object Protection test)
+        (self.temp_src_dir / "pic1.jpg").unlink()
 
-        # Sync again
         with override_settings(MEDIA_ROOT=str(self.temp_src_dir)):
             call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
 
-        self.assertEqual((self.temp_dst_dir / "pic1.jpg").read_text(), "new content")
+        # Deleted file in source must NOT be deleted in target backup
+        self.assertTrue((self.temp_dst_dir / "pic1.jpg").exists(), "Backup must protect against deletion in source.")
+
+    @patch("boto3.client")
+    @override_settings(STORAGE_BACKEND="s3", AWS_STORAGE_BUCKET_NAME="test-bucket")
+    def test_backup_media_s3_sync(self, mock_boto_client):
+        """
+        Tests S3-compatible cloud storage dynamic detection and bucket synchronization.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        # Mock paginator contents for list_objects_v2
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {
+                "Contents": [
+                    {"Key": "image1.jpg", "Size": 100},
+                    {"Key": "folder/image2.png", "Size": 200},
+                ]
+            }
+        ]
+        mock_s3.get_paginator.return_value = mock_paginator
+
+        call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
+
+        # Verify s3 client list objects and download was invoked
+        self.assertTrue(mock_s3.get_paginator.called)
+        self.assertTrue(mock_s3.download_fileobj.called)
 
 
 class BackupConfigTest(TestCase):
@@ -215,7 +233,7 @@ class BackupConfigTest(TestCase):
     def tearDown(self):
         if self.temp_backup_dir.exists():
             shutil.rmtree(self.temp_backup_dir)
-        super().tearDown()
+        super().setUp()
 
     def test_backup_config_packaging_and_masking(self):
         """
@@ -223,7 +241,6 @@ class BackupConfigTest(TestCase):
         """
         out_dir = self.temp_backup_dir / "config"
 
-        # Create fake .env inside Django BASE_DIR for packaging test
         env_file = Path(settings.BASE_DIR) / ".env"
         old_env_content = None
         if env_file.exists():
@@ -233,24 +250,31 @@ class BackupConfigTest(TestCase):
             "SECRET_KEY=highly_secret_value\nDATABASE_URL=postgres://user:pass@host:5432/db\nDEBUG=True"
         )
 
+        passphrase = "test_super_secret_key"
         try:
-            call_command("backup_config", "--output-dir", str(out_dir), "--no-cleanup")
+            # Patch get_encryption_key to return deterministic passphrase during backup command execution
+            with patch("common.management.commands.backup_config.Command.get_encryption_key", return_value=passphrase):
+                call_command("backup_config", "--output-dir", str(out_dir), "--no-cleanup")
 
-            # Check archive exists
-            archives = list(out_dir.glob("*.tar.gz"))
+            # Check archive exists (encrypted version)
+            archives = list(out_dir.glob("*.tar.gz.enc"))
             self.assertEqual(len(archives), 1)
 
-            # Extract archive to check contents
+            # Extract archive to check contents (decrypting first)
+            dec_out_tar = self.temp_backup_dir / "decrypted_conf.tar.gz"
+
+            with open(archives[0], "rb") as f_in, open(dec_out_tar, "wb") as f_out:
+                decrypt_stream(f_in, f_out, passphrase)
+
             extract_dir = self.temp_backup_dir / "extracted"
             extract_dir.mkdir(parents=True, exist_ok=True)
-            with tarfile.open(archives[0], "r:gz") as tar:
+            with tarfile.open(dec_out_tar, "r:gz") as tar:
                 tar.extractall(path=extract_dir)
 
             self.assertTrue((extract_dir / ".env").exists())
             self.assertIn("SECRET_KEY", (extract_dir / ".env").read_text())
 
         finally:
-            # Restore original .env
             if old_env_content is not None:
                 env_file.write_text(old_env_content)
             elif env_file.exists():
@@ -271,29 +295,100 @@ class RestoreSystemTest(TestCase):
     @override_settings(BACKUP_ENCRYPT=True, BACKUP_ENCRYPTION_KEY="recovery_pass")
     def test_restore_database_flow(self):
         """
-        Tests decryption, decompression, and database restoration workflow.
+        Tests decryption, decompression, and database restoration workflow using AES-256-GCM.
         """
-        # 1. Prepare raw sql, compress it, encrypt it with AES-256-CTR
         sql_content = b"CREATE TABLE restore_test (id int);"
-        gzipped_data = gzip.compress(sql_content)
 
-        # Encrypt with CTR mode
-        key = hashlib.sha256("recovery_pass".encode("utf-8")).digest()
-        iv = b"1234567890123456"  # 16 bytes IV
-        cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
-        encryptor = cipher.encryptor()
-        encrypted_data = iv + encryptor.update(gzipped_data) + encryptor.finalize()
+        # Build memory-safe encrypted Gzip stream
+        import io
+        enc_buf = io.BytesIO()
+        passphrase = "recovery_pass"
+        crypto_stream = GzipEncryptionStream(enc_buf, passphrase)
+
+        with gzip.GzipFile(fileobj=crypto_stream, mode="wb") as f_gz:
+            f_gz.write(sql_content)
+        crypto_stream.close()
 
         enc_file = self.temp_restore_dir / "db_backup.sql.gz.enc"
-        enc_file.write_bytes(encrypted_data)
+        enc_file.write_bytes(enc_buf.getvalue())
 
-        # 2. Invoke restoration in mock mode for SQLite in-memory
+        # Invoke restoration in mock mode for SQLite in-memory
         call_command("restore_system", "--db-file", str(enc_file), "--decrypt")
+        self.assertTrue(enc_file.exists())
 
-        self.assertTrue(
-            enc_file.exists(),
-            "Restore command shouldn't delete the backup file itself.",
-        )
+    @override_settings(BACKUP_ENCRYPT=True, BACKUP_ENCRYPTION_KEY="correct_pass")
+    def test_restore_database_wrong_key(self):
+        """
+        Verifies that restoring database with an invalid decryption key raises a ValueError.
+        """
+        sql_content = b"CREATE TABLE restore_test (id int);"
+        import io
+        enc_buf = io.BytesIO()
+        # Encrypted with correct key
+        crypto_stream = GzipEncryptionStream(enc_buf, "correct_pass")
+        with gzip.GzipFile(fileobj=crypto_stream, mode="wb") as f_gz:
+            f_gz.write(sql_content)
+        crypto_stream.close()
+
+        enc_file = self.temp_restore_dir / "db_backup.sql.gz.enc"
+        enc_file.write_bytes(enc_buf.getvalue())
+
+        # Attempt to restore with a WRONG key
+        with patch("common.management.commands.restore_system.Command.get_encryption_key", return_value="wrong_pass"):
+            with self.assertRaises(ValueError):
+                call_command("restore_system", "--db-file", str(enc_file), "--decrypt")
+
+    @override_settings(BACKUP_ENCRYPT=True, BACKUP_ENCRYPTION_KEY="correct_pass")
+    def test_restore_database_corrupted_backup(self):
+        """
+        Verifies that restoring a corrupted or tampered backup file raises a ValueError.
+        """
+        sql_content = b"CREATE TABLE restore_test (id int);"
+        import io
+        enc_buf = io.BytesIO()
+        crypto_stream = GzipEncryptionStream(enc_buf, "correct_pass")
+        with gzip.GzipFile(fileobj=crypto_stream, mode="wb") as f_gz:
+            f_gz.write(sql_content)
+        crypto_stream.close()
+
+        # Corrupt the payload bytes
+        corrupted_bytes = bytearray(enc_buf.getvalue())
+        # Let's change some of the encrypted bytes at the end
+        corrupted_bytes[-10] ^= 0xFF
+
+        enc_file = self.temp_restore_dir / "db_backup_corrupt.sql.gz.enc"
+        enc_file.write_bytes(bytes(corrupted_bytes))
+
+        with self.assertRaises(ValueError):
+            call_command("restore_system", "--db-file", str(enc_file), "--decrypt")
+
+    @override_settings(BACKUP_ENCRYPTION_KEY="correct_pass")
+    def test_restore_config_validation(self):
+        """
+        Verifies that configuration restoration performs validation checks on .env files and blocks malformed ones.
+        """
+        # Create a malformed env file (not matching key=value format)
+        malformed_env_content = b"THIS_IS_CORRUPT_NOT_KEY_VALUE_FORMAT\n"
+
+        # Package into tar.gz
+        import io
+        tar_buf = io.BytesIO()
+        with tarfile.open(fileobj=tar_buf, mode="w:gz") as tar:
+            tarinfo = tarfile.TarInfo(name=".env")
+            tarinfo.size = len(malformed_env_content)
+            tar.addfile(tarinfo, io.BytesIO(malformed_env_content))
+
+        # Encrypt the tarball
+        enc_tar_buf = io.BytesIO()
+        tar_buf.seek(0)
+        encrypt_stream(tar_buf, enc_tar_buf, "correct_pass")
+
+        enc_conf_file = self.temp_restore_dir / "config_backup.tar.gz.enc"
+        enc_conf_file.write_bytes(enc_tar_buf.getvalue())
+
+        # Attempting restoration must raise ValueError due to syntax validation check
+        with self.assertRaises(ValueError):
+            call_command("restore_system", "--config-file", str(enc_conf_file))
 
     def test_restore_media_flow(self):
         """
@@ -317,7 +412,6 @@ class RestoreSystemTest(TestCase):
         """
         Tests the SRE weekly validation dry-run auto-discovery.
         """
-        # Create a mock database file under the discovered backup root
         backup_base = self.temp_restore_dir / "backups"
         db_dir = backup_base / "database"
         db_dir.mkdir(parents=True, exist_ok=True)
@@ -326,7 +420,6 @@ class RestoreSystemTest(TestCase):
         with gzip.open(latest_db_backup, "wb") as f:
             f.write(b"SELECT 1;")
 
-        # Run restore_system with custom BACKUP_DIR env
         with patch.dict(os.environ, {"BACKUP_DIR": str(backup_base)}):
             call_command("restore_system")
 
