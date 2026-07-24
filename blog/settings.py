@@ -555,10 +555,33 @@ CELERY_RESULT_EXPIRES = timedelta(
     hours=int(os.environ.get("CELERY_RESULT_EXPIRES_HOURS", "24"))
 )
 
+# EN: Backup & Disaster Recovery System Configuration
+# FA: تنظیمات سیستم پشتیبان‌گیری و بازیابی فاجعه
+BACKUP_DIR = os.environ.get("BACKUP_DIR", os.path.join(BASE_DIR, "backups"))
+BACKUP_RETENTION_DAYS = int(os.environ.get("BACKUP_RETENTION_DAYS", "7"))
+BACKUP_ENCRYPT = os.environ.get("BACKUP_ENCRYPT", "False").lower() in ("true", "1", "t")
+BACKUP_ENCRYPTION_KEY = os.environ.get("BACKUP_ENCRYPTION_KEY", None)
+
 CELERY_BEAT_SCHEDULE = {
     "publish-scheduled-articles": {
         "task": "posts.tasks.publish_scheduled_articles_task",
         "schedule": timedelta(minutes=1),
+    },
+    "backup-database-daily": {
+        "task": "common.tasks.backup_database_task",
+        "schedule": timedelta(days=1),
+    },
+    "backup-media-daily": {
+        "task": "common.tasks.backup_media_task",
+        "schedule": timedelta(days=1),
+    },
+    "backup-config-weekly": {
+        "task": "common.tasks.backup_config_task",
+        "schedule": timedelta(weeks=1),
+    },
+    "validate-backups-weekly": {
+        "task": "common.tasks.validate_backups_task",
+        "schedule": timedelta(weeks=1),
     },
 }
 
