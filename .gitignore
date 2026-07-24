@@ -27,6 +27,12 @@ node_modules/
 .coverage
 htmlcov/
 reports/
+/backups/
+test_backups_db/
+test_backups_conf/
+test_media_src/
+test_media_dst/
+test_restore_temp/
 
 frontend/
 celerybeat-schedule

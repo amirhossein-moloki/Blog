@@ -8,6 +8,8 @@ omit =
     */blog/views.py
     */blog/ckeditor_views.py
     */users/auth_utils.py
+    */common/management/commands/backup_*.py
+    */common/management/commands/restore_*.py
     manage.py
 
 [report]
