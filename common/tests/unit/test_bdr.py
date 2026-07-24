@@ -1,4 +1,3 @@
-import base64
 import gzip
 import hashlib
 import os
@@ -13,6 +12,14 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase, override_settings
+
+# Import Celery tasks for testing coverage
+from common.tasks import (
+    backup_config_task,
+    backup_database_task,
+    backup_media_task,
+    validate_backups_task,
+)
 
 try:
     HAS_CRYPTOGRAPHY = True
@@ -322,3 +329,41 @@ class RestoreSystemTest(TestCase):
         # Run restore_system with custom BACKUP_DIR env
         with patch.dict(os.environ, {"BACKUP_DIR": str(backup_base)}):
             call_command("restore_system")
+
+
+class BackupTasksTest(TestCase):
+    @patch("common.tasks.call_command")
+    def test_backup_database_task_calls_command(self, mock_call_command):
+        """
+        Tests backup_database_task correctly executes backup_database.
+        """
+        result = backup_database_task()
+        self.assertTrue(result)
+        mock_call_command.assert_any_call("backup_database")
+
+    @patch("common.tasks.call_command")
+    def test_backup_media_task_calls_command(self, mock_call_command):
+        """
+        Tests backup_media_task correctly executes backup_media.
+        """
+        result = backup_media_task()
+        self.assertTrue(result)
+        mock_call_command.assert_any_call("backup_media")
+
+    @patch("common.tasks.call_command")
+    def test_backup_config_task_calls_command(self, mock_call_command):
+        """
+        Tests backup_config_task correctly executes backup_config.
+        """
+        result = backup_config_task()
+        self.assertTrue(result)
+        mock_call_command.assert_any_call("backup_config")
+
+    @patch("common.tasks.call_command")
+    def test_validate_backups_task_calls_command(self, mock_call_command):
+        """
+        Tests validate_backups_task correctly executes restore_system.
+        """
+        result = validate_backups_task()
+        self.assertTrue(result)
+        mock_call_command.assert_any_call("restore_system")
