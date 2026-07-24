@@ -99,7 +99,6 @@ INSTALLED_APPS = [
     "posts",
     "medias",
     "interactions",
-    "pages",
 ]
 
 # EN: Authentication backends including support for object permissions (guardian) and lockout protection (axes).
@@ -417,7 +416,7 @@ REST_FRAMEWORK = {
 # FA: تنظیمات Spectacular برای تولید مستندات OpenAPI.
 SPECTACULAR_SETTINGS = {
     "TITLE": f"{SITE_NAME} API",
-    "DESCRIPTION": "API for managing posts, medias, interactions, pages, navigation and users.",
+    "DESCRIPTION": "API for managing posts, medias, interactions, navigation and users.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "SCHEMA_PATH_PREFIX": r"/api",

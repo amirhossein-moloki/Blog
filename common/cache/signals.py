@@ -95,16 +95,6 @@ def invalidate_comment_cache(sender, instance, **kwargs) -> None:
         cache_manager.invalidation.invalidate_tag(f"comments:{slug}")
 
 
-def invalidate_page_cache(sender, instance, **kwargs) -> None:
-    """
-    EN: Invalidates static page cache on Page mutation.
-    FA: ابطال کش صفحات استاتیک در زمان تغییر صفحه.
-    """
-    logger.info(f"Signal received: Invalidate Page: {instance.slug}")
-    cache_manager.remove_by_version("pages")
-    cache_manager.invalidation.invalidate_tag(f"page:{instance.slug}")
-
-
 # EN: Setup signal connections safely
 # FA: راه‌اندازی امن اتصالات سیگنال‌ها
 def register_cache_signals() -> None:
@@ -114,7 +104,6 @@ def register_cache_signals() -> None:
     """
     try:
         from interactions.models import Comment
-        from pages.models import Page
         from posts.models import Article, Category, Tag
 
         # EN: Article Signals
@@ -159,15 +148,6 @@ def register_cache_signals() -> None:
             invalidate_comment_cache,
             sender=Comment,
             dispatch_uid="cache_comment_delete",
-        )
-
-        # EN: Page Signals
-        # FA: سیگنال‌های صفحه
-        post_save.connect(
-            invalidate_page_cache, sender=Page, dispatch_uid="cache_page_save"
-        )
-        post_delete.connect(
-            invalidate_page_cache, sender=Page, dispatch_uid="cache_page_delete"
         )
 
         logger.info("Enterprise Cache Signals registered successfully.")

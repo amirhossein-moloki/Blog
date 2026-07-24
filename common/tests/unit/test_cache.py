@@ -26,7 +26,6 @@ from common.cache.locks import (
 )
 from common.cache.manager import CacheManager
 from common.cache.serializers import JSONSerializer, MessagePackSerializer
-from pages.models import Page
 from posts.models import Category
 
 
@@ -552,14 +551,6 @@ class CacheSubsystemTests(TestCase):
             mock_cache.invalidation.invalidate_tag.assert_any_call(
                 "category_detail:tech"
             )
-
-        # Mock Page save
-        page = Page(title="About", slug="about")
-        with mock.patch("common.cache.signals.cache_manager") as mock_cache:
-            from common.cache.signals import invalidate_page_cache
-
-            invalidate_page_cache(sender=Page, instance=page)
-            mock_cache.remove_by_version.assert_any_call("pages")
 
     def test_monitoring_telemetry_redis_mocked(self) -> None:
         """EN: Verifies telemetry correctly handles healthy Redis mocks. FA: تست تله‌متری با کلاینت فرضی ردیس سالم."""

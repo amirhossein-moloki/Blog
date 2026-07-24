@@ -82,7 +82,6 @@ urlpatterns = [
     path("api/", include("posts.urls", namespace="posts")),
     path("api/", include("medias.urls", namespace="medias")),
     path("api/", include("interactions.urls", namespace="interactions")),
-    path("api/", include("pages.urls", namespace="pages")),
     path("api/editor/upload/", ckeditor_upload_view, name="ckeditor_upload"),
 ]
 
