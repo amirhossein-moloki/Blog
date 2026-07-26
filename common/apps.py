@@ -30,6 +30,34 @@ class CommonConfig(AppConfig):
 
         register_cache_signals()
 
+        # EN: 1.5. Validate S3 settings if required
+        # FA: ۱.۵. اعتبارسنجی تنظیمات S3 در صورت لزوم
+        import os
+        from django.conf import settings
+        from django.core.exceptions import ImproperlyConfigured
+
+        backup_storage = getattr(settings, "BACKUP_STORAGE", "local")
+        offsite_enabled = getattr(settings, "BACKUP_OFFSITE_ENABLED", False)
+        offsite_required = getattr(settings, "BACKUP_OFFSITE_REQUIRED", False)
+
+        bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
+        access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(settings, "AWS_ACCESS_KEY_ID", None)
+        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
+
+        s3_configured = bool(bucket_name)
+
+        if offsite_required:
+            if not s3_configured:
+                raise ImproperlyConfigured(
+                    "S3 Backup/Object Storage is required in Production but credentials or bucket name are missing. "
+                    "Ensure AWS_STORAGE_BUCKET_NAME, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY are set."
+                )
+        elif offsite_enabled or "s3" in backup_storage:
+            if not s3_configured:
+                logger.warning(
+                    "S3 backup disabled (Development Mode) - Missing S3 credentials or bucket name."
+                )
+
         # EN: 2. Register Warmup Builders
         # FA: ۲. ثبت سازنده‌های پیش‌گرم کردن کش
         try:
