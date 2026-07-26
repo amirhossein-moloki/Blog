@@ -39,6 +39,60 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 
 ---
 
+## Enterprise Caching Subsystem
+
+The system features a production-grade, highly resilient **Enterprise Caching Subsystem** designed to handle high-traffic publisher environments with sub-5ms P95 latency.
+
+### Core Architecture
+- **Strict Abstraction**: No application code interacts directly with the Django/Redis cache layer. All reads/writes route through the central thread-safe `CacheManager` singleton (`cache_manager`).
+- **Fail-Safe Fallback**: If Redis becomes offline or unreachable, the subsystem automatically and transparently falls back to local memory and PostgreSQL. Application requests never fail due to caching engine crashes.
+- **Cache-Aside & Stale-While-Revalidate (SWR)**: High-traffic endpoints serve cached data instantly. If a cached value is *soft-expired* but within its *hard TTL*, a non-blocking background thread revalidates the cache while the stale value is returned immediately.
+- **Cache Stampede Protection**: A thread-safe, atomic `DistributedLock` ensures that during a cache miss, only *one* concurrent request rebuilds the cache from PostgreSQL, while others wait or gracefully bypass to the DB.
+
+### Key Capabilities
+1. **Multilayer Cache Policies**: Defines four operational Cache Levels (No Cache, Short Cache, Medium Cache, Long Cache) with added random jitter on TTLs to prevent cache expiration storms.
+2. **Pluggable Serialization & Compression**: Serializes payloads using binary `MessagePack` (with fallback to `JSON`) and compresses them using `Zstandard` (with fallback to `Gzip`). Active size boundaries enforce automatic compression for payloads >2KB and reject payloads >5MB.
+3. **Wildcard-Free Invalidation**: Prohibits expensive, blocking Redis `keys *` wildcard deletions. Instead, invalidation is completely tag-based, logical version-based, and dependency-graph-driven.
+4. **Selective Async Warmup**: Background Celery workers immediately pre-build cache payloads for critical pages (e.g. Homepage, sitemaps, categories) upon database content mutations.
+5. **Predictive Prefetch**: A background service periodically scans registered hot keys and preemptively refreshes them when close to soft-expiry.
+
+### Monitoring & Telemetry
+Three JSON telemetry endpoints are exposed:
+- `/health/cache`: Validates Django cache backend read/write/delete capabilities.
+- `/health/redis`: Measures live Redis ping latency, memory/CPU usage, client counts, and client fragmentation.
+- `/health/cache-manager`: Tests serialization, compression, and locking, and yields cache hits/misses, hit rate ratios, and average lookup/rebuild durations.
+
+---
+
+## Enterprise Backup & Disaster Recovery (BDR) Subsystem
+
+The platform features an advanced, zero-trust **Backup & Disaster Recovery (BDR) Subsystem** built for high-resilience and database safety under load.
+
+### Core Architecture & Capabilities
+- **Memory-Safe Streaming I/O**: Reads and processes database, media, and configuration backups in 64KB chunks. Plaintext files never leak to disk, and the streaming architecture ensures flat RAM usage (<5MB) even for infinite database sizes, preventing Out-of-Memory (OOM) failures.
+- **Bilingual SRE Design**: Fully localized with bilingual logs (English and Persian) and clear console output for all management commands.
+- **GFS (Grandfather-Father-Son) Retention**: Programmatically purges expired backups while maintaining 24 hourly, 7 daily, 4 weekly, and 12 monthly backups. The newest backup is unconditionally protected.
+- **Ransomware Deleted Object Protection**: S3-compatible cloud storage and local storage media backups never delete files in the backup destination even if they are removed or modified in the source, preventing malicious deletion or encrypting attacks.
+- **Encrypted Configurations**: Automatically backups and encrypts crucial configuration files (`.env`, `nginx.conf`, `docker-compose.yml`) using stream-based AES-256-GCM, with zero-secret logging.
+
+### Security & Cryptography Design
+- **Authenticated Encryption**: Uses **AES-256-GCM** with 100,000 iterations of PBKDF2 HMAC-SHA256 key derivation.
+- **Replay Protection**: Cryptographically binds an 8-byte big-endian sequential block index as Additional Authenticated Data (AAD) for each block, rejecting any block-reordering, truncation, or tampering attempts.
+- **Strict Environment Validation**: Restored env configurations are verified for valid UTF-8 compatibility and `KEY=VALUE` environment syntax before applying.
+
+### 8-Step Disaster Recovery Restore Workflow
+Restoration is executed via `python manage.py restore_system` following a strict 8-step safety flow:
+1. **Maintenance Mode Activation**: Sets an atomic cache lock to globally block write traffic.
+2. **Restore Environment Verification**: Validates file permissions and paths.
+3. **Active Connection Termination**: For PostgreSQL, issues `pg_terminate_backend` on active sessions to avoid locking deadlocks.
+4. **Integrity & Decrypt Validation**: Performs a dry-run decryption/decompression check before writing anything.
+5. **Safe Schema Reconstruction**: Drops and recreates the `public` schema (on Postgres) to avoid clashing duplicate keys or constraint errors.
+6. **Schema Migration & Validation**: Runs `django-admin migrate` to ensure schema consistency.
+7. **SRE Health Checks**: Runs queries on core models to ensure database reachability.
+8. **Resume App Traffic**: Clears cache locks, resuming live write traffic.
+
+---
+
 ## Technology Stack
 
 | Component | Technology |
