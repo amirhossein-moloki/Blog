@@ -14,7 +14,7 @@ from django.db import connection
 
 from common.bdr_crypto import decrypt_and_decompress_stream, decrypt_stream
 from common.bdr_metrics import update_sre_metric
-from common.cache import cache_manager
+from common.bdr.maintenance_lock import MaintenanceLockManager
 
 # Attempt to import cryptography
 try:
@@ -30,6 +30,10 @@ class Command(BaseCommand):
         "EN: Validates backup integrity and performs complete, production-safe system restoration of DB, media, and configurations.\n"
         "FA: اعتبارسنجی یکپارچگی پشتیبان‌گیری و انجام بازیابی کامل و امن سیستم برای پایگاه داده, رسانه‌ها و تنظیمات."
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.lock_manager = MaintenanceLockManager()
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -66,6 +70,23 @@ class Command(BaseCommand):
             return raw_key.decode("utf-8")
         return str(raw_key)
 
+    def is_s3_storage(self):
+        """
+        Detects if S3 storage backend is configured.
+        """
+        storage_backend = getattr(settings, "STORAGE_BACKEND", "local")
+        if storage_backend == "s3":
+            return True
+        if os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
+            settings, "AWS_STORAGE_BUCKET_NAME", None
+        ):
+            return True
+        storages_config = getattr(settings, "STORAGES", {})
+        default_backend = storages_config.get("default", {}).get("BACKEND", "")
+        if "s3" in default_backend.lower():
+            return True
+        return False
+
     def handle(self, *args, **options):
         db_file = options.get("db_file")
         media_file = options.get("media_file")
@@ -76,10 +97,10 @@ class Command(BaseCommand):
             or getattr(settings, "BACKUP_ENCRYPT", False)
         )
 
-        if not any([db_file, media_file, config_file]):
+        if not any([db_file, media_file, config_file]) and not self.is_s3_storage():
             self.stdout.write(
                 self.style.WARNING(
-                    "No specific files provided. Initiating default auto-discovery restore verification..."
+                    "No specific files provided and S3 not active. Initiating default auto-discovery restore verification..."
                 )
             )
             self.auto_discover_and_validate()
@@ -94,10 +115,10 @@ class Command(BaseCommand):
             self.restore_database_flow(db_file_path, force_decrypt)
 
         # 2. Media Restoration
-        if media_file:
-            media_file_path = Path(media_file)
+        if media_file or self.is_s3_storage():
+            media_file_path = Path(media_file) if media_file else None
             self.stdout.write(
-                f"Initiating media restoration from target: {media_file_path}"
+                f"Initiating media restoration from target: {media_file_path or 'S3 off-site backup bucket'}"
             )
             self.restore_media(media_file_path)
 
@@ -136,18 +157,25 @@ class Command(BaseCommand):
             "[STEP 1/8] Stopping application write traffic (Enabling Maintenance Mode)..."
         )
         try:
-            cache_manager.set(
-                "MAINTENANCE_MODE", True, soft_ttl_sec=1800, hard_ttl_sec=3600
-            )
-            self.stdout.write(
-                self.style.SUCCESS(
-                    " -> Maintenance mode successfully enabled in cache."
+            update_sre_metric("bdr_restore_started", datetime.utcnow().isoformat())
+            # Try primary (Redis) or fallback (File)
+            acquired = self.lock_manager.acquire_lock(owner="restore-system", ttl=600)
+            if acquired:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        " -> Maintenance mode successfully enabled via lock manager."
+                    )
                 )
-            )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(
+                        " -> Could not acquire exclusive maintenance lock! Proceeding anyway."
+                    )
+                )
         except Exception as e:
             self.stdout.write(
                 self.style.WARNING(
-                    f" -> Cache maintenance mode could not be set: {str(e)}"
+                    f" -> Lock manager maintenance mode could not be set: {str(e)}"
                 )
             )
 
@@ -214,9 +242,10 @@ class Command(BaseCommand):
             if raw_sql_path.exists():
                 raw_sql_path.unlink()
             try:
-                cache_manager.delete("MAINTENANCE_MODE")
+                self.lock_manager.release_lock()
             except Exception:
                 pass
+            update_sre_metric("bdr_restore_failed", 1, increment=True)
             raise ValueError(
                 f"Integrity validation failed! Backup file is corrupted or password is wrong: {str(e)}"
             )
@@ -281,6 +310,13 @@ class Command(BaseCommand):
                 self.style.SUCCESS(" -> Database restore successfully applied!")
             )
 
+        except Exception as e:
+            update_sre_metric("bdr_restore_failed", 1, increment=True)
+            try:
+                self.lock_manager.release_lock()
+            except Exception:
+                pass
+            raise e
         finally:
             if raw_sql_path.exists():
                 raw_sql_path.unlink()
@@ -321,7 +357,7 @@ class Command(BaseCommand):
         # STEP 8: Resume application traffic
         self.stdout.write("[STEP 8/8] Resuming application traffic...")
         try:
-            cache_manager.delete("MAINTENANCE_MODE")
+            self.lock_manager.release_lock()
             self.stdout.write(
                 self.style.SUCCESS(
                     " -> Maintenance mode successfully disabled. Traffic resumed."
@@ -330,11 +366,12 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(
                 self.style.WARNING(
-                    f" -> Cache maintenance mode could not be cleared: {str(e)}"
+                    f" -> Lock manager maintenance mode could not be cleared: {str(e)}"
                 )
             )
 
         duration = time.time() - start_time
+        update_sre_metric("bdr_restore_completed", datetime.utcnow().isoformat())
         self.stdout.write(
             self.style.SUCCESS(
                 f"Database restoration completed in {duration:.2f} seconds!"
@@ -342,30 +379,58 @@ class Command(BaseCommand):
         )
 
     def restore_media(self, source_backup_dir):
-        if not source_backup_dir.exists():
-            raise FileNotFoundError(
-                f"Backup media source directory not found: {source_backup_dir}"
-            )
-
+        use_s3 = self.is_s3_storage()
         dest_dir = Path(settings.MEDIA_ROOT)
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        copied = 0
-        for root, _, files in os.walk(source_backup_dir):
-            for filename in files:
-                src_file_path = Path(root) / filename
-                rel_path = src_file_path.relative_to(source_backup_dir)
+        if use_s3:
+            self.stdout.write("S3-compatible storage backend detected. Restoring media from S3...")
+            from common.bdr.s3_backup_provider import S3BackupProvider
+            provider = S3BackupProvider()
+            backups = provider.list_backups(prefix="media/")
+
+            restored = 0
+            for b in backups:
+                key = b["Key"]
+                if key.endswith(".enc"):
+                    rel_path = key[len("media/"):-len(".enc")]
+                else:
+                    rel_path = key[len("media/"):]
+
                 dest_file_path = dest_dir / rel_path
-
                 dest_file_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src_file_path, dest_file_path)
-                copied += 1
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Media files restored successfully! Copied {copied} files to {dest_dir}"
+                self.stdout.write(f"Downloading and decrypting S3 media object: {key}...")
+                provider.download_backup(key, dest_file_path)
+                restored += 1
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Media files restored successfully from S3! Restored {restored} files to {dest_dir}"
+                )
             )
-        )
+        else:
+            if not source_backup_dir or not source_backup_dir.exists():
+                raise FileNotFoundError(
+                    f"Backup media source directory not found: {source_backup_dir}"
+                )
+
+            copied = 0
+            for root, _, files in os.walk(source_backup_dir):
+                for filename in files:
+                    src_file_path = Path(root) / filename
+                    rel_path = src_file_path.relative_to(source_backup_dir)
+                    dest_file_path = dest_dir / rel_path
+
+                    dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src_file_path, dest_file_path)
+                    copied += 1
+
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Media files restored successfully! Copied {copied} files to {dest_dir}"
+                )
+            )
 
     def restore_config(self, tarball_path):
         """
