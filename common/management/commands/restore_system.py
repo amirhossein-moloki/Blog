@@ -9,13 +9,12 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.management import call_command
-
-from common.cache import cache_manager
 from django.core.management.base import BaseCommand
 from django.db import connection
 
 from common.bdr_crypto import decrypt_and_decompress_stream, decrypt_stream
 from common.bdr_metrics import update_sre_metric
+from common.cache import cache_manager
 
 # Attempt to import cryptography
 try:
@@ -137,7 +136,9 @@ class Command(BaseCommand):
             "[STEP 1/8] Stopping application write traffic (Enabling Maintenance Mode)..."
         )
         try:
-            cache_manager.set("MAINTENANCE_MODE", True, soft_ttl_sec=1800, hard_ttl_sec=3600)
+            cache_manager.set(
+                "MAINTENANCE_MODE", True, soft_ttl_sec=1800, hard_ttl_sec=3600
+            )
             self.stdout.write(
                 self.style.SUCCESS(
                     " -> Maintenance mode successfully enabled in cache."
