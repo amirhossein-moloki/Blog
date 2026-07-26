@@ -6,9 +6,9 @@ FA: ایمپورت و ارائه تسک‌های کش و تسک‌های پشت�
 import logging
 
 from celery import shared_task
-from django.core.cache import cache
 from django.core.management import call_command
 
+from common.cache import cache_manager
 from common.cache.locks import DistributedLock
 
 from .cache.tasks import (
@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 
 def get_redis_client():
     """
-    Attempts to retrieve the raw Redis client from the Django cache backend if active.
+    Attempts to retrieve the raw Redis client from the Cache Manager if active.
     """
     try:
-        return cache.client.get_client()
+        return cache_manager._get_raw_client()
     except Exception:
         return None
 

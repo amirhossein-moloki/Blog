@@ -1,7 +1,7 @@
-from django.core.cache import cache
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+from common.cache import cache_manager
 from users.models import User
 
 
@@ -18,7 +18,7 @@ def user_post_save(sender, instance, created, **kwargs):
     """
     # EN: Invalidate user-specific dashboard cache
     # FA: ابطال کش داشبورد مخصوص کاربر
-    cache.delete(f"dashboard:user:{instance.id}")
+    cache_manager.delete(f"dashboard:user:{instance.id}")
 
 
 @receiver(post_delete, sender=User)
@@ -32,4 +32,4 @@ def user_post_delete(sender, instance, **kwargs):
     ابطال کش هنگام حذف یک کاربر.
     اطمینان حاصل می‌کند که داده‌های قدیمی از کش ارائه نمی‌شوند.
     """
-    cache.delete(f"dashboard:user:{instance.id}")
+    cache_manager.delete(f"dashboard:user:{instance.id}")
