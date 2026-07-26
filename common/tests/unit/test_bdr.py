@@ -285,6 +285,7 @@ class MaintenanceLockFallbackTest(TestCase):
         # Configure redis client to raise an exception, simulating redis failure
         mock_client = MagicMock()
         mock_client.set.side_effect = Exception("Redis connection timed out")
+        mock_client.exists.return_value = False
         self.lock_manager.redis_client = mock_client
 
         # Attempt to acquire maintenance lock
@@ -430,6 +431,40 @@ class MaintenanceLockFallbackTest(TestCase):
             self.lock_manager.redis_client = None
             success = self.lock_manager.acquire_lock(owner="test")
             self.assertFalse(success)
+
+    @patch("redis.Redis")
+    def test_local_lock_full_lifecycle_and_status(self, mock_redis):
+        """
+        Tests acquisition, status check, active lock detection, and release
+        of the local fallback file lock.
+        """
+        # Configure redis client to raise an exception, simulating redis failure
+        mock_client = MagicMock()
+        mock_client.set.side_effect = Exception("Redis connection timed out")
+        mock_client.exists.return_value = False
+        mock_client.get.return_value = None
+        self.lock_manager.redis_client = mock_client
+
+        # 1. Acquire
+        success = self.lock_manager.acquire_lock(owner="full-lifecycle-test")
+        self.assertTrue(success)
+
+        # 2. Check is_locked (should return True and detect lock is active)
+        self.assertTrue(self.lock_manager.is_locked())
+
+        # 3. Check get_status (should return file type lock with details)
+        status = self.lock_manager.get_status()
+        self.assertTrue(status["locked"])
+        self.assertEqual(status["type"], "file")
+        self.assertEqual(status["owner"], "full-lifecycle-test")
+
+        # 4. Release
+        released = self.lock_manager.release_lock()
+        self.assertTrue(released)
+
+        # 5. Verify released state
+        self.assertFalse(self.lock_manager.is_locked())
+        self.assertFalse(self.lock_manager.local_lock_path.exists())
 
 
 class S3BackupProviderDirectTest(TestCase):
