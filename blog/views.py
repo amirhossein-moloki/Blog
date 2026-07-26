@@ -1,8 +1,9 @@
-from django.core.cache import cache
 from django.db import connections
 from django.db.utils import OperationalError
 from django.http import JsonResponse
 from django.shortcuts import redirect
+
+from common.cache import cache_manager
 
 
 def health_check(request):
@@ -40,8 +41,8 @@ def health_check(request):
     # EN: Check Redis (Cache) connectivity
     # FA: بررسی اتصال Redis (کش)
     try:
-        cache.set("health_check", "ok", timeout=1)
-        if cache.get("health_check") == "ok":
+        cache_manager.set("health_check", "ok", soft_ttl_sec=1, hard_ttl_sec=2)
+        if cache_manager.get("health_check") == "ok":
             health_status["services"]["redis"] = "healthy"
         else:
             health_status["services"]["redis"] = "unhealthy"

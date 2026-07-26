@@ -8,8 +8,9 @@ from datetime import datetime
 from pathlib import Path
 
 from django.conf import settings
-from django.core.cache import cache
 from django.core.management import call_command
+
+from common.cache import cache_manager
 from django.core.management.base import BaseCommand
 from django.db import connection
 
@@ -136,7 +137,7 @@ class Command(BaseCommand):
             "[STEP 1/8] Stopping application write traffic (Enabling Maintenance Mode)..."
         )
         try:
-            cache.set("MAINTENANCE_MODE", True, timeout=1800)
+            cache_manager.set("MAINTENANCE_MODE", True, soft_ttl_sec=1800, hard_ttl_sec=3600)
             self.stdout.write(
                 self.style.SUCCESS(
                     " -> Maintenance mode successfully enabled in cache."
@@ -212,7 +213,7 @@ class Command(BaseCommand):
             if raw_sql_path.exists():
                 raw_sql_path.unlink()
             try:
-                cache.delete("MAINTENANCE_MODE")
+                cache_manager.delete("MAINTENANCE_MODE")
             except Exception:
                 pass
             raise ValueError(
@@ -319,7 +320,7 @@ class Command(BaseCommand):
         # STEP 8: Resume application traffic
         self.stdout.write("[STEP 8/8] Resuming application traffic...")
         try:
-            cache.delete("MAINTENANCE_MODE")
+            cache_manager.delete("MAINTENANCE_MODE")
             self.stdout.write(
                 self.style.SUCCESS(
                     " -> Maintenance mode successfully disabled. Traffic resumed."
