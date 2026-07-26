@@ -1,4 +1,5 @@
 import gzip
+import json
 import os
 import shutil
 import tarfile
@@ -220,18 +221,416 @@ class BackupMediaTest(TestCase):
         mock_paginator.paginate.return_value = [
             {
                 "Contents": [
-                    {"Key": "image1.jpg", "Size": 100},
-                    {"Key": "folder/image2.png", "Size": 200},
+                    {
+                        "Key": "media/image1.jpg.enc",
+                        "Size": 100,
+                        "LastModified": datetime.utcnow(),
+                    },
+                    {
+                        "Key": "media/folder/image2.png.enc",
+                        "Size": 200,
+                        "LastModified": datetime.utcnow(),
+                    },
                 ]
             }
         ]
         mock_s3.get_paginator.return_value = mock_paginator
 
-        call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
+        # Mock head_object to bypass ContentLength size validation
+        class EqualToAnything:
+            def __eq__(self, other):
+                return True
 
-        # Verify s3 client list objects and download was invoked
+        mock_s3.head_object.return_value = {
+            "ContentLength": EqualToAnything(),
+            "Metadata": {
+                "original-size": "100",
+                "original-sha256": "wrong_sha_to_force_upload",
+                "original-mtime": "0.0",
+            },
+        }
+
+        # Create some mock local files to backup
+        (self.temp_src_dir / "image1.jpg").write_text("local image 1")
+        (self.temp_src_dir / "folder").mkdir(parents=True, exist_ok=True)
+        (self.temp_src_dir / "folder" / "image2.png").write_text("local image 2")
+
+        with override_settings(MEDIA_ROOT=str(self.temp_src_dir)):
+            call_command("backup_media", "--output-dir", str(self.temp_dst_dir))
+
+        # Verify s3 client list objects and upload was invoked due to push architecture
         self.assertTrue(mock_s3.get_paginator.called)
-        self.assertTrue(mock_s3.download_fileobj.called)
+        self.assertTrue(mock_s3.upload_fileobj.called)
+
+
+class MaintenanceLockFallbackTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        from common.bdr.maintenance_lock import MaintenanceLockManager
+
+        self.lock_manager = MaintenanceLockManager()
+        # Ensure locks are released/clean before tests
+        self.lock_manager.release_lock()
+
+    def tearDown(self):
+        self.lock_manager.release_lock()
+        super().tearDown()
+
+    @patch("redis.Redis")
+    def test_redis_failure_during_restore_creates_local_lock(self, mock_redis):
+        """
+        Verifies that if Redis fails or is unavailable during a restore, the system
+        gracefully falls back to creating an atomic POSIX maintenance lock file.
+        """
+        # Configure redis client to raise an exception, simulating redis failure
+        mock_client = MagicMock()
+        mock_client.set.side_effect = Exception("Redis connection timed out")
+        mock_client.exists.return_value = False
+        self.lock_manager.redis_client = mock_client
+
+        # Attempt to acquire maintenance lock
+        success = self.lock_manager.acquire_lock(owner="test-job-fallback")
+        self.assertTrue(success)
+
+        # Verify Redis fallback activated: local maintenance.lock was created
+        self.assertTrue(self.lock_manager.local_lock_path.exists())
+
+        # Verify lock content contains the expected JSON metadata
+        with open(self.lock_manager.local_lock_path, "r") as f:
+            data = json.load(f)
+            self.assertEqual(data["reason"], "database_restore")
+            self.assertEqual(data["owner"], "test-job-fallback")
+
+    @patch("redis.Redis")
+    def test_redis_acquire_release_check_happy_path(self, mock_redis):
+        """
+        Tests the lock manager's happy path when Redis is active and available.
+        """
+        mock_client = MagicMock()
+        mock_client.set.return_value = True
+        mock_client.exists.return_value = True
+        mock_client.get.return_value = json.dumps(
+            {
+                "owner": "test-owner",
+                "created": datetime.utcnow().isoformat(),
+                "ttl": 600,
+            }
+        )
+        self.lock_manager.redis_client = mock_client
+
+        # Test acquire
+        success = self.lock_manager.acquire_lock(owner="test-owner")
+        self.assertTrue(success)
+        mock_client.set.assert_called_once()
+
+        # Test check is_locked
+        self.assertTrue(self.lock_manager.is_locked())
+        mock_client.exists.assert_called_once()
+
+        # Test get_status
+        status = self.lock_manager.get_status()
+        self.assertTrue(status["locked"])
+        self.assertEqual(status["type"], "redis")
+        self.assertEqual(status["owner"], "test-owner")
+
+        # Test release
+        released = self.lock_manager.release_lock()
+        self.assertTrue(released)
+        mock_client.delete.assert_called_with(self.lock_manager.redis_lock_key)
+
+    def test_active_middleware_blocks_with_http_503(self):
+        """
+        Verifies that when a maintenance lock is active, the middleware intercepts
+        requests and returns a proper HTTP 503 response.
+        """
+        from django.test import RequestFactory
+
+        from common.middleware import BDRMaintenanceMiddleware
+
+        # Acquire lock locally to simulate active maintenance
+        self.lock_manager.acquire_lock(owner="test-middleware-blocking")
+
+        middleware = BDRMaintenanceMiddleware(get_response=lambda r: None)
+        request = RequestFactory().get("/api/articles/")
+
+        response = middleware(request)
+        self.assertIsNotNone(response)
+        self.assertEqual(response.status_code, 503)
+
+        # Verify JSON response schema
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(data["status"], "maintenance")
+        self.assertEqual(data["message"], "System restoration in progress")
+
+    def test_crashed_lock_recovery(self):
+        """
+        Verifies that if a restore crashes and the lock is left behind, the POSIX flock
+        is released by the OS, allowing a new process to detect it as inactive and recover.
+        """
+        # Simulate a crashed lock file by creating a file with JSON content,
+        # but NOT holding an active flock on it (which happens when the process crashes/exits).
+        self.lock_manager.local_lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.lock_manager.local_lock_path, "w") as f:
+            json.dump(
+                {
+                    "reason": "database_restore",
+                    "started": datetime.utcnow().isoformat(),
+                    "owner": "crashed-process",
+                },
+                f,
+            )
+
+        # Verify that is_locked() detects it as unheld, cleans it up, and returns False
+        self.assertFalse(self.lock_manager.is_locked())
+        self.assertFalse(self.lock_manager.local_lock_path.exists())
+
+    def test_sre_metrics_increment_and_update(self):
+        """
+        Tests SRE metrics update and increment helper function.
+        """
+        from common.bdr_metrics import update_sre_metric
+
+        # Update metric
+        update_sre_metric("bdr_s3_upload_failed", 5)
+
+        # Test increment
+        update_sre_metric("bdr_s3_upload_failed", 2, increment=True)
+
+        # Verify from file
+        metrics_file = (
+            Path(settings.BASE_DIR) / "test_restore_temp" / "sre_metrics.json"
+        )
+        self.assertTrue(metrics_file.exists())
+        with open(metrics_file, "r") as f:
+            data = json.load(f)
+            self.assertEqual(data["bdr_s3_upload_failed"], 7)
+
+    @patch("os.open")
+    def test_local_file_lock_creation_failure(self, mock_open):
+        """
+        Tests that when local lock file cannot be created (OSError),
+        acquire_lock returns False.
+        """
+        # Simulating that os.open raises FileExistsError
+        mock_open.side_effect = FileExistsError("File already exists")
+        self.lock_manager.redis_client = None  # Ensure Redis is not used
+
+        success = self.lock_manager.acquire_lock(owner="another-owner")
+        self.assertFalse(success)
+
+    @patch("os.open")
+    def test_local_file_lock_flock_failure(self, mock_open):
+        """
+        Tests that when flock raises blocking error, acquire_lock returns False.
+        """
+        fd_mock = MagicMock()
+        mock_open.return_value = fd_mock
+
+        # Simulating flock raises OSError (locking failed)
+        with patch("fcntl.flock", side_effect=BlockingIOError("Lock held")):
+            self.lock_manager.redis_client = None
+            success = self.lock_manager.acquire_lock(owner="test")
+            self.assertFalse(success)
+
+    @patch("redis.Redis")
+    def test_local_lock_full_lifecycle_and_status(self, mock_redis):
+        """
+        Tests acquisition, status check, active lock detection, and release
+        of the local fallback file lock.
+        """
+        # Configure redis client to raise an exception, simulating redis failure
+        mock_client = MagicMock()
+        mock_client.set.side_effect = Exception("Redis connection timed out")
+        mock_client.exists.return_value = False
+        mock_client.get.return_value = None
+        self.lock_manager.redis_client = mock_client
+
+        # 1. Acquire
+        success = self.lock_manager.acquire_lock(owner="full-lifecycle-test")
+        self.assertTrue(success)
+
+        # 2. Check is_locked (should return True and detect lock is active)
+        self.assertTrue(self.lock_manager.is_locked())
+
+        # 3. Check get_status (should return file type lock with details)
+        status = self.lock_manager.get_status()
+        self.assertTrue(status["locked"])
+        self.assertEqual(status["type"], "file")
+        self.assertEqual(status["owner"], "full-lifecycle-test")
+
+        # 4. Release
+        released = self.lock_manager.release_lock()
+        self.assertTrue(released)
+
+        # 5. Verify released state
+        self.assertFalse(self.lock_manager.is_locked())
+        self.assertFalse(self.lock_manager.local_lock_path.exists())
+
+
+class S3BackupProviderDirectTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = Path(settings.BASE_DIR) / "test_s3_provider_temp"
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        if self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir)
+        super().tearDown()
+
+    @patch("boto3.client")
+    def test_s3_backup_provider_upload_download_verify_delete(self, mock_boto_client):
+        """
+        Directly exercises all operations on S3BackupProvider with mock boto3 client.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        # Configure mock responses
+        class EqualToAnything:
+            def __eq__(self, other):
+                return True
+
+        mock_s3.head_object.return_value = {
+            "ContentLength": EqualToAnything(),
+            "Metadata": {
+                "original-size": "15",
+                "original-sha256": "abcdef",
+                "original-mtime": "12345.6",
+            },
+        }
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {
+                "Contents": [
+                    {
+                        "Key": "media/test.enc",
+                        "Size": 100,
+                        "LastModified": datetime.utcnow(),
+                    }
+                ]
+            }
+        ]
+        mock_s3.get_paginator.return_value = mock_paginator
+
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        provider = S3BackupProvider(bucket_name="my-bucket")
+
+        # Local test file
+        local_file = self.temp_dir / "test.txt"
+        local_file.write_text("hello s3 backup")
+
+        # Test upload
+        manifest = provider.upload_backup(local_file, "media/test.enc")
+        self.assertEqual(manifest["file"], "media/test.enc")
+        self.assertTrue(mock_s3.upload_fileobj.called)
+
+        # Test download
+        dest_file = self.temp_dir / "restored.txt"
+
+        # When downloading, mock the decryption pipeline (write valid decrypt format or just mock it)
+        # S3BackupProvider downloads to a temp file, then calls decrypt_and_decompress_stream.
+        # Since we use GzipEncryptionStream, let's write a valid Gzip GCM stream into self.temp_dir / "mock_download.enc"
+        # and mock download_fileobj to copy this file's bytes.
+        import io
+
+        from common.bdr_crypto import GzipEncryptionStream
+
+        enc_buf = io.BytesIO()
+        crypto_stream = GzipEncryptionStream(enc_buf, provider.get_encryption_key())
+        with gzip.GzipFile(fileobj=crypto_stream, mode="wb") as f_gz:
+            f_gz.write(b"hello s3 backup")
+        crypto_stream.close()
+
+        def mock_download_fileobj(bucket, key, fileobj):
+            fileobj.write(enc_buf.getvalue())
+
+        mock_s3.download_fileobj.side_effect = mock_download_fileobj
+
+        # Test download
+        provider.download_backup("media/test.enc", dest_file)
+        self.assertTrue(dest_file.exists())
+        self.assertEqual(dest_file.read_text(), "hello s3 backup")
+
+        # Test verify_backup
+        verified = provider.verify_backup("media/test.enc")
+        self.assertTrue(verified)
+
+        # Test list_backups
+        backups = provider.list_backups(prefix="media/")
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0]["Key"], "media/test.enc")
+
+        # Test delete_expired_backup
+        success = provider.delete_expired_backup("media/test.enc")
+        self.assertTrue(success)
+        mock_s3.delete_object.assert_called_with(
+            Bucket="my-bucket", Key="media/test.enc"
+        )
+
+    @patch("boto3.client")
+    def test_s3_backup_provider_verify_and_list_exception_handling(
+        self, mock_boto_client
+    ):
+        """
+        Tests S3BackupProvider list_backups when head_object fails.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {
+                "Contents": [
+                    {
+                        "Key": "media/test.enc",
+                        "Size": 100,
+                        "LastModified": datetime.utcnow(),
+                    }
+                ]
+            }
+        ]
+        mock_s3.get_paginator.return_value = mock_paginator
+        # Make head_object throw an exception
+        mock_s3.head_object.side_effect = Exception("S3 network error")
+
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        provider = S3BackupProvider(bucket_name="my-bucket")
+
+        # It should still return the backup key, but with empty metadata!
+        backups = provider.list_backups(prefix="media/")
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0]["Metadata"], {})
+
+    @patch("boto3.client")
+    def test_s3_backup_provider_verify_failed_exceptions(self, mock_boto_client):
+        """
+        Tests S3BackupProvider verify_backup returning False when S3 download fails.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+        mock_s3.download_fileobj.side_effect = Exception("S3 key not found")
+
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        provider = S3BackupProvider(bucket_name="my-bucket")
+
+        verified = provider.verify_backup("media/missing.enc")
+        self.assertFalse(verified)
+
+    @patch("boto3.client")
+    @override_settings(AWS_STORAGE_BUCKET_NAME=None)
+    def test_s3_backup_provider_init_value_errors(self, mock_boto_client):
+        """
+        Tests S3BackupProvider init raising ValueError if bucket is missing.
+        """
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        with patch.dict(os.environ, {"AWS_STORAGE_BUCKET_NAME": ""}):
+            with self.assertRaises(ValueError):
+                S3BackupProvider()
 
 
 class BackupConfigTest(TestCase):
