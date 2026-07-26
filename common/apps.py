@@ -44,12 +44,6 @@ class CommonConfig(AppConfig):
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
             settings, "AWS_STORAGE_BUCKET_NAME", None
         )
-        access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(
-            settings, "AWS_ACCESS_KEY_ID", None
-        )
-        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(
-            settings, "AWS_SECRET_ACCESS_KEY", None
-        )
 
         s3_configured = bool(bucket_name)
 

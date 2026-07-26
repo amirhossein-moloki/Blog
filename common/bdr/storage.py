@@ -5,11 +5,9 @@ FA: بازطراحی لایه ذخیره‌سازی سازمانی و حساس �
 
 import logging
 import os
-import shutil
 from pathlib import Path
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 from common.bdr.s3_backup_provider import S3BackupProvider
 
