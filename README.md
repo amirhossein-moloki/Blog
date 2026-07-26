@@ -102,6 +102,34 @@ Restoration is executed via `python manage.py restore_system` following a strict
 7. **SRE Health Checks**: Runs queries on core models to ensure database reachability.
 8. **Resume App Traffic**: Clears cache locks, resuming live write traffic.
 
+### Quick Backup & Recovery Commands (Persian & English)
+For a complete tutorial, CLI options, and step-by-step procedures, refer to the [**BDR Comprehensive Guide (راهنمای جامع پشتیبان‌گیری)**](docs/BACKUP_RECOVERY_GUIDE.md).
+
+**1. Create Backup (ایجاد فایل پشتیبان):**
+- **Database (پایگاه‌داده):**
+  ```bash
+  python manage.py backup_database
+  ```
+- **Media Assets (رسانه‌ها):**
+  ```bash
+  python manage.py backup_media
+  ```
+- **System Configuration (تنظیمات):**
+  ```bash
+  python manage.py backup_config
+  ```
+
+**2. Dry-Run Validation on Server (تست و صحت‌سنجی بدون تغییرات):**
+Scans default paths, performs memory-only streaming decryption, and outputs an SRE status report:
+```bash
+python manage.py restore_system
+```
+
+**3. Full Restore execution on Server (اجرای فرآیند کامل بازیابی):**
+```bash
+python manage.py restore_system --db-file <db_file_path> --media-file <media_dir> --config-file <config_file_path>
+```
+
 ---
 
 ## Technology Stack
