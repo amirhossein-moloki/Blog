@@ -4,6 +4,7 @@ FA: میان‌افزار تعمیرات و بازیابی سیستم. قطع د
 """
 
 from django.http import JsonResponse
+
 from common.bdr.maintenance_lock import MaintenanceLockManager
 
 
@@ -20,10 +21,7 @@ class BDRMaintenanceMiddleware:
     def __call__(self, request):
         if self.lock_manager.is_locked():
             return JsonResponse(
-                {
-                    "status": "maintenance",
-                    "message": "System restoration in progress"
-                },
-                status=503
+                {"status": "maintenance", "message": "System restoration in progress"},
+                status=503,
             )
         return self.get_response(request)

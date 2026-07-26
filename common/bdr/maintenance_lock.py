@@ -3,12 +3,13 @@ EN: Multi-layer maintenance locking manager. Handles Redis (Primary) and Local F
 FA: مدیریت چندلایه‌ای قفل تعمیرات و نگهداری سیستم. پشتیبانی از ردیس (اصلی) و قفل محلی فایل (جایگزین).
 """
 
-import os
-import json
 import fcntl
+import json
 import logging
-from pathlib import Path
+import os
 from datetime import datetime
+from pathlib import Path
+
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -27,10 +28,15 @@ class MaintenanceLockManager:
         self._local_lock_fd = None
 
         # Detect Redis and setup connection client
-        if getattr(settings, "USE_REDIS", False) and getattr(settings, "REDIS_URL", None):
+        if getattr(settings, "USE_REDIS", False) and getattr(
+            settings, "REDIS_URL", None
+        ):
             try:
                 import redis
-                self.redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+
+                self.redis_client = redis.from_url(
+                    settings.REDIS_URL, decode_responses=True
+                )
             except Exception as e:
                 logger.warning(f"Failed to initialize direct Redis connection: {e}")
 
@@ -39,23 +45,25 @@ class MaintenanceLockManager:
         EN: Tries to acquire the primary Redis lock. On failure/unavailability, falls back to local file lock.
         FA: تلاش برای دریافت قفل اولیه ردیس. در صورت خطا، سوئیچ خودکار به قفل فایل محلی اتمیک.
         """
-        payload = {
-            "owner": owner,
-            "created": datetime.utcnow().isoformat(),
-            "ttl": ttl
-        }
+        payload = {"owner": owner, "created": datetime.utcnow().isoformat(), "ttl": ttl}
 
         redis_success = False
         if self.redis_client:
             try:
                 # EN: EX: expires in ttl seconds, NX: Set only if key does not exist
                 # FA: تنظیم انقضا در ردیس به ثانیه و ثبت انحصاری مقدار در صورت عدم وجود کلید
-                res = self.redis_client.set(self.redis_lock_key, json.dumps(payload), ex=ttl, nx=True)
+                res = self.redis_client.set(
+                    self.redis_lock_key, json.dumps(payload), ex=ttl, nx=True
+                )
                 if res:
                     redis_success = True
-                    logger.info(f"Successfully acquired primary Redis maintenance lock: {payload}")
+                    logger.info(
+                        f"Successfully acquired primary Redis maintenance lock: {payload}"
+                    )
             except Exception as e:
-                logger.warning(f"Redis is unavailable during acquire_lock: {e}. Falling back to local lock.")
+                logger.warning(
+                    f"Redis is unavailable during acquire_lock: {e}. Falling back to local lock."
+                )
 
         if not redis_success:
             # Fallback to local file lock
@@ -63,7 +71,9 @@ class MaintenanceLockManager:
             try:
                 # EN: Atomic POSIX file creation (O_CREAT | O_EXCL)
                 # FA: ایجاد اتمیک فایل به کمک فلگ‌های POSIX برای جلوگیری از ریسک همزمانی
-                fd = os.open(self.local_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+                fd = os.open(
+                    self.local_lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600
+                )
                 try:
                     # EN: Apply POSIX exclusive non-blocking lock
                     # FA: اعمال قفل انحصاری غیرمسدودکننده برای اطمینان از سلامت فرآیند جاری
@@ -72,14 +82,19 @@ class MaintenanceLockManager:
                     lock_info = {
                         "reason": "database_restore",
                         "started": datetime.utcnow().isoformat(),
-                        "owner": owner
+                        "owner": owner,
                     }
                     os.write(fd, json.dumps(lock_info, indent=4).encode("utf-8"))
                     self._local_lock_fd = fd
-                    logger.warning(f"Redis fallback activated. Local maintenance lock created: {lock_info}")
+                    logger.warning(
+                        f"Redis fallback activated. Local maintenance lock created: {lock_info}"
+                    )
 
                     from common.bdr_metrics import update_sre_metric
-                    update_sre_metric("bdr_maintenance_fallback_used", 1, increment=True)
+
+                    update_sre_metric(
+                        "bdr_maintenance_fallback_used", 1, increment=True
+                    )
                     return True
                 except Exception as e:
                     os.close(fd)

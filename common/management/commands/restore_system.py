@@ -12,9 +12,9 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
+from common.bdr.maintenance_lock import MaintenanceLockManager
 from common.bdr_crypto import decrypt_and_decompress_stream, decrypt_stream
 from common.bdr_metrics import update_sre_metric
-from common.bdr.maintenance_lock import MaintenanceLockManager
 
 # Attempt to import cryptography
 try:
@@ -384,8 +384,11 @@ class Command(BaseCommand):
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         if use_s3:
-            self.stdout.write("S3-compatible storage backend detected. Restoring media from S3...")
+            self.stdout.write(
+                "S3-compatible storage backend detected. Restoring media from S3..."
+            )
             from common.bdr.s3_backup_provider import S3BackupProvider
+
             provider = S3BackupProvider()
             backups = provider.list_backups(prefix="media/")
 
@@ -393,14 +396,16 @@ class Command(BaseCommand):
             for b in backups:
                 key = b["Key"]
                 if key.endswith(".enc"):
-                    rel_path = key[len("media/"):-len(".enc")]
+                    rel_path = key[len("media/") : -len(".enc")]
                 else:
-                    rel_path = key[len("media/"):]
+                    rel_path = key[len("media/") :]
 
                 dest_file_path = dest_dir / rel_path
                 dest_file_path.parent.mkdir(parents=True, exist_ok=True)
 
-                self.stdout.write(f"Downloading and decrypting S3 media object: {key}...")
+                self.stdout.write(
+                    f"Downloading and decrypting S3 media object: {key}..."
+                )
                 provider.download_backup(key, dest_file_path)
                 restored += 1
 

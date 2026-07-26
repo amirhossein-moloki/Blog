@@ -3,19 +3,22 @@ EN: Enterprise S3 Backup Provider with compression, AES-256-GCM encryption, inte
 FA: ارائه‌دهنده پشتیبان‌گیری سازمانی S3 همراه با فشرده‌سازی، رمزگذاری AES-256-GCM، اعتبارسنجی یکپارچگی و تنظیمات امنیتی S3.
 """
 
-import os
-import time
 import gzip
 import hashlib
 import json
 import logging
+import os
+import time
 from datetime import datetime
 from pathlib import Path
+
 from django.conf import settings
+
 from common.bdr_crypto import GzipEncryptionStream, decrypt_and_decompress_stream
 
 try:
     import boto3
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
@@ -29,28 +32,49 @@ class S3BackupProvider:
     FA: ارائه‌دهنده پشتیبانی S3 سازگار با آپلودها و دانلودهای جریانی امن.
     """
 
-    def __init__(self, bucket_name=None, access_key=None, secret_key=None, endpoint_url=None, region_name=None):
-        self.bucket_name = bucket_name or os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
-            settings, "AWS_STORAGE_BUCKET_NAME", None
+    def __init__(
+        self,
+        bucket_name=None,
+        access_key=None,
+        secret_key=None,
+        endpoint_url=None,
+        region_name=None,
+    ):
+        self.bucket_name = (
+            bucket_name
+            or os.environ.get("AWS_STORAGE_BUCKET_NAME")
+            or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
         )
-        self.access_key = access_key or os.environ.get("AWS_ACCESS_KEY_ID") or getattr(
-            settings, "AWS_ACCESS_KEY_ID", None
+        self.access_key = (
+            access_key
+            or os.environ.get("AWS_ACCESS_KEY_ID")
+            or getattr(settings, "AWS_ACCESS_KEY_ID", None)
         )
-        self.secret_key = secret_key or os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(
-            settings, "AWS_SECRET_ACCESS_KEY", None
+        self.secret_key = (
+            secret_key
+            or os.environ.get("AWS_SECRET_ACCESS_KEY")
+            or getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
         )
-        self.endpoint_url = endpoint_url or os.environ.get("AWS_S3_ENDPOINT_URL") or getattr(
-            settings, "AWS_S3_ENDPOINT_URL", None
+        self.endpoint_url = (
+            endpoint_url
+            or os.environ.get("AWS_S3_ENDPOINT_URL")
+            or getattr(settings, "AWS_S3_ENDPOINT_URL", None)
         )
-        self.region_name = region_name or os.environ.get("AWS_S3_REGION_NAME") or getattr(
-            settings, "AWS_S3_REGION_NAME", "us-east-1"
+        self.region_name = (
+            region_name
+            or os.environ.get("AWS_S3_REGION_NAME")
+            or getattr(settings, "AWS_S3_REGION_NAME", "us-east-1")
         )
 
         if not HAS_BOTO3:
-            raise ImportError("boto3 package is required for S3BackupProvider but not installed.")
+            raise ImportError(
+                "boto3 package is required for S3BackupProvider but not installed."
+            )
 
         if not self.bucket_name:
-            raise ValueError("S3 bucket name is not configured. Specify AWS_STORAGE_BUCKET_NAME.")
+            raise ValueError(
+                "S3 bucket name is not configured. Specify AWS_STORAGE_BUCKET_NAME."
+            )
 
         # EN: S3 Client initialization with TLS only enforcement
         # FA: مقداردهی اولیه کلاینت S3 با اجبار استفاده از پروتکل امن TLS
@@ -117,6 +141,7 @@ class S3BackupProvider:
         # EN: Write directly to encrypted stream to satisfy "Never upload: Plain files, Temporary unencrypted archives"
         # FA: نوشتن مستقیم در جریان رمزگذاری شده برای رعایت عدم ذخیره موقت فایل غیررمزگذاری شده روی دیسک.
         import tempfile
+
         temp_enc = tempfile.NamedTemporaryFile(delete=False, suffix=".enc")
         temp_enc_name = temp_enc.name
         temp_enc.close()
@@ -169,8 +194,11 @@ class S3BackupProvider:
             return manifest
 
         except Exception as e:
-            logger.error(f"S3 backup upload failed for key '{s3_key}': {e}", exc_info=True)
+            logger.error(
+                f"S3 backup upload failed for key '{s3_key}': {e}", exc_info=True
+            )
             from common.bdr_metrics import update_sre_metric
+
             update_sre_metric("bdr_s3_upload_failed", 1, increment=True)
             raise e
         finally:
@@ -186,6 +214,7 @@ class S3BackupProvider:
         local_path.parent.mkdir(parents=True, exist_ok=True)
 
         import tempfile
+
         temp_enc = tempfile.NamedTemporaryFile(delete=False, suffix=".enc")
         temp_enc_name = temp_enc.name
         temp_enc.close()
@@ -219,6 +248,7 @@ class S3BackupProvider:
 
         null_out = NullStream()
         import tempfile
+
         temp_enc = tempfile.NamedTemporaryFile(delete=False, suffix=".enc")
         temp_enc_name = temp_enc.name
         temp_enc.close()
@@ -232,7 +262,9 @@ class S3BackupProvider:
                 decrypt_and_decompress_stream(f_in, null_out, passphrase)
             return True
         except Exception as e:
-            logger.error(f"S3 backup verification failed for '{s3_key}': {e}", exc_info=True)
+            logger.error(
+                f"S3 backup verification failed for '{s3_key}': {e}", exc_info=True
+            )
             return False
         finally:
             if os.path.exists(temp_enc_name):
@@ -257,12 +289,14 @@ class S3BackupProvider:
                     metadata = head.get("Metadata", {})
                 except Exception:
                     metadata = {}
-                backups.append({
-                    "Key": key,
-                    "Size": size,
-                    "LastModified": last_modified,
-                    "Metadata": metadata,
-                })
+                backups.append(
+                    {
+                        "Key": key,
+                        "Size": size,
+                        "LastModified": last_modified,
+                        "Metadata": metadata,
+                    }
+                )
         return backups
 
     def delete_expired_backup(self, s3_key) -> bool:

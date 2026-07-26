@@ -1,6 +1,6 @@
 import hashlib
-import os
 import json
+import os
 import shutil
 from pathlib import Path
 
@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 
 try:
     import boto3
+
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
@@ -113,20 +114,23 @@ class Command(BaseCommand):
                 )
 
             from common.bdr.s3_backup_provider import S3BackupProvider
+
             provider = S3BackupProvider()
 
             # Retrieve existing backup objects in S3
             existing_backups = {}
             try:
-                self.stdout.write(f" -> Accessing S3/compatible bucket: '{bucket_name}'...")
+                self.stdout.write(
+                    f" -> Accessing S3/compatible bucket: '{bucket_name}'..."
+                )
                 backups_list = provider.list_backups(prefix="media/")
                 for b in backups_list:
                     key = b["Key"]
                     if key.endswith(".enc"):
                         # Extract original relative path by removing 'media/' prefix and '.enc' suffix
-                        orig_rel_path = key[len("media/"):-len(".enc")]
+                        orig_rel_path = key[len("media/") : -len(".enc")]
                     else:
-                        orig_rel_path = key[len("media/"):]
+                        orig_rel_path = key[len("media/") :]
                     existing_backups[orig_rel_path] = b
                     total_files += 1
             except Exception as e:
@@ -158,25 +162,35 @@ class Command(BaseCommand):
                             s3_orig_mtime = metadata.get("original-mtime")
                             s3_orig_sha256 = metadata.get("original-sha256")
 
-                            if s3_orig_size == str(orig_size) and s3_orig_sha256 == orig_sha:
+                            if (
+                                s3_orig_size == str(orig_size)
+                                and s3_orig_sha256 == orig_sha
+                            ):
                                 if not strict_mode:
-                                    if s3_orig_mtime and abs(float(s3_orig_mtime) - orig_mtime) < 2.0:
+                                    if (
+                                        s3_orig_mtime
+                                        and abs(float(s3_orig_mtime) - orig_mtime) < 2.0
+                                    ):
                                         should_upload = False
                                 else:
                                     should_upload = False
 
                         if should_upload:
-                            self.stdout.write(f"Compressing, encrypting, and uploading to S3: {relative_path}...")
+                            self.stdout.write(
+                                f"Compressing, encrypting, and uploading to S3: {relative_path}..."
+                            )
                             manifest = provider.upload_backup(
                                 source_file_path,
                                 s3_key,
                                 metadata={
                                     "original-size": orig_size,
                                     "original-mtime": orig_mtime,
-                                    "original-sha256": orig_sha
-                                }
+                                    "original-sha256": orig_sha,
+                                },
                             )
-                            self.stdout.write(f" -> Upload Integrity Manifest: {json.dumps(manifest)}")
+                            self.stdout.write(
+                                f" -> Upload Integrity Manifest: {json.dumps(manifest)}"
+                            )
                             copied_files += 1
                         else:
                             skipped_files += 1
@@ -272,6 +286,7 @@ class Command(BaseCommand):
 
         if failed_files > 0:
             from datetime import datetime
+
             from common.bdr_metrics import update_sre_metric
 
             update_sre_metric("last_failed_media_backup", datetime.utcnow().isoformat())
@@ -281,6 +296,7 @@ class Command(BaseCommand):
             )
         else:
             from datetime import datetime
+
             from common.bdr_metrics import update_sre_metric
 
             update_sre_metric(
