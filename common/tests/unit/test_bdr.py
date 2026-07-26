@@ -1173,3 +1173,81 @@ class StorageProviderCoverageTest(TestCase):
         self.assertEqual(len(providers), 2)
         self.assertTrue(isinstance(providers[0], LocalStorageProvider))
         self.assertTrue(isinstance(providers[1], S3StorageProvider))
+
+
+class RobustnessS3BDRTest(TestCase):
+    """
+    EN: Tests robustness of backup_media and restore_system commands under S3 client/listing errors and empty media files.
+    FA: تست‌های پایداری دستورات پشتیبان‌گیری و بازیابی رسانه تحت بروز خطاهای S3 و پوشه‌های رسانه خالی.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = Path(settings.BASE_DIR) / "test_robustness_bdr"
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        self.src_dir = self.temp_dir / "src_media"
+        self.dst_dir = self.temp_dir / "dst_media"
+        self.src_dir.mkdir(exist_ok=True)
+        self.dst_dir.mkdir(exist_ok=True)
+
+    def tearDown(self):
+        if self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir)
+        super().tearDown()
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=False,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_restore_system_s3_listing_failure_ignored_in_staging(self, mock_s3_provider_cls):
+        """
+        Staging/Development: restore_system warns but does not crash if S3 list_backups throws an error.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 404/Connection Error")
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        # With empty local backup, system falls back to S3. S3 listing throws exception.
+        # It should complete with a Warning and not raise any exception.
+        with override_settings(MEDIA_ROOT=str(self.src_dir)):
+            call_command("restore_system", "--media-file", str(self.dst_dir))
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=False,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_backup_media_s3_listing_failure_ignored_in_staging(self, mock_s3_provider_cls):
+        """
+        Staging/Development: backup_media warns but does not crash if S3 list_backups fails.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 listing failed 404")
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        with override_settings(MEDIA_ROOT=str(self.src_dir)):
+            call_command("backup_media", "--output-dir", str(self.dst_dir))
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=True,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_backup_media_s3_listing_failure_raises_in_production(self, mock_s3_provider_cls):
+        """
+        Production: backup_media raises exception if S3 list_backups fails and offsite is required.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 listing failed 404")
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        with override_settings(MEDIA_ROOT=str(self.src_dir)):
+            with self.assertRaises(Exception):
+                call_command("backup_media", "--output-dir", str(self.dst_dir))

@@ -492,41 +492,67 @@ class Command(BaseCommand):
             self.stdout.write(
                 "Local media backup is missing or empty. Attempting auto-restore from S3..."
             )
-            from common.bdr.storage import S3StorageProvider
+            try:
+                from common.bdr.storage import S3StorageProvider
 
-            s3_provider = S3StorageProvider()
-            if s3_provider.is_available():
-                backups = s3_provider.provider.list_backups(prefix="media/")
+                s3_provider = S3StorageProvider()
+                if s3_provider.is_available():
+                    try:
+                        backups = s3_provider.provider.list_backups(prefix="media/")
+                    except Exception as e:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"WARNING: S3 is active but failed to list backups ({e}). Skipping media restore."
+                            )
+                        )
+                        return
 
-                restored = 0
-                for b in backups:
-                    key = b["Key"]
-                    if key.endswith(".enc"):
-                        rel_path = key[len("media/") : -len(".enc")]
-                    else:
-                        rel_path = key[len("media/") :]
+                    restored = 0
+                    for b in backups:
+                        key = b["Key"]
+                        if key.endswith(".enc"):
+                            rel_path = key[len("media/") : -len(".enc")]
+                        else:
+                            rel_path = key[len("media/") :]
 
-                    dest_file_path = dest_dir / rel_path
-                    dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+                        dest_file_path = dest_dir / rel_path
+                        dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+                        self.stdout.write(
+                            f"Downloading and decrypting S3 media object: {key}..."
+                        )
+                        try:
+                            s3_provider.restore(key, dest_file_path)
+                            restored += 1
+                        except Exception as e:
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"WARNING: Failed to restore S3 media object {key} ({e}). Skipping this file."
+                                )
+                            )
 
                     self.stdout.write(
-                        f"Downloading and decrypting S3 media object: {key}..."
+                        self.style.SUCCESS(
+                            f"Media files restored successfully from S3! Restored {restored} files to {dest_dir}"
+                        )
                     )
-                    s3_provider.restore(key, dest_file_path)
-                    restored += 1
-
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            "WARNING: Local media backup is missing or empty, and S3 credentials are not configured. Skipping media restore."
+                        )
+                    )
+            except Exception as e:
                 self.stdout.write(
-                    self.style.SUCCESS(
-                        f"Media files restored successfully from S3! Restored {restored} files to {dest_dir}"
+                    self.style.WARNING(
+                        f"WARNING: S3 is active but failed during media restore ({e}). Skipping media restore."
                     )
-                )
-            else:
-                raise FileNotFoundError(
-                    "Local media backup is missing or empty, and S3 credentials are not configured."
                 )
         else:
-            raise FileNotFoundError(
-                f"Backup media source directory not found or empty: {source_backup_dir}"
+            self.stdout.write(
+                self.style.WARNING(
+                    f"WARNING: Backup media source directory not found or empty: {source_backup_dir}. Skipping media restore."
+                )
             )
 
     def restore_config(self, tarball_path):
