@@ -77,7 +77,21 @@ The Blog Platform uses environment variables for configuration, following the "T
 
 ---
 
+## Backup & Disaster Recovery (BDR)
+| Variable | Type | Required | Default | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `BACKUP_STORAGE` | String | No | `local` | Storage driver used for backup uploads (`local` or `s3`). |
+| `BACKUP_DIR` | String | No | `backups` | Root directory for storing local backups. |
+| `BACKUP_RETENTION_DAYS` | Integer | No | `7` | Number of days to retain backups (daily, weekly, monthly under GFS policy). |
+| `BACKUP_ENCRYPT` | Boolean | No | `False` | Enables stream-based AES-256-GCM encryption for backups. |
+| `BACKUP_ENCRYPTION_KEY` | String | If Encrypted | - | PBKDF2 salt/passphrase used to derive the 256-bit AES symmetric key. |
+| `BACKUP_OFFSITE_ENABLED` | Boolean | No | `False` | Enables offsite backup replication to S3-compatible cloud storage. |
+| `BACKUP_OFFSITE_REQUIRED` | Boolean | No | `False` | Strictly mandates S3 uploads in Production (raises config error if unconfigured). |
+
+---
+
 ## Security Implications
 - **`SECRET_KEY`:** If leaked, attackers can forge session cookies and reset tokens.
+- **`BACKUP_ENCRYPTION_KEY`:** If leaked, backup files can be decrypted. If lost, encrypted backups cannot be restored. Keep this key highly secure and offline!
 - **`DEBUG=True`:** Exposes sensitive environment variables and source code on error pages.
 - **`DATABASE_URL`:** Contains sensitive credentials; ensure `.env` is never committed to VCS.
