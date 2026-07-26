@@ -404,6 +404,33 @@ class MaintenanceLockFallbackTest(TestCase):
             data = json.load(f)
             self.assertEqual(data["bdr_s3_upload_failed"], 7)
 
+    @patch("os.open")
+    def test_local_file_lock_creation_failure(self, mock_open):
+        """
+        Tests that when local lock file cannot be created (OSError),
+        acquire_lock returns False.
+        """
+        # Simulating that os.open raises FileExistsError
+        mock_open.side_effect = FileExistsError("File already exists")
+        self.lock_manager.redis_client = None  # Ensure Redis is not used
+
+        success = self.lock_manager.acquire_lock(owner="another-owner")
+        self.assertFalse(success)
+
+    @patch("os.open")
+    def test_local_file_lock_flock_failure(self, mock_open):
+        """
+        Tests that when flock raises blocking error, acquire_lock returns False.
+        """
+        fd_mock = MagicMock()
+        mock_open.return_value = fd_mock
+
+        # Simulating flock raises OSError (locking failed)
+        with patch("fcntl.flock", side_effect=BlockingIOError("Lock held")):
+            self.lock_manager.redis_client = None
+            success = self.lock_manager.acquire_lock(owner="test")
+            self.assertFalse(success)
+
 
 class S3BackupProviderDirectTest(TestCase):
     def setUp(self):
@@ -506,6 +533,69 @@ class S3BackupProviderDirectTest(TestCase):
         mock_s3.delete_object.assert_called_with(
             Bucket="my-bucket", Key="media/test.enc"
         )
+
+    @patch("boto3.client")
+    def test_s3_backup_provider_verify_and_list_exception_handling(
+        self, mock_boto_client
+    ):
+        """
+        Tests S3BackupProvider list_backups when head_object fails.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {
+                "Contents": [
+                    {
+                        "Key": "media/test.enc",
+                        "Size": 100,
+                        "LastModified": datetime.utcnow(),
+                    }
+                ]
+            }
+        ]
+        mock_s3.get_paginator.return_value = mock_paginator
+        # Make head_object throw an exception
+        mock_s3.head_object.side_effect = Exception("S3 network error")
+
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        provider = S3BackupProvider(bucket_name="my-bucket")
+
+        # It should still return the backup key, but with empty metadata!
+        backups = provider.list_backups(prefix="media/")
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0]["Metadata"], {})
+
+    @patch("boto3.client")
+    def test_s3_backup_provider_verify_failed_exceptions(self, mock_boto_client):
+        """
+        Tests S3BackupProvider verify_backup returning False when S3 download fails.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+        mock_s3.download_fileobj.side_effect = Exception("S3 key not found")
+
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        provider = S3BackupProvider(bucket_name="my-bucket")
+
+        verified = provider.verify_backup("media/missing.enc")
+        self.assertFalse(verified)
+
+    @patch("boto3.client")
+    @override_settings(AWS_STORAGE_BUCKET_NAME=None)
+    def test_s3_backup_provider_init_value_errors(self, mock_boto_client):
+        """
+        Tests S3BackupProvider init raising ValueError if bucket is missing.
+        """
+        from common.bdr.s3_backup_provider import S3BackupProvider
+
+        with patch.dict(os.environ, {"AWS_STORAGE_BUCKET_NAME": ""}):
+            with self.assertRaises(ValueError):
+                S3BackupProvider()
 
 
 class BackupConfigTest(TestCase):
