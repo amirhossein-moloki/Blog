@@ -186,7 +186,9 @@ class Command(BaseCommand):
                     except Exception as e:
                         list_failed = True
                         if offsite_required:
-                            self.stderr.write("CRITICAL Failed to list S3 backups. S3 is not reachable or configured incorrectly.")
+                            self.stderr.write(
+                                "CRITICAL Failed to list S3 backups. S3 is not reachable or configured incorrectly."
+                            )
                             raise e
                         else:
                             self.stderr.write(
@@ -228,7 +230,8 @@ class Command(BaseCommand):
                                                 if (
                                                     s3_orig_mtime
                                                     and abs(
-                                                        float(s3_orig_mtime) - orig_mtime
+                                                        float(s3_orig_mtime)
+                                                        - orig_mtime
                                                     )
                                                     < 2.0
                                                 ):

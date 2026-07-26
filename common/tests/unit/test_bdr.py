@@ -1201,13 +1201,17 @@ class RobustnessS3BDRTest(TestCase):
         BACKUP_OFFSITE_REQUIRED=False,
     )
     @patch("common.bdr.storage.S3StorageProvider")
-    def test_restore_system_s3_listing_failure_ignored_in_staging(self, mock_s3_provider_cls):
+    def test_restore_system_s3_listing_failure_ignored_in_staging(
+        self, mock_s3_provider_cls
+    ):
         """
         Staging/Development: restore_system warns but does not crash if S3 list_backups throws an error.
         """
         mock_s3_provider = MagicMock()
         mock_s3_provider.is_available.return_value = True
-        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 404/Connection Error")
+        mock_s3_provider.provider.list_backups.side_effect = Exception(
+            "S3 404/Connection Error"
+        )
         mock_s3_provider_cls.return_value = mock_s3_provider
 
         # With empty local backup, system falls back to S3. S3 listing throws exception.
@@ -1221,13 +1225,17 @@ class RobustnessS3BDRTest(TestCase):
         BACKUP_OFFSITE_REQUIRED=False,
     )
     @patch("common.bdr.storage.S3StorageProvider")
-    def test_backup_media_s3_listing_failure_ignored_in_staging(self, mock_s3_provider_cls):
+    def test_backup_media_s3_listing_failure_ignored_in_staging(
+        self, mock_s3_provider_cls
+    ):
         """
         Staging/Development: backup_media warns but does not crash if S3 list_backups fails.
         """
         mock_s3_provider = MagicMock()
         mock_s3_provider.is_available.return_value = True
-        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 listing failed 404")
+        mock_s3_provider.provider.list_backups.side_effect = Exception(
+            "S3 listing failed 404"
+        )
         mock_s3_provider_cls.return_value = mock_s3_provider
 
         with override_settings(MEDIA_ROOT=str(self.src_dir)):
@@ -1239,13 +1247,17 @@ class RobustnessS3BDRTest(TestCase):
         BACKUP_OFFSITE_REQUIRED=True,
     )
     @patch("common.bdr.storage.S3StorageProvider")
-    def test_backup_media_s3_listing_failure_raises_in_production(self, mock_s3_provider_cls):
+    def test_backup_media_s3_listing_failure_raises_in_production(
+        self, mock_s3_provider_cls
+    ):
         """
         Production: backup_media raises exception if S3 list_backups fails and offsite is required.
         """
         mock_s3_provider = MagicMock()
         mock_s3_provider.is_available.return_value = True
-        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 listing failed 404")
+        mock_s3_provider.provider.list_backups.side_effect = Exception(
+            "S3 listing failed 404"
+        )
         mock_s3_provider_cls.return_value = mock_s3_provider
 
         with override_settings(MEDIA_ROOT=str(self.src_dir)):
