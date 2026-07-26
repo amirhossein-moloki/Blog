@@ -37,6 +37,17 @@ To provide a scalable, secure, and developer-friendly foundation for modern blog
 - **Nested Comments:** Support for threaded discussions with moderation workflows.
 - **Generic Reactions:** Extensible "Like" and Emoji system applicable to any content.
 
+### 🎙️ Podcast Management Subsystem
+- **Multimodal Episodes:** Support for both Audio and Video (videocast) media types, linking files or custom URLs.
+- **Hierarchical Taxonomies:** Dynamic categorizations with support for unique slugs and custom SVGs/icons.
+- **SRE & Jalali Dates:** Automated display of Persian/Jalali dates (`published_date_jalali`) and auto-tracking view counts with atomic increments to prevent race conditions.
+- **Related Content:** Built-in manually selected related podcasts mapping to establish strong engagement loops.
+
+### 📸 Polaroid Gallery Subsystem
+- **Polaroid Styling:** Simple representation of photos with custom captions (caption text).
+- **Custom Ordering:** Explicit ordering field (`order`) allowing SRE/Admins to sort and structure the gallery sequence seamlessly.
+- **Redirection Links:** Dynamic redirection capability using optional links to local or external target endpoints.
+
 ---
 
 ## Enterprise Caching Subsystem

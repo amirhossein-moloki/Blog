@@ -25,7 +25,7 @@ The Blog Platform follows a modular Django architecture, where each application 
 │   ├── auth_utils.py       # Security helpers (axes lockout logic)
 │   └── services.py         # Auth business logic
 ├── posts/                  # Content Management (The Core)
-│   ├── models.py           # Articles, Categories, Tags, Series, Revisions
+│   ├── models.py           # Articles, Categories, Tags, Series, Revisions, Podcasts, Podcast Categories, GalleryItems
 │   ├── tasks.py            # Scheduled publishing
 │   └── services.py         # Content sync and analytics
 ├── medias/                 # Centralized Asset Library
@@ -49,7 +49,7 @@ The Blog Platform follows a modular Django architecture, where each application 
 | App | Responsibility | Models | APIs | Dependencies |
 | :--- | :--- | :--- | :--- | :--- |
 | **users** | Identity & Auth | `User` | Register, Me, Login, Google Login | `common` |
-| **articles** | Content Engine | `Article`, `Category`, `Tag`, `Series`, `Revision` | CRUD, Publish, Similar Articles | `users`, `medias`, `core` |
+| **articles** | Content Engine | `Article`, `Category`, `Tag`, `Series`, `Revision`, `PodcastCategory`, `Podcast`, `GalleryItem` | CRUD, Publish, Similar Articles, Podcasts, Podcast Categories, Polaroid Gallery | `users`, `medias`, `core` |
 | **medias** | Asset Library | `Media`, `ArticleMedia` | Upload, Download | `users`, `common` |
 | **interactions** | Social Features | `Comment`, `Reaction` | Article Comments, Like/Emoji | `users`, `articles` |
 | **pages** | Static Pages | `Page` | CRUD Static Content | `core` |

@@ -40,14 +40,14 @@ Celery --> PostgreSQL
 
 ### Backend (Django / DRF)
 *   **Responsibilities**:
-    *   **API Layer**: RESTful endpoints with standardized responses.
+    *   **API Layer**: RESTful endpoints with standardized responses (including Articles, Podcasts, and Polaroid Galleries).
     *   **Business Logic**: Encapsulated in the Service Layer (e.g., `sync_article_media`, `publish_scheduled_articles`).
     *   **Auth**: JWT authentication and Role-Based Access Control (RBAC).
     *   **ORM**: abstraction for PostgreSQL interaction.
 
 ### Database (PostgreSQL)
 *   **Responsibilities**:
-    *   Persistent storage for users, articles, comments, media metadata, etc.
+    *   Persistent storage for users, articles, comments, media metadata, podcast episodes, categories, and gallery items.
     *   Relational integrity and complex querying (e.g., F() expressions for view counts).
 
 ### Cache Layer (Redis)
