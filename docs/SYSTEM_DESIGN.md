@@ -39,6 +39,7 @@ classDiagram
             +string name
             +text description
             +int order
+            +file icon
         }
         class Tag {
             +string slug
@@ -50,20 +51,54 @@ classDiagram
             +string order_strategy
         }
         class Article {
-            +string slug
-            +string title
-            +text excerpt
-            +text content
+            +string canonical_url
+            +bool is_hot
             +string status
             +string visibility
             +datetime published_at
             +datetime scheduled_at
             +int views_count
         }
+        class ArticleTranslation {
+            +string language_code
+            +string slug
+            +string title
+            +text excerpt
+            +text short_description
+            +text content
+            +int reading_time_sec
+            +string seo_title
+            +text seo_description
+        }
         class Revision {
             +string title
             +text content
             +string change_note
+        }
+        class PodcastCategory {
+            +string title
+            +string slug
+            +file icon
+        }
+        class Podcast {
+            +string title
+            +string slug
+            +int episode_number
+            +file cover_image
+            +file audio_file
+            +string media_type
+            +file video_file
+            +string video_url
+            +text description
+            +int duration
+            +datetime published_date
+            +int view_count
+        }
+        class GalleryItem {
+            +file image
+            +string caption
+            +int order
+            +string link
         }
     end
 
@@ -119,6 +154,7 @@ classDiagram
     BaseModel <|-- Tag
     BaseModel <|-- Series
     BaseModel <|-- Article
+    BaseModel <|-- ArticleTranslation
     BaseModel <|-- Revision
     BaseModel <|-- Media
     BaseModel <|-- ArticleMedia
@@ -127,6 +163,9 @@ classDiagram
     BaseModel <|-- Page
     BaseModel <|-- Menu
     BaseModel <|-- MenuItem
+    BaseModel <|-- PodcastCategory
+    BaseModel <|-- Podcast
+    BaseModel <|-- GalleryItem
 
     User "1" -- "1" AuthorProfile : owns
     AuthorProfile "1" -- "*" Article : writes
@@ -136,6 +175,8 @@ classDiagram
     Series "1" -- "*" Article : grouped in
     Article "1" -- "*" Revision : has
     Article "1" -- "*" ArticleMedia : contains
+    Article "1" -- "*" ArticleTranslation : translated in
+    Article "1" -- "*" Article : has related (Manual)
     Media "1" -- "*" ArticleMedia : attached to
     Article "1" -- "*" Comment : commented on
     Comment "1" -- "*" Comment : replies to
@@ -148,6 +189,8 @@ classDiagram
     AuthorProfile "*" -- "0..1" Media : avatar
     Article "*" -- "0..1" Media : cover_media
     Article "*" -- "0..1" Media : og_image
+    PodcastCategory "1" -- "*" Podcast : classifies
+    Podcast "1" -- "*" Podcast : related episodes
 ```
 
 ---
@@ -173,7 +216,7 @@ flowchart LR
 
     subgraph UseCases ["Use Cases"]
         UC1(Login/Register)
-        UC2(View Articles/Pages)
+        UC2(View Articles/Pages/Podcasts/Gallery)
         UC3(Manage Profile)
         UC4(Comment & React)
         UC5(Create/Edit Articles)
@@ -300,7 +343,7 @@ The system is organized into distinct domains to ensure high cohesion and low co
 
 ### Domain Boundaries
 1.  **Users**: Authentication (JWT, Google OAuth2), Profile Management, Authorization (RBAC).
-2.  **Articles**: Content creation, versioning (Revisions), Categories, Tags, Series, and Scheduling.
+2.  **Articles**: Content creation, versioning (Revisions), Categories, Tags, Series, Scheduling, Podcasts/Episodes, Podcast Categories, and Polaroid Galleries.
 3.  **Medias**: File storage (Local/S3), Media metadata, Article-Media associations, and Image optimization.
 4.  **Interactions**: User engagement via Comments and Reactions (Generic relationships).
 5.  **Navigation**: Dynamic Menu management.

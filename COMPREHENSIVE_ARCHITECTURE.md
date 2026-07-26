@@ -88,15 +88,22 @@ The system follows a **Modular Monolith** architecture. While deployed as a sing
     *   `Series`: Groups related posts.
     *   `Revision`: Historical content versions (per language).
     *   `ArticleTag`: Junction for many-to-many.
+    *   `PodcastCategory`: Classification of podcasts/episodes.
+    *   `Podcast`: Multimodal episodes with audio/video files.
+    *   `GalleryItem`: Polaroid style gallery item with images, captions, and links.
 *   **serializers.py:**
     *   `ArticleListSerializer` / `ArticleDetailSerializer`: Optimized for localized content representation.
     *   `ArticleCreateUpdateSerializer`: Handles complex publication logic and translations.
     *   `ContentNormalizationMixin`: Converts HTML to clean Markdown for representations.
     *   `JalaliDateTimeField`: Custom Persian date representation.
+    *   `PodcastCategorySerializer` / `PodcastSerializer`: Handles podcast categorization and episode representation.
+    *   `GalleryItemSerializer`: Handles polaroid gallery representations.
 *   **views.py:**
     *   `ArticleViewSet`: Advanced filtering by language, dynamic field selection, and similarity logic.
     *   `ArticleCommentViewSet`: Nested view for article-specific comments.
     *   `publish_post` / `related_posts`: Specialized API functional views.
+    *   `PodcastCategoryViewSet` / `PodcastViewSet`: Dynamic endpoints for podcasts with category/media-type filtering and atomic view count increments.
+    *   `GalleryItemViewSet`: Dynamic endpoint for sorting and retrieving visual Polaroid gallery cards.
 *   **services.py:**
     *   `sync_article_media`: Syncs content `<img>` tags in translations with `ArticleMedia` junction.
     *   `publish_scheduled_articles`: Business logic for scheduled releases.
@@ -222,6 +229,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 | `name` | VarChar | No | - | - | Category name. |
 | `parent` | FK(Self) | Yes | - | SET_NULL | Parent category for hierarchy. |
 | `order` | Integer | No | 0 | - | Sorting order. |
+| `icon` | File | Yes | - | - | Icon path (supports SVG). |
 
 ---
 
@@ -239,6 +247,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 | `views_count` | Integer | No | 0 | - | View counter. |
 | `published_at`| DateTime | Yes | - | - | Publication timestamp. |
 | `scheduled_at`| DateTime | Yes | - | - | Scheduled publication time. |
+| `related_articles` | ManyToMany(Self) | Yes | - | - | Manually selected articles association mapping. |
 
 ---
 
@@ -252,6 +261,7 @@ Every model in the system (except those inheriting from Django defaults) inherit
 | `slug` | Slug | No | - | Unique(lang) | URL identifier in the specific language. |
 | `title` | VarChar | No | - | - | Article title in this language. |
 | `excerpt` | Text | No | - | - | Brief summary. |
+| `short_description` | Text | Yes | - | - | Short description for metadata and preview cards. |
 | `content` | RichText | No | - | - | HTML content (CKEditor). |
 | `reading_time_sec`| Integer | No | 0 | - | Estimated reading time (in seconds). |
 | `seo_title` | VarChar | Yes | - | - | SEO Title. |
@@ -314,6 +324,50 @@ Every model in the system (except those inheriting from Django defaults) inherit
 
 ---
 
+## 10. `posts.PodcastCategory`
+**Purpose:** Podcast episode categorization.
+
+| Field | Type | Nullable | Default | Constraints | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `title` | VarChar | No | - | - | Category title. |
+| `slug` | Slug | No | - | Unique | URL identifier for routing. |
+| `icon` | File | Yes | - | - | Icon image path (supports SVG). |
+
+---
+
+## 11. `posts.Podcast`
+**Purpose:** Podcast episodes with multimodal media tracks and metadata.
+
+| Field | Type | Nullable | Default | Constraints | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `title` | VarChar | No | - | - | Episode title. |
+| `slug` | Slug | No | - | Unique | Localized slug for details retrieval. |
+| `category` | FK(PodcastCat)| No | - | CASCADE | Associated category. |
+| `episode_number`| Integer | No | - | - | Episode sequence number. |
+| `cover_image` | Image | No | - | - | Artwork/Cover image path. |
+| `audio_file` | File | Yes | - | - | Audio track media path (MP3). |
+| `media_type` | Choice | No | 'audio' | audio/video | Determines multimodal layout. |
+| `video_file` | File | Yes | - | - | Video track media path (MP4). |
+| `video_url` | URL | Yes | - | - | Video streaming/embedding link. |
+| `description` | RichText | Yes | - | - | Show notes HTML content. |
+| `duration` | Integer | No | - | - | Duration in minutes. |
+| `published_date`| DateTime | No | - | - | Release timestamp. |
+| `view_count` | Integer | No | 0 | - | View counter (atomically incremented). |
+
+---
+
+## 12. `posts.GalleryItem`
+**Purpose:** Polaroid style cards for sliders/lists.
+
+| Field | Type | Nullable | Default | Constraints | Description |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `image` | Image | No | - | - | Polaroid photo path. |
+| `caption` | VarChar | No | - | - | Captioned description text. |
+| `order` | Integer | No | 0 | - | Manual sorting sequence index. |
+| `link` | URL | Yes | - | - | Optional redirection destination target. |
+
+---
+
 ## Junction Models
 
 *   **`posts.ArticleTag`**: Connects `Article` and `Tag` with unique constraint.
@@ -331,21 +385,24 @@ erDiagram
     USER ||--o{ COMMENT : "writes"
     USER ||--o{ REACTION : "performs"
 
-    AUTHOR_PROFILE ||--o{ POST : "authors"
+    AUTHOR_PROFILE ||--o{ ARTICLE : "authors"
 
-    POST ||--o{ POST_TRANSLATION : "has (localization)"
-    POST ||--o{ COMMENT : "contains"
-    POST ||--o{ REVISION : "has"
-    POST }o--o{ TAG : "tagged with"
-    POST }o--|| CATEGORY : "belongs to"
-    POST }o--o| SERIES : "part of"
+    ARTICLE ||--o{ COMMENT : "contains"
+    ARTICLE ||--o{ REVISION : "has"
+    ARTICLE }o--o{ TAG : "tagged with"
+    ARTICLE }o--|| CATEGORY : "belongs to"
+    ARTICLE }o--o| SERIES : "part of"
+    ARTICLE ||--o{ ARTICLE_TRANSLATION : "has (localization)"
+    ARTICLE }o--o{ ARTICLE : "related to (self)"
 
-    POST ||--o{ POST_MEDIA : "attaches"
-    POST_TRANSLATION ||--o{ POST_MEDIA : "contains content media"
-    MEDIA ||--o{ POST_MEDIA : "linked via"
+    ARTICLE ||--o{ ARTICLE_MEDIA : "attaches"
+    MEDIA ||--o{ ARTICLE_MEDIA : "linked via"
 
     COMMENT ||--o{ COMMENT : "parent of (nested)"
     REACTION }o--|| CONTENT_TYPE : "targets"
+
+    PODCAST_CATEGORY ||--o{ PODCAST : "classifies"
+    PODCAST }o--o{ PODCAST : "related to (self)"
 ```
 
 ---
@@ -385,6 +442,10 @@ The system exposes a comprehensive REST API documented via OpenAPI 3.0 (`/api/sc
 | `/api/categories/` | GET | list | List all content categories. |
 | `/api/tags/` | GET | list | List all available tags. |
 | `/api/series/` | GET | list | List article series collections. |
+| `/api/articles/podcast-categories/`| GET | list | List podcast taxonomic categories. |
+| `/api/articles/podcasts/` | GET | list | Filter, search, and list podcast episodes (audio/video). |
+| `/api/articles/podcasts/{id}/` | GET | retrieve | Fetch episode detail; atomically increments `view_count`. |
+| `/api/articles/gallery/` | GET | list | List active Polaroid style gallery items sorted by ordering. |
 
 ## 3. Media Library
 | URL | Method | ViewSet Action | Description |
@@ -482,6 +543,31 @@ classDiagram
         +string content
         +string status
     }
+    class PodcastCategory {
+        +string title
+        +string slug
+        +file icon
+    }
+    class Podcast {
+        +string title
+        +string slug
+        +int episode_number
+        +file cover_image
+        +file audio_file
+        +string media_type
+        +file video_file
+        +string video_url
+        +text description
+        +int duration
+        +datetime published_date
+        +int view_count
+    }
+    class GalleryItem {
+        +file image
+        +string caption
+        +int order
+        +string link
+    }
     User "1" -- "1" AuthorProfile
     AuthorProfile "1" -- "*" Article : authors
     Article "1" -- "*" ArticleTranslation : translations
@@ -489,6 +575,8 @@ classDiagram
     Article "*" -- "*" Tag : tagged
     Article "1" -- "*" ArticleMedia : attaches
     Media "1" -- "*" ArticleMedia : used in
+    PodcastCategory "1" -- "*" Podcast : classifies
+    Podcast "1" -- "*" Podcast : related
 ```
 
 ## Activity Diagram: Media Upload

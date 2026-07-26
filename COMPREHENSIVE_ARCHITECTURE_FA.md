@@ -88,15 +88,22 @@
     *   `Series`: گروه‌بندی پست‌های مرتبط.
     *   `Revision`: نسخه‌های تاریخی محتوا (به تفکیک زبان).
     *   `ArticleTag`: رابط برای رابطه چند‌به‌چند.
+    *   `PodcastCategory`: دسته‌بندی موضوعی اپیزودهای پادکست.
+    *   `Podcast`: اپیزودهای چندرسانه‌ای صوتی/ویدیویی (ویدیوکست).
+    *   `GalleryItem`: آیتم تصویر گالری با استایل پولاروید، کپشن و لینک اختیاری.
 *   **serializers.py:**
     *   `ArticleListSerializer` / `ArticleDetailSerializer`: بهینه‌سازی شده برای نمایش محتوای بومی‌سازی شده.
     *   `ArticleCreateUpdateSerializer`: مدیریت منطق پیچیده انتشار و ترجمه‌ها.
     *   `ContentNormalizationMixin`: تبدیل HTML به Markdown تمیز برای نمایش‌ها.
     *   `JalaliDateTimeField`: نمایش سفارشی تاریخ شمسی.
+    *   `PodcastCategorySerializer` / `PodcastSerializer`: مدیریت دسته‌بندی و نمایش پادکست‌ها.
+    *   `GalleryItemSerializer`: مدیریت نمایش گالری تصاویر پولاروید.
 *   **views.py:**
     *   `ArticleViewSet`: فیلترینگ پیشرفته بر اساس زبان، انتخاب فیلد پویا و منطق تشابه.
     *   `ArticleCommentViewSet`: نمایش تودرتو برای نظرات خاص هر پست.
     *   `publish_post` / `related_posts`: Viewهای عملکردی تخصصی API.
+    *   `PodcastCategoryViewSet` / `PodcastViewSet`: اندپوینت‌های پویا برای پادکست با فیلتر دسته‌بندی/رسانه و شمارش اتمیک بازدید.
+    *   `GalleryItemViewSet`: اندپوینت پویا برای دریافت و مرتب‌سازی کارت‌های گالری پولاروید.
 *   **services.py:**
     *   `sync_article_media`: همگام‌سازی تگ‌های `<img>` در محتوای ترجمه‌ها با رابط `ArticleMedia`.
     *   `publish_scheduled_articles`: منطق کسب‌و‌کار برای انتشار پست‌های زمان‌بندی شده.
@@ -222,6 +229,7 @@
 | `name` | VarChar | خیر | - | - | نام دسته‌بندی. |
 | `parent` | FK(Self) | بله | - | SET_NULL | دسته‌بندی والد برای سلسله‌مراتب. |
 | `order` | Integer | خیر | 0 | - | ترتیب نمایش. |
+| `icon` | File | بله | - | - | آیکون دسته‌بندی (پشتیبانی از SVG). |
 
 ---
 
@@ -239,6 +247,7 @@
 | `views_count` | Integer | خیر | 0 | - | شمارنده بازدید. |
 | `published_at`| DateTime | بله | - | - | زمان انتشار. |
 | `scheduled_at`| DateTime | بله | - | - | زمان‌بندی انتشار. |
+| `related_articles` | ManyToMany(Self) | بله | - | - | مقالات مرتبط انتخاب شده دستی. |
 
 ---
 
@@ -252,6 +261,7 @@
 | `slug` | Slug | خیر | - | Unique(lang) | شناسه‌گر URL به زبان مربوطه. |
 | `title` | VarChar | خیر | - | - | عنوان مقاله در این زبان. |
 | `excerpt` | Text | خیر | - | - | خلاصه کوتاه. |
+| `short_description` | Text | بله | - | - | توضیحات خلاصه برای کارت‌ها و متای سئو. |
 | `content` | RichText | خیر | - | - | محتوای HTML (CKEditor). |
 | `reading_time_sec`| Integer | خیر | 0 | - | تخمین زمان مطالعه (به ثانیه). |
 | `seo_title` | VarChar | بله | - | - | عنوان سئو. |
@@ -314,6 +324,50 @@
 
 ---
 
+## ۱۰. `posts.PodcastCategory`
+**هدف:** دسته‌بندی موضوعی اپیزودهای پادکست.
+
+| فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `title` | VarChar | خیر | - | - | عنوان دسته‌بندی. |
+| `slug` | Slug | خیر | - | یکتا | شناسه URL برای روتینگ سئو. |
+| `icon` | File | بله | - | - | مسیر فایل آیکون (پشتیبانی از SVG). |
+
+---
+
+## ۱۱. `posts.Podcast`
+**هدف:** اپیزودهای پادکست به همراه مدیاهای چندرسانه‌ای صوتی و ویدیویی و متادیتا.
+
+| فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `title` | VarChar | خیر | - | - | عنوان اپیزود. |
+| `slug` | Slug | خیر | - | یکتا | اسلاگ یکتا برای دریافت جزئیات اپیزود. |
+| `category` | FK(PodcastCat)| خیر | - | CASCADE | دسته‌بندی مرتبط. |
+| `episode_number`| Integer | خیر | - | - | شماره اپیزود پادکست. |
+| `cover_image` | Image | خیر | - | - | تصویر کاور پادکست. |
+| `audio_file` | File | بله | - | - | فایل صوتی آپلود شده (MP3). |
+| `media_type` | Choice | خیر | 'audio' | audio/video | نوع رسانه (صوتی یا ویدیوکست). |
+| `video_file` | File | بله | - | - | فایل ویدیویی آپلود شده (MP4). |
+| `video_url` | URL | بله | - | - | آدرس استریم ویدیویی خارجی. |
+| `description` | RichText | بله | - | - | توضیحات و شو نوت‌های اپیزود (HTML). |
+| `duration` | Integer | خیر | - | - | مدت زمان به دقیقه. |
+| `published_date`| DateTime | خیر | - | - | تاریخ انتشار اپیزود. |
+| `view_count` | Integer | خیر | 0 | - | شمارنده بازدید (به صورت کاملا اتمیک). |
+
+---
+
+## ۱۲. `posts.GalleryItem`
+**هدف:** آیتم‌های تصویری پولاروید برای استفاده در اسلایدر یا گالری.
+
+| فیلد | نوع | قابلیت نال | پیش‌فرض | محدودیت‌ها | توضیحات |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `image` | Image | خیر | - | - | فایل تصویر پولاروید. |
+| `caption` | VarChar | خیر | - | - | کپشن کوتاه زیر تصویر. |
+| `order` | Integer | خیر | 0 | - | ترتیب نمایش جهت مرتب‌سازی دستی. |
+| `link` | URL | بله | - | - | آدرس اینترنتی اختیاری برای انتقال کاربر. |
+
+---
+
 ## مدل‌های رابط (Junction Models)
 
 *   **`posts.ArticleTag`**: متصل‌کننده `Article` و `Tag` با محدودیت یکتا بودن.
@@ -331,21 +385,24 @@ erDiagram
     USER ||--o{ COMMENT : "می‌نویسد"
     USER ||--o{ REACTION : "انجام می‌دهد"
 
-    AUTHOR_PROFILE ||--o{ POST : "می‌نویسد"
+    AUTHOR_PROFILE ||--o{ ARTICLE : "می‌نویسد"
 
-    POST ||--o{ POST_TRANSLATION : "دارد (بومی‌سازی)"
-    POST ||--o{ COMMENT : "شامل"
-    POST ||--o{ REVISION : "دارد"
-    POST }o--o{ TAG : "برچسب خورده با"
-    POST }o--|| CATEGORY : "متعلق به"
-    POST }o--o| SERIES : "بخشی از"
+    ARTICLE ||--o{ ARTICLE_TRANSLATION : "دارد (بومی‌سازی)"
+    ARTICLE ||--o{ COMMENT : "شامل"
+    ARTICLE ||--o{ REVISION : "دارد"
+    ARTICLE }o--o{ TAG : "برچسب خورده با"
+    ARTICLE }o--|| CATEGORY : "متعلق به"
+    ARTICLE }o--o| SERIES : "بخشی از"
+    ARTICLE }o--o{ ARTICLE : "مقالات مرتبط (خود ارجاعی)"
 
-    POST ||--o{ POST_MEDIA : "ضمیمه می‌کند"
-    POST_TRANSLATION ||--o{ POST_MEDIA : "شامل رسانه محتوا"
-    MEDIA ||--o{ POST_MEDIA : "لینک شده از طریق"
+    ARTICLE ||--o{ ARTICLE_MEDIA : "ضمیمه می‌کند"
+    MEDIA ||--o{ ARTICLE_MEDIA : "لینک شده از طریق"
 
     COMMENT ||--o{ COMMENT : "والدِ (تودرتو)"
     REACTION }o--|| CONTENT_TYPE : "هدف قرار می‌دهد"
+
+    PODCAST_CATEGORY ||--o{ PODCAST : "دسته‌بندی می‌کند"
+    PODCAST }o--o{ PODCAST : "اپیزودهای مرتبط"
 ```
 
 ---
@@ -385,6 +442,10 @@ erDiagram
 | `/api/categories/` | GET | list | لیست تمام دسته‌بندی‌های محتوا. |
 | `/api/tags/` | GET | list | لیست تمام برچسب‌های موجود. |
 | `/api/series/` | GET | list | لیست مجموعه‌های سری پست‌ها. |
+| `/api/articles/podcast-categories/`| GET | list | دریافت لیست دسته‌بندی‌های پادکست. |
+| `/api/articles/podcasts/` | GET | list | فیلتر، جستجو و دریافت لیست اپیزودهای پادکست. |
+| `/api/articles/podcasts/{id}/` | GET | retrieve | دریافت جزئیات اپیزود پادکست؛ افزایش اتمیک تعداد بازدید. |
+| `/api/articles/gallery/` | GET | list | دریافت آیتم‌های فعال گالری تصاویر پولاروید مرتب‌شده بر اساس فیلد ترتیب. |
 
 ## ۳. کتابخانه رسانه
 | URL | متد | اکشن ViewSet | توضیحات |
@@ -482,6 +543,31 @@ classDiagram
         +string content
         +string status
     }
+    class PodcastCategory {
+        +string title
+        +string slug
+        +file icon
+    }
+    class Podcast {
+        +string title
+        +string slug
+        +int episode_number
+        +file cover_image
+        +file audio_file
+        +string media_type
+        +file video_file
+        +string video_url
+        +text description
+        +int duration
+        +datetime published_date
+        +int view_count
+    }
+    class GalleryItem {
+        +file image
+        +string caption
+        +int order
+        +string link
+    }
     User "1" -- "1" AuthorProfile
     AuthorProfile "1" -- "*" Article : می‌نویسد
     Article "1" -- "*" ArticleTranslation : ترجمه‌ها
@@ -489,6 +575,8 @@ classDiagram
     Article "*" -- "*" Tag : برچسب می‌خورد
     Article "1" -- "*" ArticleMedia : ضمیمه می‌کند
     Media "1" -- "*" ArticleMedia : استفاده شده در
+    PodcastCategory "1" -- "*" Podcast : دسته‌بندی می‌کند
+    Podcast "1" -- "*" Podcast : مرتبط است به
 ```
 
 ## فعالیت رسانه: آپلود رسانه
