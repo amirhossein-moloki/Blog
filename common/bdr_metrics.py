@@ -2,7 +2,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-METRICS_PATH = Path("/app/backups/sre_metrics.json")
+from django.conf import settings
+
+try:
+    METRICS_PATH = Path(settings.BASE_DIR) / "backups" / "sre_metrics.json"
+except Exception:
+    METRICS_PATH = Path("/app/backups/sre_metrics.json")
 
 
 def update_sre_metric(key: str, value, increment=False):
@@ -11,11 +16,12 @@ def update_sre_metric(key: str, value, increment=False):
     Supports optional incrementing for counter-based metrics.
     """
     try:
-        # If in test mode, write to test backup path
         import sys
 
         if "test" in sys.argv or "pytest" in sys.modules:
-            metrics_file = Path("/app/test_restore_temp/sre_metrics.json")
+            metrics_file = (
+                Path(settings.BASE_DIR) / "test_restore_temp" / "sre_metrics.json"
+            )
         else:
             metrics_file = METRICS_PATH
 

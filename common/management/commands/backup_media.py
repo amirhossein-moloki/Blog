@@ -7,13 +7,6 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-try:
-    import boto3
-
-    HAS_BOTO3 = True
-except ImportError:
-    HAS_BOTO3 = False
-
 
 class Command(BaseCommand):
     help = (
@@ -99,10 +92,6 @@ class Command(BaseCommand):
             self.stdout.write(
                 "S3-compatible storage backend detected. Starting upload sync to secure off-site S3 storage..."
             )
-            if not HAS_BOTO3:
-                raise ImportError(
-                    "boto3 package is required for S3 synchronization but not installed."
-                )
 
             # Resolve S3 connection credentials
             bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(

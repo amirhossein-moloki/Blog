@@ -366,9 +366,6 @@ class MaintenanceLockFallbackTest(TestCase):
         Verifies that if a restore crashes and the lock is left behind, the POSIX flock
         is released by the OS, allowing a new process to detect it as inactive and recover.
         """
-        import fcntl
-        import os
-
         # Simulate a crashed lock file by creating a file with JSON content,
         # but NOT holding an active flock on it (which happens when the process crashes/exits).
         self.lock_manager.local_lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -399,7 +396,9 @@ class MaintenanceLockFallbackTest(TestCase):
         update_sre_metric("bdr_s3_upload_failed", 2, increment=True)
 
         # Verify from file
-        metrics_file = Path("/app/test_restore_temp/sre_metrics.json")
+        metrics_file = (
+            Path(settings.BASE_DIR) / "test_restore_temp" / "sre_metrics.json"
+        )
         self.assertTrue(metrics_file.exists())
         with open(metrics_file, "r") as f:
             data = json.load(f)
