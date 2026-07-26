@@ -147,13 +147,24 @@ class Command(BaseCommand):
                 shutil.rmtree(temp_dir)
 
             # S3 off-site config upload logic
-            offsite_enabled = os.environ.get("BACKUP_OFFSITE_ENABLED", "false").lower() in ("true", "1", "t") or getattr(settings, "BACKUP_OFFSITE_ENABLED", False)
-            offsite_required = os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower() in ("true", "1", "t") or getattr(settings, "BACKUP_OFFSITE_REQUIRED", False)
+            offsite_enabled = os.environ.get(
+                "BACKUP_OFFSITE_ENABLED", "false"
+            ).lower() in ("true", "1", "t") or getattr(
+                settings, "BACKUP_OFFSITE_ENABLED", False
+            )
+            offsite_required = os.environ.get(
+                "BACKUP_OFFSITE_REQUIRED", "false"
+            ).lower() in ("true", "1", "t") or getattr(
+                settings, "BACKUP_OFFSITE_REQUIRED", False
+            )
             backup_storage_env = getattr(settings, "BACKUP_STORAGE", "local")
-            use_s3_storage = "s3" in [t.strip().lower() for t in backup_storage_env.split(",")]
+            use_s3_storage = "s3" in [
+                t.strip().lower() for t in backup_storage_env.split(",")
+            ]
 
             if use_s3_storage or offsite_enabled or offsite_required:
                 from common.bdr.storage import S3StorageProvider
+
                 s3_provider = S3StorageProvider()
                 if s3_provider.is_available():
                     self.stdout.write("INFO Uploading encrypted backup to S3...")
@@ -166,14 +177,22 @@ class Command(BaseCommand):
                             self.stderr.write("Backup marked as FAILED.")
                             raise e
                         else:
-                            self.stdout.write(self.style.WARNING("WARNING S3 upload failed, but ignored (Staging Mode)."))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    "WARNING S3 upload failed, but ignored (Staging Mode)."
+                                )
+                            )
                 else:
                     if offsite_required:
                         self.stderr.write("CRITICAL Off-site backup failed.")
                         self.stderr.write("Backup marked as FAILED.")
-                        raise ValueError("S3 credentials not configured in Production environment.")
+                        raise ValueError(
+                            "S3 credentials not configured in Production environment."
+                        )
                     else:
-                        self.stdout.write("WARNING S3 backup disabled (Development Mode)")
+                        self.stdout.write(
+                            "WARNING S3 backup disabled (Development Mode)"
+                        )
             else:
                 self.stdout.write("WARNING S3 backup disabled (Development Mode)")
 

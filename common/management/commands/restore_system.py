@@ -99,7 +99,12 @@ class Command(BaseCommand):
 
         # Check for restore priority
         backup_storage_env = getattr(settings, "BACKUP_STORAGE", "local")
-        is_s3_active = "s3" in [t.strip().lower() for t in backup_storage_env.split(",")] or os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower() in ("true", "1", "t") or self.is_s3_storage()
+        is_s3_active = (
+            "s3" in [t.strip().lower() for t in backup_storage_env.split(",")]
+            or os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower()
+            in ("true", "1", "t")
+            or self.is_s3_storage()
+        )
 
         if not any([db_file, media_file, config_file]) and not is_s3_active:
             self.stdout.write(
@@ -115,22 +120,33 @@ class Command(BaseCommand):
             db_file_path = Path(db_file)
             if not db_file_path.exists():
                 if is_s3_active:
-                    self.stdout.write(f"Local database backup file {db_file_path} not found. Attempting auto-restore from S3...")
+                    self.stdout.write(
+                        f"Local database backup file {db_file_path} not found. Attempting auto-restore from S3..."
+                    )
                     from common.bdr.storage import S3StorageProvider
+
                     s3_provider = S3StorageProvider()
                     if s3_provider.is_available():
                         s3_key = f"database/{db_file_path.name}"
                         try:
                             db_file_path.parent.mkdir(parents=True, exist_ok=True)
                             s3_provider.restore(s3_key, str(db_file_path))
-                            self.stdout.write(f"Successfully downloaded {s3_key} from S3 to {db_file_path}")
+                            self.stdout.write(
+                                f"Successfully downloaded {s3_key} from S3 to {db_file_path}"
+                            )
                         except Exception as e:
-                            self.stderr.write(f"Failed to auto-restore database backup from S3: {e}")
+                            self.stderr.write(
+                                f"Failed to auto-restore database backup from S3: {e}"
+                            )
                             raise e
                     else:
-                        raise FileNotFoundError(f"Local file {db_file_path} not found and S3 is not available.")
+                        raise FileNotFoundError(
+                            f"Local file {db_file_path} not found and S3 is not available."
+                        )
                 else:
-                    raise FileNotFoundError(f"Local file {db_file_path} not found. S3 restore skipped in Development Mode.")
+                    raise FileNotFoundError(
+                        f"Local file {db_file_path} not found. S3 restore skipped in Development Mode."
+                    )
 
             self.stdout.write(
                 f"Initiating production-safe database restoration from: {db_file_path}"
@@ -150,22 +166,33 @@ class Command(BaseCommand):
             config_file_path = Path(config_file)
             if not config_file_path.exists():
                 if is_s3_active:
-                    self.stdout.write(f"Local config backup file {config_file_path} not found. Attempting auto-restore from S3...")
+                    self.stdout.write(
+                        f"Local config backup file {config_file_path} not found. Attempting auto-restore from S3..."
+                    )
                     from common.bdr.storage import S3StorageProvider
+
                     s3_provider = S3StorageProvider()
                     if s3_provider.is_available():
                         s3_key = f"config/{config_file_path.name}"
                         try:
                             config_file_path.parent.mkdir(parents=True, exist_ok=True)
                             s3_provider.restore(s3_key, str(config_file_path))
-                            self.stdout.write(f"Successfully downloaded {s3_key} from S3 to {config_file_path}")
+                            self.stdout.write(
+                                f"Successfully downloaded {s3_key} from S3 to {config_file_path}"
+                            )
                         except Exception as e:
-                            self.stderr.write(f"Failed to auto-restore config backup from S3: {e}")
+                            self.stderr.write(
+                                f"Failed to auto-restore config backup from S3: {e}"
+                            )
                             raise e
                     else:
-                        raise FileNotFoundError(f"Local file {config_file_path} not found and S3 is not available.")
+                        raise FileNotFoundError(
+                            f"Local file {config_file_path} not found and S3 is not available."
+                        )
                 else:
-                    raise FileNotFoundError(f"Local file {config_file_path} not found. S3 restore skipped in Development Mode.")
+                    raise FileNotFoundError(
+                        f"Local file {config_file_path} not found. S3 restore skipped in Development Mode."
+                    )
 
             self.stdout.write(
                 f"Initiating configuration restoration from: {config_file_path}"
@@ -423,7 +450,12 @@ class Command(BaseCommand):
     def restore_media(self, source_backup_dir):
         # Determine if we should restore from Local or S3
         backup_storage_env = getattr(settings, "BACKUP_STORAGE", "local")
-        is_s3_active = "s3" in [t.strip().lower() for t in backup_storage_env.split(",")] or os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower() in ("true", "1", "t") or self.is_s3_storage()
+        is_s3_active = (
+            "s3" in [t.strip().lower() for t in backup_storage_env.split(",")]
+            or os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower()
+            in ("true", "1", "t")
+            or self.is_s3_storage()
+        )
 
         local_exists = False
         if source_backup_dir:
@@ -437,7 +469,9 @@ class Command(BaseCommand):
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         if local_exists:
-            self.stdout.write(f"Restoring media from Local backup directory: {source_backup_dir}")
+            self.stdout.write(
+                f"Restoring media from Local backup directory: {source_backup_dir}"
+            )
             copied = 0
             for root, _, files in os.walk(source_backup_dir):
                 for filename in files:
@@ -455,8 +489,11 @@ class Command(BaseCommand):
                 )
             )
         elif is_s3_active:
-            self.stdout.write("Local media backup is missing or empty. Attempting auto-restore from S3...")
+            self.stdout.write(
+                "Local media backup is missing or empty. Attempting auto-restore from S3..."
+            )
             from common.bdr.storage import S3StorageProvider
+
             s3_provider = S3StorageProvider()
             if s3_provider.is_available():
                 backups = s3_provider.provider.list_backups(prefix="media/")
@@ -484,7 +521,9 @@ class Command(BaseCommand):
                     )
                 )
             else:
-                raise FileNotFoundError("Local media backup is missing or empty, and S3 credentials are not configured.")
+                raise FileNotFoundError(
+                    "Local media backup is missing or empty, and S3 credentials are not configured."
+                )
         else:
             raise FileNotFoundError(
                 f"Backup media source directory not found or empty: {source_backup_dir}"

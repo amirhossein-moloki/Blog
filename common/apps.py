@@ -33,6 +33,7 @@ class CommonConfig(AppConfig):
         # EN: 1.5. Validate S3 settings if required
         # FA: ۱.۵. اعتبارسنجی تنظیمات S3 در صورت لزوم
         import os
+
         from django.conf import settings
         from django.core.exceptions import ImproperlyConfigured
 
@@ -40,9 +41,15 @@ class CommonConfig(AppConfig):
         offsite_enabled = getattr(settings, "BACKUP_OFFSITE_ENABLED", False)
         offsite_required = getattr(settings, "BACKUP_OFFSITE_REQUIRED", False)
 
-        bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
-        access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(settings, "AWS_ACCESS_KEY_ID", None)
-        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(settings, "AWS_SECRET_ACCESS_KEY", None)
+        bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
+            settings, "AWS_STORAGE_BUCKET_NAME", None
+        )
+        access_key = os.environ.get("AWS_ACCESS_KEY_ID") or getattr(
+            settings, "AWS_ACCESS_KEY_ID", None
+        )
+        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or getattr(
+            settings, "AWS_SECRET_ACCESS_KEY", None
+        )
 
         s3_configured = bool(bucket_name)
 

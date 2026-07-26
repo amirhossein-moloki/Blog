@@ -127,9 +127,7 @@ class Command(BaseCommand):
 
                 except Exception as e:
                     self.stderr.write(
-                        self.style.ERROR(
-                            f"Failed to copy '{relative_path}': {str(e)}"
-                        )
+                        self.style.ERROR(f"Failed to copy '{relative_path}': {str(e)}")
                     )
                     failed_files += 1
 
@@ -150,20 +148,34 @@ class Command(BaseCommand):
         self.stdout.write("INFO Media backup completed.")
 
         # S3 off-site sync logic
-        offsite_enabled = os.environ.get("BACKUP_OFFSITE_ENABLED", "false").lower() in ("true", "1", "t") or getattr(settings, "BACKUP_OFFSITE_ENABLED", False)
-        offsite_required = os.environ.get("BACKUP_OFFSITE_REQUIRED", "false").lower() in ("true", "1", "t") or getattr(settings, "BACKUP_OFFSITE_REQUIRED", False)
+        offsite_enabled = os.environ.get("BACKUP_OFFSITE_ENABLED", "false").lower() in (
+            "true",
+            "1",
+            "t",
+        ) or getattr(settings, "BACKUP_OFFSITE_ENABLED", False)
+        offsite_required = os.environ.get(
+            "BACKUP_OFFSITE_REQUIRED", "false"
+        ).lower() in ("true", "1", "t") or getattr(
+            settings, "BACKUP_OFFSITE_REQUIRED", False
+        )
         backup_storage_env = getattr(settings, "BACKUP_STORAGE", "local")
-        use_s3_storage = "s3" in [t.strip().lower() for t in backup_storage_env.split(",")] or self.is_s3_storage()
+        use_s3_storage = (
+            "s3" in [t.strip().lower() for t in backup_storage_env.split(",")]
+            or self.is_s3_storage()
+        )
 
         if use_s3_storage or offsite_enabled or offsite_required:
             from common.bdr.storage import S3StorageProvider
+
             s3_provider = S3StorageProvider()
             if s3_provider.is_available():
                 self.stdout.write("INFO Uploading encrypted backup to S3...")
                 try:
                     existing_backups = {}
                     try:
-                        backups_list = s3_provider.provider.list_backups(prefix="media/")
+                        backups_list = s3_provider.provider.list_backups(
+                            prefix="media/"
+                        )
                         for b in backups_list:
                             key = b["Key"]
                             if key.endswith(".enc"):
@@ -193,7 +205,9 @@ class Command(BaseCommand):
                                 orig_sha = self.calculate_sha256(source_file_path)
 
                                 if relative_path.as_posix() in existing_backups:
-                                    existing = existing_backups[relative_path.as_posix()]
+                                    existing = existing_backups[
+                                        relative_path.as_posix()
+                                    ]
                                     metadata = existing.get("Metadata", {})
 
                                     s3_orig_size = metadata.get("original-size")
@@ -207,7 +221,10 @@ class Command(BaseCommand):
                                         if not strict_mode:
                                             if (
                                                 s3_orig_mtime
-                                                and abs(float(s3_orig_mtime) - orig_mtime) < 2.0
+                                                and abs(
+                                                    float(s3_orig_mtime) - orig_mtime
+                                                )
+                                                < 2.0
                                             ):
                                                 should_upload = False
                                         else:
@@ -224,7 +241,7 @@ class Command(BaseCommand):
                                             "original-size": orig_size,
                                             "original-mtime": orig_mtime,
                                             "original-sha256": orig_sha,
-                                        }
+                                        },
                                     )
                                     copied_files += 1
                                 else:
@@ -254,12 +271,18 @@ class Command(BaseCommand):
                         self.stderr.write("Backup marked as FAILED.")
                         raise e
                     else:
-                        self.stdout.write(self.style.WARNING("WARNING S3 upload failed, but ignored (Staging Mode)."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                "WARNING S3 upload failed, but ignored (Staging Mode)."
+                            )
+                        )
             else:
                 if offsite_required:
                     self.stderr.write("CRITICAL Off-site backup failed.")
                     self.stderr.write("Backup marked as FAILED.")
-                    raise ValueError("S3 credentials not configured in Production environment.")
+                    raise ValueError(
+                        "S3 credentials not configured in Production environment."
+                    )
                 else:
                     self.stdout.write("WARNING S3 backup disabled (Development Mode)")
         else:

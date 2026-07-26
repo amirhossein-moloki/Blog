@@ -564,8 +564,14 @@ BACKUP_ENCRYPT = os.environ.get("BACKUP_ENCRYPT", "False").lower() in ("true", "
 BACKUP_ENCRYPTION_KEY = os.environ.get("BACKUP_ENCRYPTION_KEY", None)
 
 BACKUP_STORAGE = os.environ.get("BACKUP_STORAGE", "local")
-BACKUP_OFFSITE_ENABLED = os.environ.get("BACKUP_OFFSITE_ENABLED", "False").lower() in ("true", "1", "t")
-BACKUP_OFFSITE_REQUIRED = os.environ.get("BACKUP_OFFSITE_REQUIRED", "False").lower() in ("true", "1", "t")
+BACKUP_OFFSITE_ENABLED = os.environ.get("BACKUP_OFFSITE_ENABLED", "False").lower() in (
+    "true",
+    "1",
+    "t",
+)
+BACKUP_OFFSITE_REQUIRED = os.environ.get(
+    "BACKUP_OFFSITE_REQUIRED", "False"
+).lower() in ("true", "1", "t")
 
 CELERY_BEAT_SCHEDULE = {
     "publish-scheduled-articles": {

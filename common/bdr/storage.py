@@ -7,8 +7,10 @@ import logging
 import os
 import shutil
 from pathlib import Path
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+
 from common.bdr.s3_backup_provider import S3BackupProvider
 
 logger = logging.getLogger(__name__)
@@ -19,6 +21,7 @@ class BackupStorageProvider:
     EN: Base Backup Storage Provider abstraction.
     FA: کلاس پایه انتزاعی ارائه‌دهنده ذخیره‌سازی پشتیبان.
     """
+
     def backup_database(self, local_path, timestamp_str, **kwargs):
         raise NotImplementedError()
 
@@ -43,6 +46,7 @@ class LocalStorageProvider(BackupStorageProvider):
     EN: Local Storage Provider implementing standard file system operations.
     FA: ارائه‌دهنده ذخیره‌سازی محلی برای عملیات سیستم فایل استاندارد.
     """
+
     def backup_database(self, local_path, timestamp_str, **kwargs):
         logger.info("Database backup completed locally.")
 
@@ -68,6 +72,7 @@ class S3StorageProvider(BackupStorageProvider):
     EN: S3 Storage Provider for off-site backup, validation, and restoration.
     FA: ارائه‌دهنده ذخیره‌سازی S3 برای پشتیبان‌گیری، اعتبارسنجی و بازیابی خارج از سایت.
     """
+
     def __init__(self):
         self.bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME") or getattr(
             settings, "AWS_STORAGE_BUCKET_NAME", None
@@ -95,14 +100,17 @@ class S3StorageProvider(BackupStorageProvider):
         logger.info("Upload successful.")
 
         # Also upload associated manifest if it exists
-        manifest_path = Path(local_file_path).parent / f"{os.path.basename(local_file_path)}_manifest.json"
+        manifest_path = (
+            Path(local_file_path).parent
+            / f"{os.path.basename(local_file_path)}_manifest.json"
+        )
         if manifest_path.exists():
             s3_manifest_key = f"database/{manifest_path.name}"
             # Simply upload manifest as a plain file using client directly or provider
             self.provider.s3_client.upload_file(
                 Filename=str(manifest_path),
                 Bucket=self.bucket_name,
-                Key=s3_manifest_key
+                Key=s3_manifest_key,
             )
         return manifest
 
@@ -110,7 +118,9 @@ class S3StorageProvider(BackupStorageProvider):
         if not self.is_available():
             raise ValueError("S3 credentials not configured.")
         logger.info(f"Uploading encrypted media backup to S3... (Key: {s3_key})")
-        manifest = self.provider.upload_backup(local_file_path, s3_key, metadata=metadata)
+        manifest = self.provider.upload_backup(
+            local_file_path, s3_key, metadata=metadata
+        )
         logger.info("Upload successful.")
         return manifest
 
