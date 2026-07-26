@@ -881,3 +881,295 @@ class BackupTasksTest(TestCase):
         result = validate_backups_task()
         self.assertTrue(result)
         mock_call_command.assert_any_call("restore_system")
+
+
+class EnvironmentAwareBDRStorageTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = Path(settings.BASE_DIR) / "test_env_aware_bdr"
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        self.db_dir = self.temp_dir / "database"
+        self.media_dir = self.temp_dir / "media"
+        self.config_dir = self.temp_dir / "config"
+        self.db_dir.mkdir(exist_ok=True)
+        self.media_dir.mkdir(exist_ok=True)
+        self.config_dir.mkdir(exist_ok=True)
+
+    def tearDown(self):
+        if self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir)
+        super().tearDown()
+
+    @override_settings(
+        BACKUP_STORAGE="local",
+        BACKUP_OFFSITE_ENABLED=False,
+        BACKUP_OFFSITE_REQUIRED=False,
+    )
+    def test_development_mode_backup_without_s3(self):
+        """
+        Development: Backup works locally and logs S3 disabled, restore works locally.
+        """
+        # Run database backup locally without S3 configured
+        with patch(
+            "common.bdr.storage.S3StorageProvider.is_available", return_value=False
+        ):
+            call_command(
+                "backup_database", "--output-dir", str(self.db_dir), "--no-cleanup"
+            )
+
+            # Confirm local backup works
+            db_backups = [
+                f
+                for f in self.db_dir.glob("db_backup_*.sql.gz*")
+                if not str(f).endswith(".json")
+            ]
+            self.assertTrue(len(db_backups) > 0)
+
+            # Restore works locally
+            latest_db = db_backups[0]
+            call_command("restore_system", "--db-file", str(latest_db))
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=False,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_staging_mode_optional_s3_when_configured(self, mock_s3_provider_cls):
+        """
+        Staging: Optional S3. If configured, S3 upload succeeds.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        call_command(
+            "backup_database", "--output-dir", str(self.db_dir), "--no-cleanup"
+        )
+        self.assertTrue(mock_s3_provider.backup_database.called)
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=False,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_staging_mode_optional_s3_when_not_configured(self, mock_s3_provider_cls):
+        """
+        Staging: Optional S3. If not configured, falls back to local storage only, never fails.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = False
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        # Should NOT fail or raise any exceptions
+        call_command(
+            "backup_database", "--output-dir", str(self.db_dir), "--no-cleanup"
+        )
+        self.assertFalse(mock_s3_provider.backup_database.called)
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=True,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_production_mode_fails_on_upload_failure(self, mock_s3_provider_cls):
+        """
+        Production: Fails if S3 upload raises an error.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider.backup_database.side_effect = Exception("S3 Connection Lost")
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        with self.assertRaises(Exception):
+            call_command(
+                "backup_database", "--output-dir", str(self.db_dir), "--no-cleanup"
+            )
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=True,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_production_mode_fails_on_missing_credentials(self, mock_s3_provider_cls):
+        """
+        Production: Fails if S3 credentials are missing.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = False
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        with self.assertRaises(ValueError):
+            call_command(
+                "backup_database", "--output-dir", str(self.db_dir), "--no-cleanup"
+            )
+
+    @override_settings(
+        BACKUP_STORAGE="local,s3",
+        BACKUP_OFFSITE_ENABLED=True,
+        BACKUP_OFFSITE_REQUIRED=True,
+    )
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_restore_priority_local_first_then_s3(self, mock_s3_provider_cls):
+        """
+        Priority Restore: If local is missing, automatically restores from S3.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        # Point db_file to a non-existent path
+        missing_db_file = self.db_dir / "db_backup_missing_123.sql.gz"
+
+        # When restore is called, mock downloading from S3 to create the file
+        def mock_restore(key, local_path):
+            Path(local_path).write_text("decrypted SQL data")
+
+        mock_s3_provider.restore.side_effect = mock_restore
+
+        # Call restore system - it should find missing local, restore from S3, then proceed
+        with patch(
+            "common.management.commands.restore_system.Command.restore_database_flow"
+        ) as mock_db_flow:
+            call_command("restore_system", "--db-file", str(missing_db_file))
+            self.assertTrue(mock_s3_provider.restore.called)
+            self.assertTrue(mock_db_flow.called)
+
+
+class StorageProviderCoverageTest(TestCase):
+    """
+    EN: Tests to specifically hit 100% coverage on `common/bdr/storage.py`.
+    FA: تست‌هایی برای دستیابی به پوشش ۱۰۰٪ روی فایل `common/bdr/storage.py`.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = Path(settings.BASE_DIR) / "test_storage_cov"
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        self.test_file = self.temp_dir / "test.txt"
+        self.test_file.write_text("dummy payload")
+
+    def tearDown(self):
+        if self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir)
+        super().tearDown()
+
+    def test_backup_storage_provider_base_class_not_implemented(self):
+        from common.bdr.storage import BackupStorageProvider
+
+        provider = BackupStorageProvider()
+        with self.assertRaises(NotImplementedError):
+            provider.backup_database("a", "b")
+        with self.assertRaises(NotImplementedError):
+            provider.backup_media("a", "b")
+        with self.assertRaises(NotImplementedError):
+            provider.backup_config("a", "b")
+        with self.assertRaises(NotImplementedError):
+            provider.restore("a", "b")
+        with self.assertRaises(NotImplementedError):
+            provider.verify("a", "b")
+        with self.assertRaises(NotImplementedError):
+            provider.cleanup("a", "b")
+
+    def test_local_storage_provider_coverage(self):
+        from common.bdr.storage import LocalStorageProvider
+
+        provider = LocalStorageProvider()
+
+        # Call all methods directly to ensure they execute cleanly and log
+        provider.backup_database("dummy_path", "ts")
+        provider.backup_media("src", "dst")
+        provider.backup_config("dummy_path", "ts")
+        provider.restore("db", "path")
+        self.assertTrue(provider.verify("db", "path"))
+        provider.cleanup("db", "path")
+
+    @patch("common.bdr.s3_backup_provider.S3BackupProvider")
+    def test_s3_storage_provider_not_configured_raises_error(self, mock_s3_cls):
+        from common.bdr.storage import S3StorageProvider
+
+        provider = S3StorageProvider()
+        provider.s3_configured = False  # force unavailable
+
+        with self.assertRaises(ValueError):
+            provider.backup_database("path", "ts")
+        with self.assertRaises(ValueError):
+            provider.backup_media("path", "key")
+        with self.assertRaises(ValueError):
+            provider.backup_config("path", "ts")
+        with self.assertRaises(ValueError):
+            provider.restore("key", "path")
+        with self.assertRaises(ValueError):
+            provider.verify("key")
+        with self.assertRaises(ValueError):
+            provider.cleanup("key")
+
+    @patch("common.bdr.storage.S3BackupProvider")
+    def test_s3_storage_provider_successful_operations(self, mock_s3_cls):
+        from common.bdr.storage import S3StorageProvider
+
+        mock_provider = MagicMock()
+        mock_s3_cls.return_value = mock_provider
+
+        provider = S3StorageProvider()
+        provider.s3_configured = True
+        provider.provider = mock_provider
+
+        # Create dummy manifest file to test manifest upload branch
+        dummy_manifest = self.temp_dir / f"{self.test_file.name}_manifest.json"
+        dummy_manifest.write_text("{}")
+
+        # Test backup_database
+        mock_provider.upload_backup.return_value = {"status": "ok"}
+        manifest = provider.backup_database(str(self.test_file), "ts")
+        self.assertEqual(manifest, {"status": "ok"})
+        self.assertTrue(mock_provider.upload_backup.called)
+
+        # Test backup_media
+        provider.backup_media(
+            str(self.test_file), "media/test.enc", metadata={"size": 100}
+        )
+
+        # Test backup_config
+        provider.backup_config(str(self.test_file), "ts")
+
+        # Test restore
+        provider.restore("media/test.enc", "local_path")
+
+        # Test verify
+        provider.verify("media/test.enc")
+
+        # Test cleanup
+        provider.cleanup("media/test.enc")
+
+    @override_settings(BACKUP_STORAGE="local")
+    def test_get_storage_providers_local_only(self):
+        from common.bdr.storage import LocalStorageProvider, get_storage_providers
+
+        providers = get_storage_providers()
+        self.assertEqual(len(providers), 1)
+        self.assertTrue(isinstance(providers[0], LocalStorageProvider))
+
+    @override_settings(BACKUP_STORAGE="s3")
+    def test_get_storage_providers_s3_only(self):
+        from common.bdr.storage import S3StorageProvider, get_storage_providers
+
+        providers = get_storage_providers()
+        self.assertEqual(len(providers), 1)
+        self.assertTrue(isinstance(providers[0], S3StorageProvider))
+
+    @override_settings(BACKUP_STORAGE="local,s3")
+    def test_get_storage_providers_multiple(self):
+        from common.bdr.storage import (
+            LocalStorageProvider,
+            S3StorageProvider,
+            get_storage_providers,
+        )
+
+        providers = get_storage_providers()
+        self.assertEqual(len(providers), 2)
+        self.assertTrue(isinstance(providers[0], LocalStorageProvider))
+        self.assertTrue(isinstance(providers[1], S3StorageProvider))
