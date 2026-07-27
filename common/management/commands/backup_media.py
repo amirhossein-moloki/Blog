@@ -171,6 +171,7 @@ class Command(BaseCommand):
                 self.stdout.write("INFO Uploading encrypted backup to S3...")
                 try:
                     existing_backups = {}
+                    list_failed = False
                     try:
                         backups_list = s3_provider.provider.list_backups(
                             prefix="media/"
@@ -183,87 +184,96 @@ class Command(BaseCommand):
                                 orig_rel_path = key[len("media/") :]
                             existing_backups[orig_rel_path] = b
                     except Exception as e:
-                        self.stderr.write(
-                            self.style.WARNING(
-                                f"Failed to list S3 backups: {e}. Assuming empty S3 backup storage."
+                        list_failed = True
+                        if offsite_required:
+                            self.stderr.write(
+                                "CRITICAL Failed to list S3 backups. S3 is not reachable or configured incorrectly."
                             )
-                        )
+                            raise e
+                        else:
+                            self.stderr.write(
+                                self.style.WARNING(
+                                    f"Failed to list S3 backups: {e}. Skipping S3 sync for staging/development."
+                                )
+                            )
 
-                    # Push incremental changes to S3
-                    for root, _, files in os.walk(source_dir):
-                        for filename in files:
-                            source_file_path = Path(root) / filename
-                            relative_path = source_file_path.relative_to(source_dir)
-                            s3_key = f"media/{relative_path.as_posix()}.enc"
+                    if not list_failed:
+                        # Push incremental changes to S3
+                        for root, _, files in os.walk(source_dir):
+                            for filename in files:
+                                source_file_path = Path(root) / filename
+                                relative_path = source_file_path.relative_to(source_dir)
+                                s3_key = f"media/{relative_path.as_posix()}.enc"
 
-                            try:
-                                should_upload = True
-                                source_stat = source_file_path.stat()
-                                orig_size = source_stat.st_size
-                                orig_mtime = source_stat.st_mtime
-                                orig_sha = self.calculate_sha256(source_file_path)
+                                try:
+                                    should_upload = True
+                                    source_stat = source_file_path.stat()
+                                    orig_size = source_stat.st_size
+                                    orig_mtime = source_stat.st_mtime
+                                    orig_sha = self.calculate_sha256(source_file_path)
 
-                                if relative_path.as_posix() in existing_backups:
-                                    existing = existing_backups[
-                                        relative_path.as_posix()
-                                    ]
-                                    metadata = existing.get("Metadata", {})
+                                    if relative_path.as_posix() in existing_backups:
+                                        existing = existing_backups[
+                                            relative_path.as_posix()
+                                        ]
+                                        metadata = existing.get("Metadata", {})
 
-                                    s3_orig_size = metadata.get("original-size")
-                                    s3_orig_mtime = metadata.get("original-mtime")
-                                    s3_orig_sha256 = metadata.get("original-sha256")
+                                        s3_orig_size = metadata.get("original-size")
+                                        s3_orig_mtime = metadata.get("original-mtime")
+                                        s3_orig_sha256 = metadata.get("original-sha256")
 
-                                    if (
-                                        s3_orig_size == str(orig_size)
-                                        and s3_orig_sha256 == orig_sha
-                                    ):
-                                        if not strict_mode:
-                                            if (
-                                                s3_orig_mtime
-                                                and abs(
-                                                    float(s3_orig_mtime) - orig_mtime
-                                                )
-                                                < 2.0
-                                            ):
+                                        if (
+                                            s3_orig_size == str(orig_size)
+                                            and s3_orig_sha256 == orig_sha
+                                        ):
+                                            if not strict_mode:
+                                                if (
+                                                    s3_orig_mtime
+                                                    and abs(
+                                                        float(s3_orig_mtime)
+                                                        - orig_mtime
+                                                    )
+                                                    < 2.0
+                                                ):
+                                                    should_upload = False
+                                            else:
                                                 should_upload = False
-                                        else:
-                                            should_upload = False
 
-                                if should_upload:
-                                    self.stdout.write(
-                                        f"Compressing, encrypting, and uploading to S3: {relative_path}..."
-                                    )
-                                    s3_provider.backup_media(
-                                        source_file_path,
-                                        s3_key,
-                                        metadata={
-                                            "original-size": orig_size,
-                                            "original-mtime": orig_mtime,
-                                            "original-sha256": orig_sha,
-                                        },
-                                    )
-                                    copied_files += 1
-                                else:
-                                    skipped_files += 1
+                                    if should_upload:
+                                        self.stdout.write(
+                                            f"Compressing, encrypting, and uploading to S3: {relative_path}..."
+                                        )
+                                        s3_provider.backup_media(
+                                            source_file_path,
+                                            s3_key,
+                                            metadata={
+                                                "original-size": orig_size,
+                                                "original-mtime": orig_mtime,
+                                                "original-sha256": orig_sha,
+                                            },
+                                        )
+                                        copied_files += 1
+                                    else:
+                                        skipped_files += 1
 
-                            except Exception as e:
-                                self.stderr.write(
-                                    self.style.ERROR(
-                                        f"Failed to upload media object '{relative_path}' to S3: {str(e)}"
+                                except Exception as e:
+                                    self.stderr.write(
+                                        self.style.ERROR(
+                                            f"Failed to upload media object '{relative_path}' to S3: {str(e)}"
+                                        )
+                                    )
+                                    failed_files += 1
+
+                        # Deleted Object Protection: Keep files in S3 if deleted locally
+                        for orig_rel_path in existing_backups:
+                            source_counterpart = source_dir / orig_rel_path
+                            if not source_counterpart.exists():
+                                self.stdout.write(
+                                    self.style.SUCCESS(
+                                        f" [PROTECTED] -> S3 backup file '{orig_rel_path}' is protected from deletion (not in source directory)."
                                     )
                                 )
-                                failed_files += 1
-
-                    # Deleted Object Protection: Keep files in S3 if deleted locally
-                    for orig_rel_path in existing_backups:
-                        source_counterpart = source_dir / orig_rel_path
-                        if not source_counterpart.exists():
-                            self.stdout.write(
-                                self.style.SUCCESS(
-                                    f" [PROTECTED] -> S3 backup file '{orig_rel_path}' is protected from deletion (not in source directory)."
-                                )
-                            )
-                    self.stdout.write("INFO Upload successful.")
+                        self.stdout.write("INFO Upload successful.")
                 except Exception as e:
                     if offsite_required:
                         self.stderr.write("CRITICAL Off-site backup failed.")
