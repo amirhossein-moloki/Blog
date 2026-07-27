@@ -468,65 +468,76 @@ class Command(BaseCommand):
         dest_dir = Path(settings.MEDIA_ROOT)
         dest_dir.mkdir(parents=True, exist_ok=True)
 
-        if local_exists:
-            self.stdout.write(
-                f"Restoring media from Local backup directory: {source_backup_dir}"
-            )
-            copied = 0
-            for root, _, files in os.walk(source_backup_dir):
-                for filename in files:
-                    src_file_path = Path(root) / filename
-                    rel_path = src_file_path.relative_to(source_backup_dir)
-                    dest_file_path = dest_dir / rel_path
-
-                    dest_file_path.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(src_file_path, dest_file_path)
-                    copied += 1
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Media files restored successfully! Copied {copied} files to {dest_dir}"
+        try:
+            if local_exists:
+                self.stdout.write(
+                    f"Restoring media from Local backup directory: {source_backup_dir}"
                 )
-            )
-        elif is_s3_active:
-            self.stdout.write(
-                "Local media backup is missing or empty. Attempting auto-restore from S3..."
-            )
-            from common.bdr.storage import S3StorageProvider
+                copied = 0
+                for root, _, files in os.walk(source_backup_dir):
+                    for filename in files:
+                        src_file_path = Path(root) / filename
+                        rel_path = src_file_path.relative_to(source_backup_dir)
+                        dest_file_path = dest_dir / rel_path
 
-            s3_provider = S3StorageProvider()
-            if s3_provider.is_available():
-                backups = s3_provider.provider.list_backups(prefix="media/")
-
-                restored = 0
-                for b in backups:
-                    key = b["Key"]
-                    if key.endswith(".enc"):
-                        rel_path = key[len("media/") : -len(".enc")]
-                    else:
-                        rel_path = key[len("media/") :]
-
-                    dest_file_path = dest_dir / rel_path
-                    dest_file_path.parent.mkdir(parents=True, exist_ok=True)
-
-                    self.stdout.write(
-                        f"Downloading and decrypting S3 media object: {key}..."
-                    )
-                    s3_provider.restore(key, dest_file_path)
-                    restored += 1
+                        dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(src_file_path, dest_file_path)
+                        copied += 1
 
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"Media files restored successfully from S3! Restored {restored} files to {dest_dir}"
+                        f"Media files restored successfully! Copied {copied} files to {dest_dir}"
                     )
                 )
-            else:
-                raise FileNotFoundError(
-                    "Local media backup is missing or empty, and S3 credentials are not configured."
+            elif is_s3_active:
+                self.stdout.write(
+                    "Local media backup is missing or empty. Attempting auto-restore from S3..."
                 )
-        else:
-            raise FileNotFoundError(
-                f"Backup media source directory not found or empty: {source_backup_dir}"
+                from common.bdr.storage import S3StorageProvider
+
+                s3_provider = S3StorageProvider()
+                if s3_provider.is_available():
+                    backups = s3_provider.provider.list_backups(prefix="media/")
+
+                    restored = 0
+                    for b in backups:
+                        key = b["Key"]
+                        if key.endswith(".enc"):
+                            rel_path = key[len("media/") : -len(".enc")]
+                        else:
+                            rel_path = key[len("media/") :]
+
+                        dest_file_path = dest_dir / rel_path
+                        dest_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+                        self.stdout.write(
+                            f"Downloading and decrypting S3 media object: {key}..."
+                        )
+                        s3_provider.restore(key, dest_file_path)
+                        restored += 1
+
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Media files restored successfully from S3! Restored {restored} files to {dest_dir}"
+                        )
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            "WARNING: Local media backup is missing or empty, and S3 credentials are not configured. Skipping media restoration."
+                        )
+                    )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"WARNING: Backup media source directory not found or empty: {source_backup_dir}. Skipping media restoration."
+                    )
+                )
+        except Exception as e:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"WARNING: Failed to restore media due to an error: {e}. Skipping media restoration."
+                )
             )
 
     def restore_config(self, tarball_path):

@@ -262,6 +262,52 @@ class BackupMediaTest(TestCase):
         self.assertTrue(mock_s3.get_paginator.called)
         self.assertTrue(mock_s3.upload_fileobj.called)
 
+    @patch("boto3.client")
+    @override_settings(STORAGE_BACKEND="s3", AWS_STORAGE_BUCKET_NAME="test-bucket")
+    def test_backup_media_s3_list_error(self, mock_boto_client):
+        """
+        Tests that if S3 list_backups fails, backup_media continues (in Staging/Dev) but
+        logs a warning and does not output 'INFO Upload successful.'.
+        """
+        mock_s3 = MagicMock()
+        mock_boto_client.return_value = mock_s3
+
+        # Force paginator or head_object or list_objects_v2 to raise ClientError (404)
+        mock_s3.get_paginator.side_effect = Exception("S3 bucket not found or ListObjectsV2 failed 404")
+
+        # Mock head_object to bypass ContentLength size validation
+        class EqualToAnything:
+            def __eq__(self, other):
+                return True
+
+        mock_s3.head_object.return_value = {
+            "ContentLength": EqualToAnything(),
+        }
+
+        # Create some mock local files to backup
+        (self.temp_src_dir / "image1.jpg").write_text("local image 1")
+
+        import io
+        out = io.StringIO()
+        err = io.StringIO()
+
+        with override_settings(MEDIA_ROOT=str(self.temp_src_dir)):
+            call_command(
+                "backup_media",
+                "--output-dir",
+                str(self.temp_dst_dir),
+                stdout=out,
+                stderr=err
+            )
+
+        output = out.getvalue()
+        error_output = err.getvalue()
+
+        # It should contain the warning about list backups failing
+        self.assertIn("Failed to list S3 backups", error_output)
+        # It should NOT print "INFO Upload successful." because listing failed
+        self.assertNotIn("INFO Upload successful.", output)
+
 
 class MaintenanceLockFallbackTest(TestCase):
     def setUp(self):
@@ -843,6 +889,45 @@ class RestoreSystemTest(TestCase):
 
         with patch.dict(os.environ, {"BACKUP_DIR": str(backup_base)}):
             call_command("restore_system")
+
+    @override_settings(BACKUP_STORAGE="s3")
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_restore_media_missing_local_and_s3_unavailable(self, mock_s3_provider_cls):
+        """
+        Tests that if local media backup is missing/empty and S3 is configured but is unavailable,
+        restore_system skips and logs a warning instead of crashing.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = False
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        import io
+        out = io.StringIO()
+
+        # Call restore system for media
+        call_command("restore_system", "--media-file", str(self.temp_restore_dir / "missing_media_dir"), stdout=out)
+        output = out.getvalue()
+        self.assertIn("WARNING: Local media backup is missing or empty, and S3 credentials are not configured.", output)
+
+    @override_settings(BACKUP_STORAGE="s3")
+    @patch("common.bdr.storage.S3StorageProvider")
+    def test_restore_media_s3_fails_exception(self, mock_s3_provider_cls):
+        """
+        Tests that if local media backup is missing/empty and S3 is available but fails (raises exception),
+        restore_system skips and logs a warning instead of crashing.
+        """
+        mock_s3_provider = MagicMock()
+        mock_s3_provider.is_available.return_value = True
+        mock_s3_provider.provider.list_backups.side_effect = Exception("S3 download error (404)")
+        mock_s3_provider_cls.return_value = mock_s3_provider
+
+        import io
+        out = io.StringIO()
+
+        # Call restore system for media
+        call_command("restore_system", "--media-file", str(self.temp_restore_dir / "missing_media_dir"), stdout=out)
+        output = out.getvalue()
+        self.assertIn("WARNING: Failed to restore media due to an error", output)
 
 
 class BackupTasksTest(TestCase):

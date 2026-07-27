@@ -170,6 +170,7 @@ class Command(BaseCommand):
             if s3_provider.is_available():
                 self.stdout.write("INFO Uploading encrypted backup to S3...")
                 try:
+                    s3_has_errors = False
                     existing_backups = {}
                     try:
                         backups_list = s3_provider.provider.list_backups(
@@ -183,11 +184,15 @@ class Command(BaseCommand):
                                 orig_rel_path = key[len("media/") :]
                             existing_backups[orig_rel_path] = b
                     except Exception as e:
-                        self.stderr.write(
-                            self.style.WARNING(
-                                f"Failed to list S3 backups: {e}. Assuming empty S3 backup storage."
+                        s3_has_errors = True
+                        if offsite_required:
+                            raise e
+                        else:
+                            self.stderr.write(
+                                self.style.WARNING(
+                                    f"Failed to list S3 backups: {e}. Assuming empty S3 backup storage."
+                                )
                             )
-                        )
 
                     # Push incremental changes to S3
                     for root, _, files in os.walk(source_dir):
@@ -247,12 +252,15 @@ class Command(BaseCommand):
                                     skipped_files += 1
 
                             except Exception as e:
+                                s3_has_errors = True
                                 self.stderr.write(
                                     self.style.ERROR(
                                         f"Failed to upload media object '{relative_path}' to S3: {str(e)}"
                                     )
                                 )
                                 failed_files += 1
+                                if offsite_required:
+                                    raise e
 
                     # Deleted Object Protection: Keep files in S3 if deleted locally
                     for orig_rel_path in existing_backups:
@@ -263,7 +271,15 @@ class Command(BaseCommand):
                                     f" [PROTECTED] -> S3 backup file '{orig_rel_path}' is protected from deletion (not in source directory)."
                                 )
                             )
-                    self.stdout.write("INFO Upload successful.")
+
+                    if not s3_has_errors:
+                        self.stdout.write("INFO Upload successful.")
+                    else:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                "WARNING: S3 upload finished with errors."
+                            )
+                        )
                 except Exception as e:
                     if offsite_required:
                         self.stderr.write("CRITICAL Off-site backup failed.")

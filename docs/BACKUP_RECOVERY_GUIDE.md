@@ -36,6 +36,15 @@ All commands should be executed from the repository root inside the `web` contai
 This command backs up your primary database streamingly. It writes compressed `gzip` and encrypted `AES-256-GCM` bytes directly to the storage.
 این دستور از پایگاه داده اصلی شما به صورت جریانی و بدون نیاز به ذخیره موقت فایل غیررمزگذاری شده روی دیسک پشتیبان‌گیری می‌کند.
 
+> **Note on Encryption and File Extensions (نکته در مورد رمزگذاری و پسوند فایل‌ها):**
+> - **Unencrypted (`BACKUP_ENCRYPT=False`):** The output file will have a `.sql.gz` extension.
+> - **Encrypted (`BACKUP_ENCRYPT=True` or `--encrypt`):** The output file will have a `.sql.gz.enc` extension.
+> - Both formats are fully and seamlessly supported by the `restore_system` command.
+>
+> - **غیررمزگذاری شده (`BACKUP_ENCRYPT=False`):** فایل خروجی دارای پسوند `.sql.gz` خواهد بود.
+> - **رمزگذاری شده (`BACKUP_ENCRYPT=True` یا استفاده از پارامتر `--encrypt`):** فایل خروجی با استاندارد AES-256-GCM رمزگذاری شده و دارای پسوند `.sql.gz.enc` خواهد بود.
+> - هر دو قالب فایل به صورت یکپارچه و هوشمند توسط دستور `restore_system` پشتیبانی و بازیابی می‌شوند.
+
 **Syntax (ساختار دستور):**
 ```bash
 python manage.py backup_database [OPTIONS]
