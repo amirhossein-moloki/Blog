@@ -2,10 +2,12 @@ import jsonschema
 from django.core.exceptions import ValidationError
 from bs4 import BeautifulSoup
 
+
 class BaseBlock:
     """
     Abstract base class representing a generic block.
     """
+
     block_type = None
     schema_version = 1
 
@@ -30,8 +32,8 @@ class BaseBlock:
                 "order": {"type": "integer"},
                 "settings": {"type": "object"},
                 "metadata": {"type": "object"},
-                "data": self.get_data_schema()
-            }
+                "data": self.get_data_schema(),
+            },
         }
         try:
             jsonschema.validate(instance=payload, schema=envelope_schema)
@@ -77,8 +79,8 @@ class HeadingBlock(BaseBlock):
             "properties": {
                 "level": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6]},
                 "text": {"type": "string"},
-                "anchor_id": {"type": "string"}
-            }
+                "anchor_id": {"type": "string"},
+            },
         }
 
 
@@ -89,9 +91,7 @@ class ParagraphBlock(BaseBlock):
         return {
             "type": "object",
             "required": ["text"],
-            "properties": {
-                "text": {"type": "string"}
-            }
+            "properties": {"text": {"type": "string"}},
         }
 
     def is_empty(self, data):
@@ -111,8 +111,8 @@ class ImageBlock(BaseBlock):
                 "media_id": {"type": "integer", "minimum": 1},
                 "caption": {"type": "string"},
                 "alt": {"type": "string"},
-                "lazy": {"type": "boolean"}
-            }
+                "lazy": {"type": "boolean"},
+            },
         }
 
     def get_referenced_media_ids(self, data):
@@ -138,11 +138,11 @@ class GalleryBlock(BaseBlock):
             "properties": {
                 "media_ids": {
                     "type": "array",
-                    "items": {"type": "integer", "minimum": 1}
+                    "items": {"type": "integer", "minimum": 1},
                 },
                 "layout": {"type": "string", "enum": ["grid", "slider"]},
-                "aspect_ratio": {"type": "string"}
-            }
+                "aspect_ratio": {"type": "string"},
+            },
         }
 
     def get_referenced_media_ids(self, data):
@@ -160,10 +160,7 @@ class QuoteBlock(BaseBlock):
         return {
             "type": "object",
             "required": ["text"],
-            "properties": {
-                "text": {"type": "string"},
-                "citation": {"type": "string"}
-            }
+            "properties": {"text": {"type": "string"}, "citation": {"type": "string"}},
         }
 
 
@@ -175,18 +172,12 @@ class TableBlock(BaseBlock):
             "type": "object",
             "required": ["headers", "rows"],
             "properties": {
-                "headers": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                },
+                "headers": {"type": "array", "items": {"type": "string"}},
                 "rows": {
                     "type": "array",
-                    "items": {
-                        "type": "array",
-                        "items": {"type": "string"}
-                    }
-                }
-            }
+                    "items": {"type": "array", "items": {"type": "string"}},
+                },
+            },
         }
 
 
@@ -200,8 +191,8 @@ class CodeBlock(BaseBlock):
             "properties": {
                 "code": {"type": "string"},
                 "language": {"type": "string"},
-                "show_line_numbers": {"type": "boolean"}
-            }
+                "show_line_numbers": {"type": "boolean"},
+            },
         }
 
 
@@ -213,7 +204,7 @@ class DividerBlock(BaseBlock):
             "type": "object",
             "properties": {
                 "style": {"type": "string", "enum": ["solid", "dashed", "dots"]}
-            }
+            },
         }
 
 
@@ -228,8 +219,8 @@ class VideoBlock(BaseBlock):
                 "provider": {"type": "string", "enum": ["local", "youtube", "vimeo"]},
                 "external_url": {"type": "string"},
                 "autoplay": {"type": "boolean"},
-                "controls": {"type": "boolean"}
-            }
+                "controls": {"type": "boolean"},
+            },
         }
 
     def get_referenced_media_ids(self, data):
@@ -251,10 +242,13 @@ class EmbedBlock(BaseBlock):
             "required": ["url"],
             "properties": {
                 "url": {"type": "string"},
-                "embed_type": {"type": "string", "enum": ["twitter", "instagram", "iframe"]},
+                "embed_type": {
+                    "type": "string",
+                    "enum": ["twitter", "instagram", "iframe"],
+                },
                 "width": {"type": "integer"},
-                "height": {"type": "integer"}
-            }
+                "height": {"type": "integer"},
+            },
         }
 
 
@@ -269,8 +263,8 @@ class ButtonBlock(BaseBlock):
                 "label": {"type": "string"},
                 "url": {"type": "string"},
                 "target": {"type": "string", "enum": ["_blank", "_self"]},
-                "style_preset": {"type": "string"}
-            }
+                "style_preset": {"type": "string"},
+            },
         }
 
 
@@ -289,11 +283,11 @@ class AccordionBlock(BaseBlock):
                         "required": ["title", "content"],
                         "properties": {
                             "title": {"type": "string"},
-                            "content": {"type": "string"}
-                        }
-                    }
+                            "content": {"type": "string"},
+                        },
+                    },
                 }
-            }
+            },
         }
 
 
@@ -312,11 +306,11 @@ class FAQBlock(BaseBlock):
                         "required": ["q", "a"],
                         "properties": {
                             "q": {"type": "string"},
-                            "a": {"type": "string"}
-                        }
-                    }
+                            "a": {"type": "string"},
+                        },
+                    },
                 }
-            }
+            },
         }
 
 
@@ -336,11 +330,11 @@ class TimelineBlock(BaseBlock):
                         "properties": {
                             "date": {"type": "string"},
                             "title": {"type": "string"},
-                            "description": {"type": "string"}
-                        }
-                    }
+                            "description": {"type": "string"},
+                        },
+                    },
                 }
-            }
+            },
         }
 
 
@@ -352,11 +346,8 @@ class RelatedArticlesBlock(BaseBlock):
             "type": "object",
             "required": ["article_ids"],
             "properties": {
-                "article_ids": {
-                    "type": "array",
-                    "items": {"type": "integer"}
-                }
-            }
+                "article_ids": {"type": "array", "items": {"type": "integer"}}
+            },
         }
 
 
@@ -364,6 +355,7 @@ class BlockRegistry:
     """
     Central registry to mount, validate, and access blocks.
     """
+
     def __init__(self):
         self._registry = {}
         self.register(HeadingBlock())
@@ -393,7 +385,9 @@ class BlockRegistry:
         Validates a single block payload structure and delegate schema check to block type.
         """
         if not isinstance(block_payload, dict):
-            raise ValidationError({"content_blocks": "Block payload must be a dictionary."})
+            raise ValidationError(
+                {"content_blocks": "Block payload must be a dictionary."}
+            )
 
         block_type = block_payload.get("type")
         if not block_type:
@@ -401,12 +395,18 @@ class BlockRegistry:
 
         handler = self.get_block(block_type)
         if not handler:
-            raise ValidationError({"content_blocks.type": f"Unsupported block type: '{block_type}'."})
+            raise ValidationError(
+                {"content_blocks.type": f"Unsupported block type: '{block_type}'."}
+            )
 
         # Check version mismatches
         version = block_payload.get("version")
         if version is not None and version > handler.schema_version:
-            raise ValidationError({"content_blocks.version": f"Unsupported block version: {version} for type '{block_type}'."})
+            raise ValidationError(
+                {
+                    "content_blocks.version": f"Unsupported block version: {version} for type '{block_type}'."
+                }
+            )
 
         handler.validate(block_payload)
 

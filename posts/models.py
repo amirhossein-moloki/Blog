@@ -318,6 +318,7 @@ class ArticleTranslation(BaseModel):
         """
         if self.content_blocks:
             from .services import calculate_blocks_reading_time
+
             self.reading_time_sec = calculate_blocks_reading_time(self.content_blocks)
         elif self.content:
             # EN: Simple reading time calculation based on word count.

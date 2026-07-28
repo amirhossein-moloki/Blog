@@ -304,10 +304,12 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             return []
 
         import copy
+
         blocks = copy.deepcopy(blocks)
 
         # Collect all media_id and media_ids generically
         from posts.blocks import block_registry
+
         media_ids = set()
         for block in blocks:
             b_type = block.get("type")
@@ -319,11 +321,14 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         # Query all Media records in a single query (batch expansion)
         from medias.models import Media
         from medias.serializers import MediaDetailSerializer
+
         media_map = {}
         if media_ids:
             medias = Media.objects.filter(id__in=media_ids)
             for media in medias:
-                media_map[media.id] = MediaDetailSerializer(media, context=self.context).data
+                media_map[media.id] = MediaDetailSerializer(
+                    media, context=self.context
+                ).data
 
         # Embed Media into blocks generically
         for block in blocks:
@@ -557,11 +562,12 @@ class ArticleCreateUpdateSerializer(
             "slug": validated_data.pop("slug", ""),
             "excerpt": validated_data.pop("excerpt"),
             "short_description": validated_data.pop("short_description", ""),
-            "content": validated_data.pop("content"),
+            "content": validated_data.pop("content", ""),
+            "content_blocks": validated_data.pop("content_blocks", []),
             "seo_title": validated_data.pop("seo_title", ""),
             "seo_description": validated_data.pop("seo_description", ""),
         }
-        if "content" in translation_data:
+        if "content" in translation_data and translation_data["content"]:
             translation_data["content"] = self._process_inline_files(
                 translation_data["content"]
             )
@@ -595,6 +601,7 @@ class ArticleCreateUpdateSerializer(
             "excerpt",
             "short_description",
             "content",
+            "content_blocks",
             "seo_title",
             "seo_description",
         ]
@@ -603,7 +610,7 @@ class ArticleCreateUpdateSerializer(
             if field in validated_data:
                 translation_data[field] = validated_data.pop(field)
 
-        if "content" in translation_data:
+        if "content" in translation_data and translation_data["content"]:
             translation_data["content"] = self._process_inline_files(
                 translation_data["content"]
             )

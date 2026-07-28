@@ -57,7 +57,7 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
         raise ValidationError("Content blocks must be a list of blocks.")
 
     # 1. Payload size check
-    serialized_size = len(json.dumps(blocks).encode('utf-8'))
+    serialized_size = len(json.dumps(blocks).encode("utf-8"))
     if serialized_size > 5 * 1024 * 1024:
         raise ValidationError("Request payload size exceeds 5 Megabytes limit.")
 
@@ -76,12 +76,20 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
 
         block_id = block.get("id")
         if block_id in seen_ids:
-            raise ValidationError({f"content_blocks[{idx}].id": f"Duplicate block ID detected: '{block_id}'."})
+            raise ValidationError(
+                {
+                    f"content_blocks[{idx}].id": f"Duplicate block ID detected: '{block_id}'."
+                }
+            )
         seen_ids.add(block_id)
 
         order = block.get("order")
         if order in seen_orders:
-            raise ValidationError({f"content_blocks[{idx}].order": f"Duplicate block order detected: '{order}'."})
+            raise ValidationError(
+                {
+                    f"content_blocks[{idx}].order": f"Duplicate block order detected: '{order}'."
+                }
+            )
         seen_orders.add(order)
 
         # Collect media_id and media_ids to validate in bulk (fully generically)
@@ -94,7 +102,9 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
     # 4. Check that media IDs actually exist and are active
     if media_ids_to_check:
         existing_active_media_ids = set(
-            Media.objects.filter(id__in=media_ids_to_check, is_active=True).values_list("id", flat=True)
+            Media.objects.filter(id__in=media_ids_to_check, is_active=True).values_list(
+                "id", flat=True
+            )
         )
         missing_ids = media_ids_to_check - existing_active_media_ids
         if missing_ids:
@@ -115,9 +125,13 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
                         # Target specific field based on the block type structure
                         if b_type == "gallery":
                             g_idx = b_data.get("media_ids", []).index(mid)
-                            raise ValidationError({f"content_blocks[{idx}].data.media_ids[{g_idx}]": msg})
+                            raise ValidationError(
+                                {f"content_blocks[{idx}].data.media_ids[{g_idx}]": msg}
+                            )
                         else:
-                            raise ValidationError({f"content_blocks[{idx}].data.media_id": msg})
+                            raise ValidationError(
+                                {f"content_blocks[{idx}].data.media_id": msg}
+                            )
 
     # 5. Empty block detection (fully generically)
     for idx, block in enumerate(blocks):
@@ -126,11 +140,21 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
         handler = block_registry.get_block(b_type)
         if handler and handler.is_empty(b_data):
             if b_type == "paragraph":
-                raise ValidationError({f"content_blocks[{idx}].data.text": "Empty paragraph blocks are not allowed."})
+                raise ValidationError(
+                    {
+                        f"content_blocks[{idx}].data.text": "Empty paragraph blocks are not allowed."
+                    }
+                )
             elif b_type == "image":
-                raise ValidationError({f"content_blocks[{idx}].data.media_id": "Image block must have a media_id."})
+                raise ValidationError(
+                    {
+                        f"content_blocks[{idx}].data.media_id": "Image block must have a media_id."
+                    }
+                )
             else:
-                raise ValidationError({f"content_blocks[{idx}]": f"Block of type '{b_type}' is empty."})
+                raise ValidationError(
+                    {f"content_blocks[{idx}]": f"Block of type '{b_type}' is empty."}
+                )
 
     # 6. Heading hierarchy validation
     headings = []
@@ -142,7 +166,11 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
     for b_idx, lvl in headings:
         if lvl > 1:
             if (lvl - 1) not in seen_levels and lvl > 2:
-                raise ValidationError({f"content_blocks[{b_idx}].data.level": f"Heading hierarchy violation: Heading level {lvl} must be preceded by level {lvl-1}."})
+                raise ValidationError(
+                    {
+                        f"content_blocks[{b_idx}].data.level": f"Heading hierarchy violation: Heading level {lvl} must be preceded by level {lvl-1}."
+                    }
+                )
         seen_levels.add(lvl)
 
     # 7. HTML Sanitization on all text inputs using BeautifulSoup
@@ -153,7 +181,13 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
                 for bad_tag in soup(["script", "style", "embed", "object"]):
                     bad_tag.decompose()
                 for tag in soup.find_all(True):
-                    bad_attrs = [attr for attr in tag.attrs if attr.startswith("on") or attr == "src" and "javascript:" in tag[attr]]
+                    bad_attrs = [
+                        attr
+                        for attr in tag.attrs
+                        if attr.startswith("on")
+                        or attr == "src"
+                        and "javascript:" in tag[attr]
+                    ]
                     for attr in bad_attrs:
                         del tag[attr]
                 d[k] = str(soup)
@@ -182,6 +216,7 @@ def calculate_blocks_reading_time(blocks):
     if not blocks:
         return 0
     text_content = []
+
     def extract_text(d):
         for k, v in d.items():
             if isinstance(v, str):
@@ -270,13 +305,15 @@ def sync_article_media(obj):
             for url in urls:
                 path = urlparse(url).path
                 if path.startswith(settings.MEDIA_URL):
-                    media_paths_in_content.add(path[len(settings.MEDIA_URL) :].lstrip("/"))
+                    media_paths_in_content.add(
+                        path[len(settings.MEDIA_URL) :].lstrip("/")
+                    )
 
             if media_paths_in_content:
                 linked_media_ids = set(
-                    Media.objects.filter(storage_key__in=media_paths_in_content).values_list(
-                        "id", flat=True
-                    )
+                    Media.objects.filter(
+                        storage_key__in=media_paths_in_content
+                    ).values_list("id", flat=True)
                 )
 
         current_media_ids = set(
