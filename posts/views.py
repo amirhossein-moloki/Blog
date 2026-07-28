@@ -338,6 +338,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Returns the complete content contract specifications list for headless components.
         """
         from posts.blocks import block_registry
+
         return Response(block_registry.get_all_definitions())
 
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")

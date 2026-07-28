@@ -478,12 +478,16 @@ class AccordionBlock(BaseBlock):
 
     def get_text_content(self, data):
         items = data.get("items", [])
-        return " ".join([f"{i.get('title', '')} {i.get('content', '')}" for i in items]).strip()
+        return " ".join(
+            [f"{i.get('title', '')} {i.get('content', '')}" for i in items]
+        ).strip()
 
 
 class FAQBlock(BaseBlock):
     block_type = "faq"
-    purpose = "Collapsible FAQ section conforming strictly to SEO Rich Snippet requirements."
+    purpose = (
+        "Collapsible FAQ section conforming strictly to SEO Rich Snippet requirements."
+    )
     validation_rules = [
         "questions must be an array of objects specifying q and a text fields",
     ]
@@ -514,7 +518,9 @@ class FAQBlock(BaseBlock):
 
     def get_text_content(self, data):
         questions = data.get("questions", [])
-        return " ".join([f"{q.get('q', '')} {q.get('a', '')}" for q in questions]).strip()
+        return " ".join(
+            [f"{q.get('q', '')} {q.get('a', '')}" for q in questions]
+        ).strip()
 
     def get_seo_metadata(self, data):
         return {
@@ -523,13 +529,10 @@ class FAQBlock(BaseBlock):
                 {
                     "type": "Question",
                     "name": item.get("q", ""),
-                    "acceptedAnswer": {
-                        "type": "Answer",
-                        "text": item.get("a", "")
-                    }
+                    "acceptedAnswer": {"type": "Answer", "text": item.get("a", "")},
                 }
                 for item in data.get("questions", [])
-            ]
+            ],
         }
 
 
@@ -567,7 +570,12 @@ class TimelineBlock(BaseBlock):
 
     def get_text_content(self, data):
         events = data.get("events", [])
-        return " ".join([f"{e.get('date', '')} {e.get('title', '')} {e.get('description', '')}" for e in events]).strip()
+        return " ".join(
+            [
+                f"{e.get('date', '')} {e.get('title', '')} {e.get('description', '')}"
+                for e in events
+            ]
+        ).strip()
 
 
 class RelatedArticlesBlock(BaseBlock):
@@ -627,18 +635,20 @@ class BlockRegistry:
         """
         definitions = []
         for name, instance in self._registry.items():
-            definitions.append({
-                "type": instance.block_type,
-                "version": instance.schema_version,
-                "component": instance.frontend_component,
-                "purpose": instance.purpose,
-                "required_fields": instance.required_fields,
-                "optional_fields": instance.optional_fields,
-                "validation_rules": instance.validation_rules,
-                "media_dependencies": instance.media_dependencies,
-                "seo_support": instance.seo_support,
-                "schema": instance.get_data_schema(),
-            })
+            definitions.append(
+                {
+                    "type": instance.block_type,
+                    "version": instance.schema_version,
+                    "component": instance.frontend_component,
+                    "purpose": instance.purpose,
+                    "required_fields": instance.required_fields,
+                    "optional_fields": instance.optional_fields,
+                    "validation_rules": instance.validation_rules,
+                    "media_dependencies": instance.media_dependencies,
+                    "seo_support": instance.seo_support,
+                    "schema": instance.get_data_schema(),
+                }
+            )
         return definitions
 
     def validate_block_payload(self, block_payload):
