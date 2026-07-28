@@ -25,8 +25,8 @@ class JalaliDateTimeField(serializers.ReadOnlyField):
 
 class MediaDetailSerializer(serializers.ModelSerializer):
     """
-    EN: Detailed serializer for the Media model, including Jalali creation date.
-    FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
+    EN: Detailed serializer for the Media model, including Jalali creation date, metadata, and variants.
+    FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی، متادیتا و نسخه‌های مختلف فایل.
     """
 
     created_at = JalaliDateTimeField()
@@ -47,7 +47,30 @@ class MediaDetailSerializer(serializers.ModelSerializer):
             "title",
             "uploaded_by",
             "created_at",
+            "status",
+            "is_deleted",
+            "content_hash",
+            "checksum_algorithm",
         )
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Structure nested metadata
+        data["metadata"] = {
+            "width": instance.width,
+            "height": instance.height,
+            "mime": instance.mime,
+            "size": instance.size_bytes,
+        }
+
+        # Structure nested variants
+        variants_dict = {}
+        for variant in instance.variants.all():
+            variants_dict[variant.variant_name] = variant.url
+        data["variants"] = variants_dict
+
+        return data
 
 
 class MediaCreateSerializer(serializers.ModelSerializer):
