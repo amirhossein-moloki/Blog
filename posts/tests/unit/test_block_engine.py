@@ -1,15 +1,16 @@
 import copy
-from django.test import TestCase
-from django.core.exceptions import ValidationError
 
-from medias.models import Media, ArticleMedia
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+
+from medias.models import ArticleMedia, Media
 from posts.factories import ArticleFactory
 from posts.models import Article, ArticleTranslation
-from posts.services import (
-    validate_and_sanitize_blocks,
-    calculate_blocks_reading_time,
-)
 from posts.serializers import ArticleCreateUpdateSerializer, ArticleDetailSerializer
+from posts.services import (
+    calculate_blocks_reading_time,
+    validate_and_sanitize_blocks,
+)
 
 
 class BlockEngineUnitTests(TestCase):

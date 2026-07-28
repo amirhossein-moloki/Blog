@@ -1,6 +1,6 @@
 import jsonschema
-from django.core.exceptions import ValidationError
 from bs4 import BeautifulSoup
+from django.core.exceptions import ValidationError
 
 
 class BaseBlock:

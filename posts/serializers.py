@@ -449,6 +449,7 @@ class ArticleCreateUpdateSerializer(
         if value is None:
             return []
         from django.core.exceptions import ValidationError as DjangoValidationError
+
         from posts.services import validate_and_sanitize_blocks
 
         language_code = self.initial_data.get("language_code", "en")

@@ -1,16 +1,17 @@
+import json
 import logging
 import re
-import json
 from urllib.parse import urlparse
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
-from django.core.exceptions import ValidationError
 
-from medias.models import Media, ArticleMedia
+from medias.models import ArticleMedia, Media
 from posts.blocks import block_registry
+
 from .models import Article
 
 logger = logging.getLogger(__name__)
