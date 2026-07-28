@@ -143,7 +143,7 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
             if b_type == "paragraph":
                 raise ValidationError(
                     {
-                        f"content_blocks[{idx}].data.text": "Empty paragraph blocks are not allowed."
+                        f"content_blocks[{idx}].data.content": "Empty paragraph blocks are not allowed."
                     }
                 )
             elif b_type == "image":
@@ -178,20 +178,21 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
     def sanitize_dict(d):
         for k, v in d.items():
             if isinstance(v, str):
-                soup = BeautifulSoup(v, "html.parser")
-                for bad_tag in soup(["script", "style", "embed", "object"]):
-                    bad_tag.decompose()
-                for tag in soup.find_all(True):
-                    bad_attrs = [
-                        attr
-                        for attr in tag.attrs
-                        if attr.startswith("on")
-                        or attr == "src"
-                        and "javascript:" in tag[attr]
-                    ]
-                    for attr in bad_attrs:
-                        del tag[attr]
-                d[k] = str(soup)
+                if "<" in v or ">" in v:
+                    soup = BeautifulSoup(v, "html.parser")
+                    for bad_tag in soup(["script", "style", "embed", "object"]):
+                        bad_tag.decompose()
+                    for tag in soup.find_all(True):
+                        bad_attrs = [
+                            attr
+                            for attr in tag.attrs
+                            if attr.startswith("on")
+                            or attr == "src"
+                            and "javascript:" in tag[attr]
+                        ]
+                        for attr in bad_attrs:
+                            del tag[attr]
+                    d[k] = str(soup)
             elif isinstance(v, dict):
                 sanitize_dict(v)
             elif isinstance(v, list):
@@ -212,28 +213,20 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
 
 def calculate_blocks_reading_time(blocks):
     """
-    Auto-calculates reading time based on word count of text components inside all blocks.
+    Auto-calculates reading time based on word count of text components inside all blocks using get_text_content().
     """
     if not blocks:
         return 0
     text_content = []
 
-    def extract_text(d):
-        for k, v in d.items():
-            if isinstance(v, str):
-                soup = BeautifulSoup(v, "html.parser")
-                text_content.append(soup.get_text())
-            elif isinstance(v, dict):
-                extract_text(v)
-            elif isinstance(v, list):
-                for item in v:
-                    if isinstance(item, dict):
-                        extract_text(item)
-                    elif isinstance(item, str):
-                        text_content.append(item)
-
     for block in blocks:
-        extract_text(block.get("data", {}))
+        b_type = block.get("type")
+        b_data = block.get("data", {})
+        handler = block_registry.get_block(b_type)
+        if handler:
+            text = handler.get_text_content(b_data)
+            if text:
+                text_content.append(text)
 
     combined_text = " ".join(text_content)
     words = re.findall(r"\w+", combined_text)

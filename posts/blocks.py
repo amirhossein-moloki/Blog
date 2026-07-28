@@ -1,5 +1,4 @@
 import jsonschema
-from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 
 
@@ -10,6 +9,13 @@ class BaseBlock:
 
     block_type = None
     schema_version = 1
+    purpose = ""
+    validation_rules = []
+    required_fields = []
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = ""
+    seo_support = False
 
     def get_data_schema(self):
         """
@@ -68,9 +74,31 @@ class BaseBlock:
         """
         pass
 
+    def get_seo_metadata(self, data):
+        """
+        Returns structured SEO metadata for this block if supported.
+        """
+        return None
+
+    def get_text_content(self, data):
+        """
+        Returns the raw string content of this block for search or reading time calculation.
+        """
+        return ""
+
 
 class HeadingBlock(BaseBlock):
     block_type = "heading"
+    purpose = "Structural headings for organizing sections of the article."
+    validation_rules = [
+        "level must be an integer between 1 and 6",
+        "text must be a non-empty string",
+    ]
+    required_fields = ["level", "text"]
+    optional_fields = ["anchor_id"]
+    media_dependencies = []
+    frontend_component = "HeadingBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -78,30 +106,72 @@ class HeadingBlock(BaseBlock):
             "required": ["level", "text"],
             "properties": {
                 "level": {"type": "integer", "enum": [1, 2, 3, 4, 5, 6]},
-                "text": {"type": "string"},
+                "text": {"type": "string", "minLength": 1},
                 "anchor_id": {"type": "string"},
             },
         }
 
+    def get_text_content(self, data):
+        return data.get("text", "")
+
 
 class ParagraphBlock(BaseBlock):
     block_type = "paragraph"
+    purpose = "Structured rich content paragraphs using node arrays to ensure backend has no HTML dependency."
+    validation_rules = [
+        "content must be an array of structured text node dictionaries",
+        "nodes must specify type and value strings",
+    ]
+    required_fields = ["content"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "ParagraphBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
             "type": "object",
-            "required": ["text"],
-            "properties": {"text": {"type": "string"}},
+            "required": ["content"],
+            "properties": {
+                "content": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["type", "value"],
+                        "properties": {
+                            "type": {"type": "string", "minLength": 1},
+                            "value": {"type": "string"},
+                        },
+                    },
+                }
+            },
         }
 
     def is_empty(self, data):
-        text = data.get("text", "").strip()
-        clean_text = BeautifulSoup(text, "html.parser").get_text().strip()
-        return not clean_text
+        content = data.get("content", [])
+        if not content:
+            return True
+        for node in content:
+            if node.get("value", "").strip():
+                return False
+        return True
+
+    def get_text_content(self, data):
+        nodes = data.get("content", [])
+        return " ".join([node.get("value", "") for node in nodes if node.get("value")])
 
 
 class ImageBlock(BaseBlock):
     block_type = "image"
+    purpose = "Single image referencing a media entity from the media library."
+    validation_rules = [
+        "media_id must be a valid positive integer referencing an active media",
+    ]
+    required_fields = ["media_id"]
+    optional_fields = ["caption", "alt", "lazy"]
+    media_dependencies = ["media_id"]
+    frontend_component = "ImageBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -127,9 +197,21 @@ class ImageBlock(BaseBlock):
         if media_id in media_map:
             data["media"] = media_map[media_id]
 
+    def get_text_content(self, data):
+        return data.get("caption", "")
+
 
 class GalleryBlock(BaseBlock):
     block_type = "gallery"
+    purpose = "A carousel or grid gallery referencing multiple media library images."
+    validation_rules = [
+        "media_ids must be an array of positive integers referencing active media items",
+    ]
+    required_fields = ["media_ids"]
+    optional_fields = ["layout", "aspect_ratio"]
+    media_dependencies = ["media_ids"]
+    frontend_component = "GalleryBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -155,17 +237,42 @@ class GalleryBlock(BaseBlock):
 
 class QuoteBlock(BaseBlock):
     block_type = "quote"
+    purpose = "Highlighted citation blockquote."
+    validation_rules = [
+        "text must be a non-empty string",
+    ]
+    required_fields = ["text"]
+    optional_fields = ["citation"]
+    media_dependencies = []
+    frontend_component = "QuoteBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
             "type": "object",
             "required": ["text"],
-            "properties": {"text": {"type": "string"}, "citation": {"type": "string"}},
+            "properties": {
+                "text": {"type": "string", "minLength": 1},
+                "citation": {"type": "string"},
+            },
         }
+
+    def get_text_content(self, data):
+        return f"{data.get('text', '')} {data.get('citation', '')}".strip()
 
 
 class TableBlock(BaseBlock):
     block_type = "table"
+    purpose = "Tabular data represented completely as structured matrix contracts."
+    validation_rules = [
+        "headers must be a 1D array of strings",
+        "rows must be a 2D array of strings",
+    ]
+    required_fields = ["headers", "rows"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "TableBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -180,24 +287,50 @@ class TableBlock(BaseBlock):
             },
         }
 
+    def get_text_content(self, data):
+        headers_text = " ".join(data.get("headers", []))
+        rows_text = " ".join([" ".join(row) for row in data.get("rows", [])])
+        return f"{headers_text} {rows_text}".strip()
+
 
 class CodeBlock(BaseBlock):
     block_type = "code"
+    purpose = "Pre-formatted code block indicating target syntax highlighter engine."
+    validation_rules = [
+        "code must be a non-empty string",
+    ]
+    required_fields = ["code"]
+    optional_fields = ["language", "show_line_numbers"]
+    media_dependencies = []
+    frontend_component = "CodeBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
             "type": "object",
             "required": ["code"],
             "properties": {
-                "code": {"type": "string"},
+                "code": {"type": "string", "minLength": 1},
                 "language": {"type": "string"},
                 "show_line_numbers": {"type": "boolean"},
             },
         }
 
+    def get_text_content(self, data):
+        return data.get("code", "")
+
 
 class DividerBlock(BaseBlock):
     block_type = "divider"
+    purpose = "Visual content separator/section split contract."
+    validation_rules = [
+        "style must be one of solid, dashed, dots",
+    ]
+    required_fields = []
+    optional_fields = ["style"]
+    media_dependencies = []
+    frontend_component = "DividerBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -210,6 +343,16 @@ class DividerBlock(BaseBlock):
 
 class VideoBlock(BaseBlock):
     block_type = "video"
+    purpose = "Embedded video component support both local and external providers."
+    validation_rules = [
+        "provider must be local, youtube, or vimeo",
+        "either media_id or external_url must be specified",
+    ]
+    required_fields = []
+    optional_fields = ["media_id", "provider", "external_url", "autoplay", "controls"]
+    media_dependencies = ["media_id"]
+    frontend_component = "VideoBlock"
+    seo_support = True
 
     def get_data_schema(self):
         return {
@@ -232,9 +375,29 @@ class VideoBlock(BaseBlock):
         if media_id in media_map:
             data["media"] = media_map[media_id]
 
+    def get_seo_metadata(self, data):
+        url = data.get("external_url", "")
+        if data.get("media_id") and "media" in data:
+            url = data["media"].get("url", url)
+        return {
+            "type": "VideoObject",
+            "name": f"Video ({data.get('provider', 'local')})",
+            "contentUrl": url,
+        }
+
 
 class EmbedBlock(BaseBlock):
     block_type = "embed"
+    purpose = "Integrate external rich entities (like social media profiles or tweets) via custom adapters."
+    validation_rules = [
+        "url must be a valid format",
+        "embed_type must be one of twitter, instagram, iframe",
+    ]
+    required_fields = ["url"]
+    optional_fields = ["embed_type", "width", "height"]
+    media_dependencies = []
+    frontend_component = "EmbedBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -254,22 +417,45 @@ class EmbedBlock(BaseBlock):
 
 class ButtonBlock(BaseBlock):
     block_type = "button"
+    purpose = "Interactive Call-To-Action (CTA) link."
+    validation_rules = [
+        "label must be a non-empty string",
+        "url must be a valid target link",
+        "target must be _blank or _self",
+    ]
+    required_fields = ["label", "url"]
+    optional_fields = ["target", "style_preset"]
+    media_dependencies = []
+    frontend_component = "ButtonBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
             "type": "object",
             "required": ["label", "url"],
             "properties": {
-                "label": {"type": "string"},
+                "label": {"type": "string", "minLength": 1},
                 "url": {"type": "string"},
                 "target": {"type": "string", "enum": ["_blank", "_self"]},
                 "style_preset": {"type": "string"},
             },
         }
 
+    def get_text_content(self, data):
+        return data.get("label", "")
+
 
 class AccordionBlock(BaseBlock):
     block_type = "accordion"
+    purpose = "Interactive accordion panels of headers and content blocks."
+    validation_rules = [
+        "items must be an array of objects containing title and content text fields",
+    ]
+    required_fields = ["items"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "AccordionBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -282,7 +468,7 @@ class AccordionBlock(BaseBlock):
                         "type": "object",
                         "required": ["title", "content"],
                         "properties": {
-                            "title": {"type": "string"},
+                            "title": {"type": "string", "minLength": 1},
                             "content": {"type": "string"},
                         },
                     },
@@ -290,9 +476,22 @@ class AccordionBlock(BaseBlock):
             },
         }
 
+    def get_text_content(self, data):
+        items = data.get("items", [])
+        return " ".join([f"{i.get('title', '')} {i.get('content', '')}" for i in items]).strip()
+
 
 class FAQBlock(BaseBlock):
     block_type = "faq"
+    purpose = "Collapsible FAQ section conforming strictly to SEO Rich Snippet requirements."
+    validation_rules = [
+        "questions must be an array of objects specifying q and a text fields",
+    ]
+    required_fields = ["questions"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "FAQBlock"
+    seo_support = True
 
     def get_data_schema(self):
         return {
@@ -305,17 +504,46 @@ class FAQBlock(BaseBlock):
                         "type": "object",
                         "required": ["q", "a"],
                         "properties": {
-                            "q": {"type": "string"},
-                            "a": {"type": "string"},
+                            "q": {"type": "string", "minLength": 1},
+                            "a": {"type": "string", "minLength": 1},
                         },
                     },
                 }
             },
         }
 
+    def get_text_content(self, data):
+        questions = data.get("questions", [])
+        return " ".join([f"{q.get('q', '')} {q.get('a', '')}" for q in questions]).strip()
+
+    def get_seo_metadata(self, data):
+        return {
+            "type": "FAQPage",
+            "mainEntity": [
+                {
+                    "type": "Question",
+                    "name": item.get("q", ""),
+                    "acceptedAnswer": {
+                        "type": "Answer",
+                        "text": item.get("a", "")
+                    }
+                }
+                for item in data.get("questions", [])
+            ]
+        }
+
 
 class TimelineBlock(BaseBlock):
     block_type = "timeline"
+    purpose = "Visual chronological events stream contract."
+    validation_rules = [
+        "events must be an array of objects specifying date and title values",
+    ]
+    required_fields = ["events"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "TimelineBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -328,8 +556,8 @@ class TimelineBlock(BaseBlock):
                         "type": "object",
                         "required": ["date", "title"],
                         "properties": {
-                            "date": {"type": "string"},
-                            "title": {"type": "string"},
+                            "date": {"type": "string", "minLength": 1},
+                            "title": {"type": "string", "minLength": 1},
                             "description": {"type": "string"},
                         },
                     },
@@ -337,9 +565,22 @@ class TimelineBlock(BaseBlock):
             },
         }
 
+    def get_text_content(self, data):
+        events = data.get("events", [])
+        return " ".join([f"{e.get('date', '')} {e.get('title', '')} {e.get('description', '')}" for e in events]).strip()
+
 
 class RelatedArticlesBlock(BaseBlock):
     block_type = "related_articles"
+    purpose = "Reference related articles by ID for rendering dynamically."
+    validation_rules = [
+        "article_ids must be an array of integers",
+    ]
+    required_fields = ["article_ids"]
+    optional_fields = []
+    media_dependencies = []
+    frontend_component = "RelatedArticlesBlock"
+    seo_support = False
 
     def get_data_schema(self):
         return {
@@ -379,6 +620,26 @@ class BlockRegistry:
 
     def get_block(self, block_type):
         return self._registry.get(block_type)
+
+    def get_all_definitions(self):
+        """
+        EN: Returns complete headless contract metadata for all registered block types.
+        """
+        definitions = []
+        for name, instance in self._registry.items():
+            definitions.append({
+                "type": instance.block_type,
+                "version": instance.schema_version,
+                "component": instance.frontend_component,
+                "purpose": instance.purpose,
+                "required_fields": instance.required_fields,
+                "optional_fields": instance.optional_fields,
+                "validation_rules": instance.validation_rules,
+                "media_dependencies": instance.media_dependencies,
+                "seo_support": instance.seo_support,
+                "schema": instance.get_data_schema(),
+            })
+        return definitions
 
     def validate_block_payload(self, block_payload):
         """

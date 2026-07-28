@@ -43,7 +43,12 @@ class BlockEngineUnitTests(TestCase):
                 "version": 1,
                 "order": 12,
                 "data": {
-                    "text": "<p>Some text and <script>alert(1)</script> <strong>bold</strong></p>"
+                    "content": [
+                        {
+                            "type": "text",
+                            "value": "Some text and <script>alert(1)</script> <strong>bold</strong>",
+                        }
+                    ]
                 },
             },
             {
@@ -72,8 +77,8 @@ class BlockEngineUnitTests(TestCase):
         self.assertEqual(normalized[2]["order"], 3)
 
         # HTML sanitization: <script> tags must be stripped, but safe formatting like strong kept
-        self.assertNotIn("script", normalized[2]["data"]["text"])
-        self.assertIn("<strong>", normalized[2]["data"]["text"])
+        self.assertNotIn("script", normalized[2]["data"]["content"][0]["value"])
+        self.assertIn("<strong>", normalized[2]["data"]["content"][0]["value"])
 
     def test_all_block_types_schemas(self):
         # We test a large array containing valid data for every single block type in the registry
@@ -90,7 +95,7 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 1,
                 "order": 2,
-                "data": {"text": "hello paragraph"},
+                "data": {"content": [{"type": "text", "value": "hello paragraph"}]},
             },
             {
                 "id": "b3",
@@ -245,7 +250,7 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 99,
                 "order": 1,
-                "data": {"text": "hello"},
+                "data": {"content": [{"type": "text", "value": "hello"}]},
             }
         ]
         with self.assertRaises(ValidationError) as ctx:
@@ -259,14 +264,14 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 1,
                 "order": 1,
-                "data": {"text": "hello"},
+                "data": {"content": [{"type": "text", "value": "hello"}]},
             },
             {
                 "id": "blk_1",
                 "type": "paragraph",
                 "version": 1,
                 "order": 2,
-                "data": {"text": "world"},
+                "data": {"content": [{"type": "text", "value": "world"}]},
             },
         ]
         with self.assertRaises(ValidationError) as ctx:
@@ -280,14 +285,14 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 1,
                 "order": 1,
-                "data": {"text": "hello"},
+                "data": {"content": [{"type": "text", "value": "hello"}]},
             },
             {
                 "id": "blk_2",
                 "type": "paragraph",
                 "version": 1,
                 "order": 1,
-                "data": {"text": "world"},
+                "data": {"content": [{"type": "text", "value": "world"}]},
             },
         ]
         with self.assertRaises(ValidationError) as ctx:
@@ -328,7 +333,7 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 1,
                 "order": 1,
-                "data": {"text": "   <p> </p>  "},
+                "data": {"content": [{"type": "text", "value": "   "}]},
             }
         ]
         with self.assertRaises(ValidationError) as ctx:
@@ -366,7 +371,7 @@ class BlockEngineUnitTests(TestCase):
                 "type": "paragraph",
                 "version": 1,
                 "order": 2,
-                "data": {"text": "word " * 100},
+                "data": {"content": [{"type": "text", "value": "word " * 100}]},
             },
         ]
         # 200 words = 1 minute (60 seconds)
@@ -449,3 +454,44 @@ class BlockEngineIntegrationTests(TestCase):
         self.assertIsNotNone(media_expanded)
         self.assertEqual(media_expanded["id"], self.media1.id)
         self.assertEqual(media_expanded["url"], self.media1.url)
+
+    def test_headless_component_identifier_and_seo_and_blocks_alias(self):
+        trans = self.article.translation
+        trans.content_blocks = [
+            {
+                "id": "blk_p1",
+                "type": "paragraph",
+                "version": 1,
+                "order": 1,
+                "data": {"content": [{"type": "text", "value": "A paragraph text"}]},
+            },
+            {
+                "id": "blk_faq1",
+                "type": "faq",
+                "version": 1,
+                "order": 2,
+                "data": {"questions": [{"q": "Question 1?", "a": "Answer 1!"}]},
+            },
+        ]
+        trans.save()
+
+        serializer = ArticleDetailSerializer(self.article)
+        repr_data = serializer.data
+
+        # 1. Blocks alias verification
+        self.assertIn("blocks", repr_data)
+        self.assertEqual(repr_data["blocks"], repr_data["content_blocks"])
+
+        blocks = repr_data["blocks"]
+        self.assertEqual(len(blocks), 2)
+
+        # 2. Frontend Component Name validation
+        self.assertEqual(blocks[0]["component"], "ParagraphBlock")
+        self.assertEqual(blocks[1]["component"], "FAQBlock")
+
+        # 3. Structured SEO Support validation
+        self.assertNotIn("seo", blocks[0])  # Paragraph has no SEO metadata support
+        self.assertIn("seo", blocks[1])  # FAQ has SEO metadata support
+        self.assertEqual(blocks[1]["seo"]["type"], "FAQPage")
+        self.assertEqual(len(blocks[1]["seo"]["mainEntity"]), 1)
+        self.assertEqual(blocks[1]["seo"]["mainEntity"][0]["name"], "Question 1?")
