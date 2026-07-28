@@ -332,6 +332,15 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         )
         return paginator.get_paginated_response(serializer.data)
 
+    @action(detail=False, methods=["get"], url_path="block-definitions")
+    def block_definitions(self, request):
+        """
+        EN: Returns the complete content contract specifications list for headless components.
+        """
+        from posts.blocks import block_registry
+
+        return Response(block_registry.get_all_definitions())
+
     @action(detail=False, methods=["get"], url_path="slug/(?P<slug>[^/.]+)")
     def by_slug(self, request, slug=None):
         """

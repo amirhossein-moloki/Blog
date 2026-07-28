@@ -266,6 +266,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     og_image = MediaDetailSerializer(read_only=True)
     content = serializers.CharField(source="translation.content", read_only=True)
     content_blocks = serializers.SerializerMethodField()
+    blocks = serializers.SerializerMethodField()
     seo_title = serializers.CharField(source="translation.seo_title", read_only=True)
     seo_description = serializers.CharField(
         source="translation.seo_description", read_only=True
@@ -277,6 +278,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         fields = ArticleListSerializer.Meta.fields + (
             "content",
             "content_blocks",
+            "blocks",
             "canonical_url",
             "series",
             "seo_title",
@@ -293,6 +295,10 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         FA: پیوست‌های رسانه‌ای مرتبط با مقاله را واکشی می‌کند.
         """
         return ArticleMediaSerializer(obj.media_attachments.all(), many=True).data
+
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
+    def get_blocks(self, obj):
+        return self.get_content_blocks(obj)
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_content_blocks(self, obj):
@@ -337,6 +343,13 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             handler = block_registry.get_block(b_type)
             if handler:
                 handler.expand_media_references(b_data, media_map)
+                # Inject component reference dynamically
+                if "component" not in block:
+                    block["component"] = handler.frontend_component
+                # Inject structured SEO support if available
+                seo_meta = handler.get_seo_metadata(b_data)
+                if seo_meta:
+                    block["seo"] = seo_meta
 
         return blocks
 
