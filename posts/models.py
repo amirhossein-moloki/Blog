@@ -292,7 +292,8 @@ class ArticleTranslation(BaseModel):
     title = models.CharField(max_length=255)
     excerpt = models.TextField()
     short_description = models.TextField(blank=True, null=True)
-    content = CKEditor5Field(config_name="default")
+    content = CKEditor5Field(config_name="default", blank=True, null=True)
+    content_blocks = models.JSONField(default=list, blank=True)
     reading_time_sec = models.PositiveIntegerField(default=0)
     seo_title = models.CharField(max_length=255, blank=True)
     seo_description = models.TextField(blank=True)
@@ -315,7 +316,11 @@ class ArticleTranslation(BaseModel):
         EN: Overrides save to calculate reading time and sync related media.
         FA: متد save را برای محاسبه زمان مطالعه و همگام‌سازی رسانه‌های مرتبط بازنویسی می‌کند.
         """
-        if self.content:
+        if self.content_blocks:
+            from .services import calculate_blocks_reading_time
+
+            self.reading_time_sec = calculate_blocks_reading_time(self.content_blocks)
+        elif self.content:
             # EN: Simple reading time calculation based on word count.
             # FA: محاسبه ساده زمان مطالعه بر اساس تعداد کلمات.
             words = re.findall(r"\w+", self.content)
