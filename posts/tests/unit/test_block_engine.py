@@ -1,11 +1,8 @@
-import copy
-
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from medias.models import ArticleMedia, Media
 from posts.factories import ArticleFactory
-from posts.models import Article, ArticleTranslation
 from posts.serializers import ArticleCreateUpdateSerializer, ArticleDetailSerializer
 from posts.services import (
     calculate_blocks_reading_time,

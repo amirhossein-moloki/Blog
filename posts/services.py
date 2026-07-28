@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
 
-from medias.models import ArticleMedia, Media
+from medias.models import Media
 from posts.blocks import block_registry
 
 from .models import Article
@@ -169,7 +169,7 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
             if (lvl - 1) not in seen_levels and lvl > 2:
                 raise ValidationError(
                     {
-                        f"content_blocks[{b_idx}].data.level": f"Heading hierarchy violation: Heading level {lvl} must be preceded by level {lvl-1}."
+                        f"content_blocks[{b_idx}].data.level": f"Heading hierarchy violation: Heading level {lvl} must be preceded by level {lvl - 1}."
                     }
                 )
         seen_levels.add(lvl)
