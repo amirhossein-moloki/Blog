@@ -265,6 +265,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     series = SeriesSerializer(read_only=True)
     og_image = MediaDetailSerializer(read_only=True)
     content = serializers.CharField(source="translation.content", read_only=True)
+    content_blocks = serializers.SerializerMethodField()
     seo_title = serializers.CharField(source="translation.seo_title", read_only=True)
     seo_description = serializers.CharField(
         source="translation.seo_description", read_only=True
@@ -275,6 +276,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     class Meta(ArticleListSerializer.Meta):
         fields = ArticleListSerializer.Meta.fields + (
             "content",
+            "content_blocks",
             "canonical_url",
             "series",
             "seo_title",
@@ -292,6 +294,47 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         """
         return ArticleMediaSerializer(obj.media_attachments.all(), many=True).data
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
+    def get_content_blocks(self, obj):
+        trans = obj.translation
+        if not trans:
+            return []
+        blocks = trans.content_blocks or []
+        if not blocks:
+            return []
+
+        import copy
+        blocks = copy.deepcopy(blocks)
+
+        # Collect all media_id and media_ids generically
+        from posts.blocks import block_registry
+        media_ids = set()
+        for block in blocks:
+            b_type = block.get("type")
+            b_data = block.get("data", {})
+            handler = block_registry.get_block(b_type)
+            if handler:
+                media_ids.update(handler.get_referenced_media_ids(b_data))
+
+        # Query all Media records in a single query (batch expansion)
+        from medias.models import Media
+        from medias.serializers import MediaDetailSerializer
+        media_map = {}
+        if media_ids:
+            medias = Media.objects.filter(id__in=media_ids)
+            for media in medias:
+                media_map[media.id] = MediaDetailSerializer(media, context=self.context).data
+
+        # Embed Media into blocks generically
+        for block in blocks:
+            b_type = block.get("type")
+            b_data = block.get("data", {})
+            handler = block_registry.get_block(b_type)
+            if handler:
+                handler.expand_media_references(b_data, media_map)
+
+        return blocks
+
 
 class ArticleCreateUpdateSerializer(
     ContentNormalizationMixin, serializers.ModelSerializer
@@ -308,7 +351,10 @@ class ArticleCreateUpdateSerializer(
     short_description = serializers.CharField(
         write_only=True, required=False, allow_blank=True, allow_null=True
     )
-    content = serializers.CharField(write_only=True)
+    content = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, allow_null=True
+    )
+    content_blocks = serializers.JSONField(write_only=True, required=False)
     seo_title = serializers.CharField(write_only=True, required=False, allow_blank=True)
     seo_description = serializers.CharField(
         write_only=True, required=False, allow_blank=True
@@ -367,6 +413,7 @@ class ArticleCreateUpdateSerializer(
             "excerpt",
             "short_description",
             "content",
+            "content_blocks",
             "status",
             "visibility",
             "is_hot",
@@ -392,6 +439,20 @@ class ArticleCreateUpdateSerializer(
         )
         read_only_fields = ("views_count",)
         extra_kwargs = {"slug": {"required": False}}
+
+    def validate_content_blocks(self, value):
+        if value is None:
+            return []
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from posts.services import validate_and_sanitize_blocks
+
+        language_code = self.initial_data.get("language_code", "en")
+        try:
+            return validate_and_sanitize_blocks(value, language_code=language_code)
+        except DjangoValidationError as e:
+            if hasattr(e, "message_dict") and e.message_dict:
+                raise serializers.ValidationError(e.message_dict)
+            raise serializers.ValidationError(e.message)
 
     def _handle_publication_date(self, validated_data):
         """
