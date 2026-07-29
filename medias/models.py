@@ -85,7 +85,9 @@ class MediaVariant(BaseModel):
     """
 
     media = models.ForeignKey(Media, on_delete=models.CASCADE, related_name="variants")
-    variant_name = models.CharField(max_length=50)  # e.g., 'original', 'large', 'medium', 'small', 'thumbnail'
+    variant_name = models.CharField(
+        max_length=50
+    )  # e.g., 'original', 'large', 'medium', 'small', 'thumbnail'
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
     format = models.CharField(max_length=20)  # e.g., 'JPEG', 'PNG', 'WebP', 'AVIF'

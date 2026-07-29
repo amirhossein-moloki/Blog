@@ -53,6 +53,7 @@ requests
 pyopenssl
 scikit-learn
 pillow-avif-plugin
+python-magic
 
 # Admin Enhancements
 django-unfold

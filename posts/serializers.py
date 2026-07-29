@@ -465,6 +465,7 @@ class ArticleCreateUpdateSerializer(
         request = self.context.get("request")
         if request and request.FILES and request.user and not request.user.is_anonymous:
             from medias.services import process_inline_blocks_media
+
             value = process_inline_blocks_media(value, request.FILES, request.user)
 
         from django.core.exceptions import ValidationError as DjangoValidationError

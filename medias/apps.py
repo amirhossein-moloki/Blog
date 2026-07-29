@@ -11,4 +11,4 @@ class MediasConfig(AppConfig):
     name = "medias"
 
     def ready(self):
-        import medias.signals
+        import medias.signals  # noqa: F401

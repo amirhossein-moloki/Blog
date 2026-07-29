@@ -1,10 +1,11 @@
 import json
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from medias.models import Media, ArticleMedia
+from medias.models import Media
 from posts.factories import UserFactory
 from posts.models import Article, ArticleTranslation, AuthorProfile
 
@@ -15,28 +16,26 @@ class MediaIntegrationTests(APITestCase):
         self.client.force_authenticate(user=self.user)
         # Create AuthorProfile for the user
         self.author = AuthorProfile.objects.create(
-            user=self.user,
-            display_name="Architect Admin"
+            user=self.user, display_name="Architect Admin"
         )
 
     def test_safe_media_deletion_and_override(self):
         # Create media
         jpeg_data = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00_test..."
-        file_obj = SimpleUploadedFile("delete_test.jpg", jpeg_data, content_type="image/jpeg")
+        file_obj = SimpleUploadedFile(
+            "delete_test.jpg", jpeg_data, content_type="image/jpeg"
+        )
         response = self.client.post(
             reverse("medias:media-list"),
             {"file": file_obj, "title": "Delete Test"},
-            format="multipart"
+            format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         media_id = response.data["id"]
         media = Media.objects.get(pk=media_id)
 
         # Link media to an article
-        article = Article.objects.create(
-            author=self.author,
-            cover_image=media
-        )
+        Article.objects.create(author=self.author, cover_image=media)
 
         # Try to delete media without force
         delete_url = reverse("medias:media-detail", kwargs={"pk": media_id})
@@ -60,13 +59,13 @@ class MediaIntegrationTests(APITestCase):
         self.client.post(
             reverse("medias:media-list"),
             {"file": file1, "title": "Architecture design"},
-            format="multipart"
+            format="multipart",
         )
         # Upload nature
         self.client.post(
             reverse("medias:media-list"),
             {"file": file2, "title": "Beautiful Nature"},
-            format="multipart"
+            format="multipart",
         )
 
         # 1. Search title containing 'arch'
@@ -89,15 +88,15 @@ class MediaIntegrationTests(APITestCase):
                 "version": 1,
                 "order": 1,
                 "file": "inline_image.jpg",
-                "data": {
-                    "caption": "Sunset scene"
-                }
+                "data": {"caption": "Sunset scene"},
             }
         ]
 
         # Create a file matching "inline_image.jpg"
         jpeg_data = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00_inline..."
-        uploaded_file = SimpleUploadedFile("inline_image.jpg", jpeg_data, content_type="image/jpeg")
+        uploaded_file = SimpleUploadedFile(
+            "inline_image.jpg", jpeg_data, content_type="image/jpeg"
+        )
 
         # Post to article creation endpoint
         payload = {
@@ -105,13 +104,11 @@ class MediaIntegrationTests(APITestCase):
             "excerpt": "This is an excerpt",
             "content_blocks": json.dumps(content_blocks),
             "inline_image.jpg": uploaded_file,
-            "language_code": "en"
+            "language_code": "en",
         }
 
         response = self.client.post(
-            reverse("posts:article-list"),
-            payload,
-            format="multipart"
+            reverse("posts:article-list"), payload, format="multipart"
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
