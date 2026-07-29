@@ -10,15 +10,15 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           cache: 'pip'
           python-version: '3.12'
       - name: Install dependencies
         run: |
-          pip install black isort flake8
+          pip install black==25.1.0 isort==6.0.0 flake8==7.3.0
       - name: Run Black
         run: black --check .
       - name: Run isort
@@ -44,9 +44,9 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -96,9 +96,9 @@ jobs:
           SECRET_KEY: dummy_secret_key_for_ci_testing_purposes_only
           STATIC_API_KEY: dummy_api_key_for_ci
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

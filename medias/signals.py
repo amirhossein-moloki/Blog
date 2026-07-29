@@ -1,6 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from django.core.exceptions import ValidationError
+
 from .models import Media
 from .services import MediaUsageService
 

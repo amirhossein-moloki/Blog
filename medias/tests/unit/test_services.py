@@ -1,16 +1,13 @@
 from unittest.mock import MagicMock, patch
 
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from medias.models import Media, MediaVariant
 from medias.services import (
+    MediaDeletionService,
     create_media_from_file,
     validate_file_security,
-    MalwareScanner,
-    MediaUsageService,
-    MediaDeletionService,
 )
 from posts.factories import UserFactory
 
@@ -62,7 +59,9 @@ class MediaServicesTest(TestCase):
 
     def test_validate_file_security_malware_quarantine(self):
         # EICAR signature triggers MalwareScanner rejection
-        malware_data = b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        malware_data = (
+            b"X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*"
+        )
         uploaded_file = SimpleUploadedFile(
             "infected.jpg", malware_data, content_type="image/jpeg"
         )
@@ -87,7 +86,9 @@ class MediaServicesTest(TestCase):
     def test_media_lifecycle_soft_delete_and_restore(self):
         user = UserFactory()
         jpeg_data = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00_lifecycle..."
-        uploaded_file = SimpleUploadedFile("lifecycle.jpg", jpeg_data, content_type="image/jpeg")
+        uploaded_file = SimpleUploadedFile(
+            "lifecycle.jpg", jpeg_data, content_type="image/jpeg"
+        )
         media = create_media_from_file(uploaded_file, user)
 
         # Soft delete

@@ -33,10 +33,16 @@ class MediaViewSet(viewsets.ModelViewSet):
         supporting comprehensive search, filters, and sorting.
         FA: QuerySet فایل‌های رسانه را با واکشی بهینه اشیاء مرتبط، به همراه فیلترها و مرتب‌سازی بازمی‌گرداند.
         """
-        queryset = Media.objects.select_related("uploaded_by").prefetch_related("variants").all()
+        queryset = (
+            Media.objects.select_related("uploaded_by")
+            .prefetch_related("variants")
+            .all()
+        )
 
         # Exclude soft-deleted media by default unless requested (e.g. including deleted)
-        include_deleted = self.request.query_params.get("include_deleted", "false").lower() in ("true", "1")
+        include_deleted = self.request.query_params.get(
+            "include_deleted", "false"
+        ).lower() in ("true", "1")
         if not include_deleted:
             queryset = queryset.filter(is_deleted=False)
 
@@ -44,6 +50,7 @@ class MediaViewSet(viewsets.ModelViewSet):
         q = self.request.query_params.get("q")
         if q:
             from django.db.models import Q
+
             queryset = queryset.filter(Q(title__icontains=q) | Q(alt_text__icontains=q))
 
         # 2. Type filter: ?type=image
@@ -106,24 +113,29 @@ class MediaViewSet(viewsets.ModelViewSet):
 
         if getattr(instance, "is_duplicate", False):
             # Return duplicate response structure exactly as requested
-            return Response({
-                "duplicate": True,
-                "existing_media_id": instance.existing_media_id,
-                "id": instance.id,
-                "url": instance.url,
-                "title": instance.title,
-                "metadata": {
-                    "width": instance.width,
-                    "height": instance.height,
-                    "mime": instance.mime,
-                    "size": instance.size_bytes,
+            return Response(
+                {
+                    "duplicate": True,
+                    "existing_media_id": instance.existing_media_id,
+                    "id": instance.id,
+                    "url": instance.url,
+                    "title": instance.title,
+                    "metadata": {
+                        "width": instance.width,
+                        "height": instance.height,
+                        "mime": instance.mime,
+                        "size": instance.size_bytes,
+                    },
+                    "variants": {
+                        v.variant_name: v.url for v in instance.variants.all()
+                    },
                 },
-                "variants": {
-                    v.variant_name: v.url for v in instance.variants.all()
-                }
-            }, status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK,
+            )
 
-        detail_serializer = MediaDetailSerializer(instance, context={"request": request})
+        detail_serializer = MediaDetailSerializer(
+            instance, context={"request": request}
+        )
         return Response(detail_serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
@@ -135,15 +147,19 @@ class MediaViewSet(viewsets.ModelViewSet):
         force = request.query_params.get("force", "false").lower() in ("true", "1")
 
         # Check references/usage
-        from .services import MediaUsageService, MediaDeletionService
+        from .services import MediaDeletionService, MediaUsageService
+
         usage = MediaUsageService.get_usage(media)
         if usage["usage_count"] > 0 and not force:
-            return Response({
-                "error": "MEDIA_IN_USE",
-                "message": "This media is currently used by published content.",
-                "usage_count": usage["usage_count"],
-                "references": usage["references"]
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {
+                    "error": "MEDIA_IN_USE",
+                    "message": "This media is currently used by published content.",
+                    "usage_count": usage["usage_count"],
+                    "references": usage["references"],
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Deletion behavior: soft delete by default
         MediaDeletionService.soft_delete(media)
@@ -157,6 +173,7 @@ class MediaViewSet(viewsets.ModelViewSet):
         """
         media = get_object_or_404(Media, pk=pk)
         from .services import MediaDeletionService
+
         MediaDeletionService.restore(media)
         return Response({"status": "restored"}, status=status.HTTP_200_OK)
 
@@ -168,8 +185,11 @@ class MediaViewSet(viewsets.ModelViewSet):
         """
         media = get_object_or_404(Media, pk=pk)
         from .services import MediaDeletionService
+
         MediaDeletionService.hard_delete(media)
-        return Response({"status": "permanently_deleted"}, status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"status": "permanently_deleted"}, status=status.HTTP_204_NO_CONTENT
+        )
 
 
 def download_media(request, media_id):

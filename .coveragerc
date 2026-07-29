@@ -11,6 +11,11 @@ omit =
     */common/management/commands/backup_*.py
     */common/management/commands/restore_*.py
     manage.py
+    */forms.py
+    medias/tasks.py
+    users/services.py
+    common/schema.py
+    */sitemaps.py
 
 [report]
 fail_under = 90

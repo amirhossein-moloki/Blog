@@ -2,17 +2,17 @@ import hashlib
 import io
 import logging
 import os
+
 import magic
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import models
 from PIL import Image
 
 from common.utils.files import get_sanitized_filename
 
-from .models import Media, MediaVariant, ArticleMedia
+from .models import ArticleMedia, Media, MediaVariant
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +85,18 @@ def validate_file_security(uploaded_file):
     name = uploaded_file.name
     ext = os.path.splitext(name)[1].lower()
     allowed_extensions = {
-        ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf",
-        ".mp3", ".wav", ".mp4", ".avi", ".mov", ".mkv",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".pdf",
+        ".mp3",
+        ".wav",
+        ".mp4",
+        ".avi",
+        ".mov",
+        ".mkv",
     }
     if ext not in allowed_extensions:
         raise ValidationError(f"File extension '{ext}' is not allowed.")
@@ -101,7 +111,9 @@ def validate_file_security(uploaded_file):
     is_mock = len(file_header) < 100
 
     if is_mock:
-        detected_mime = getattr(uploaded_file, "content_type", "application/octet-stream")
+        detected_mime = getattr(
+            uploaded_file, "content_type", "application/octet-stream"
+        )
     else:
         try:
             detected_mime = magic.from_buffer(file_header, mime=True)
@@ -114,12 +126,16 @@ def validate_file_security(uploaded_file):
             if not file_header.startswith(b"\xff\xd8\xff"):
                 raise ValidationError("Invalid JPEG binary signature.")
             if detected_mime != "image/jpeg":
-                raise ValidationError(f"MIME type mismatch for JPEG. Detected: {detected_mime}")
+                raise ValidationError(
+                    f"MIME type mismatch for JPEG. Detected: {detected_mime}"
+                )
         elif ext == ".png":
             if not file_header.startswith(b"\x89PNG"):
                 raise ValidationError("Invalid PNG binary signature.")
             if detected_mime != "image/png":
-                raise ValidationError(f"MIME type mismatch for PNG. Detected: {detected_mime}")
+                raise ValidationError(
+                    f"MIME type mismatch for PNG. Detected: {detected_mime}"
+                )
 
     # Reject executable files
     if file_header.startswith(b"\x7fELF") or file_header.startswith(b"MZ"):
@@ -176,16 +192,18 @@ class ImageProcessor:
             parent_file.seek(0)
             default_storage.save(orig_key, parent_file)
 
-        variants_created.append(MediaVariant.objects.create(
-            media=media_instance,
-            variant_name="original",
-            width=media_instance.width,
-            height=media_instance.height,
-            format=orig_format,
-            storage_key=orig_key,
-            url=default_storage.url(orig_key),
-            size_bytes=media_instance.size_bytes,
-        ))
+        variants_created.append(
+            MediaVariant.objects.create(
+                media=media_instance,
+                variant_name="original",
+                width=media_instance.width,
+                height=media_instance.height,
+                format=orig_format,
+                storage_key=orig_key,
+                url=default_storage.url(orig_key),
+                size_bytes=media_instance.size_bytes,
+            )
+        )
 
         # Generate each preset
         for name, (target_w, target_h, smart_crop) in presets.items():
@@ -217,16 +235,18 @@ class ImageProcessor:
 
                 saved_v_key = default_storage.save(v_key, ContentFile(buf_val))
 
-                variants_created.append(MediaVariant.objects.create(
-                    media=media_instance,
-                    variant_name=name,
-                    width=im.width,
-                    height=im.height,
-                    format=save_fmt,
-                    storage_key=saved_v_key,
-                    url=default_storage.url(saved_v_key),
-                    size_bytes=len(buf_val),
-                ))
+                variants_created.append(
+                    MediaVariant.objects.create(
+                        media=media_instance,
+                        variant_name=name,
+                        width=im.width,
+                        height=im.height,
+                        format=save_fmt,
+                        storage_key=saved_v_key,
+                        url=default_storage.url(saved_v_key),
+                        size_bytes=len(buf_val),
+                    )
+                )
 
         return variants_created
 
@@ -278,7 +298,9 @@ def create_media_from_file(uploaded_file, uploaded_by, alt_text="", title=""):
     file_hash = sha256.hexdigest()
     uploaded_file.seek(0)
 
-    existing_media = Media.objects.filter(content_hash=file_hash, is_deleted=False).first()
+    existing_media = Media.objects.filter(
+        content_hash=file_hash, is_deleted=False
+    ).first()
     if existing_media:
         # Prevent double-storage, attach duplicate metadata flag
         existing_media.is_duplicate = True
@@ -329,8 +351,11 @@ def create_media_from_file(uploaded_file, uploaded_by, alt_text="", title=""):
     # 4. Trigger image variants generation task
     if is_image:
         from django.conf import settings
+
         # Eager execution fallback for tests
-        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", True) or getattr(settings, "TESTING", False):
+        if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", True) or getattr(
+            settings, "TESTING", False
+        ):
             media.status = "Processing"
             media.save(update_fields=["status"])
             try:
@@ -343,6 +368,7 @@ def create_media_from_file(uploaded_file, uploaded_by, alt_text="", title=""):
                 media.save(update_fields=["status"])
         else:
             from .tasks import generate_image_variants_task
+
             media.status = "Processing"
             media.save(update_fields=["status"])
             generate_image_variants_task.delay(media.id)
@@ -361,14 +387,16 @@ class MediaUsageService:
 
     @staticmethod
     def get_usage(media_instance):
-        from posts.models import Article, ArticleTranslation
         from posts.blocks import block_registry
+        from posts.models import Article, ArticleTranslation
 
         ref_article_ids = set()
 
         # 1. Check ArticleMedia association
         ref_article_ids.update(
-            ArticleMedia.objects.filter(media=media_instance).values_list("article_id", flat=True)
+            ArticleMedia.objects.filter(media=media_instance).values_list(
+                "article_id", flat=True
+            )
         )
 
         # 2. Check Article cover_image and og_image directly
@@ -378,7 +406,9 @@ class MediaUsageService:
         ref_article_ids.update(cover_articles)
 
         # 3. Check JSONB content_blocks
-        translations = ArticleTranslation.objects.exclude(content_blocks__isnull=True).exclude(content_blocks=[])
+        translations = ArticleTranslation.objects.exclude(
+            content_blocks__isnull=True
+        ).exclude(content_blocks=[])
         for trans in translations:
             blocks = trans.content_blocks or []
             for block in blocks:
@@ -397,16 +427,9 @@ class MediaUsageService:
             for art in articles:
                 trans = art.translations.first()
                 title = trans.title if trans else f"Article {art.id}"
-                references.append({
-                    "type": "article",
-                    "id": art.id,
-                    "title": title
-                })
+                references.append({"type": "article", "id": art.id, "title": title})
 
-        return {
-            "usage_count": len(ref_article_ids),
-            "references": references
-        }
+        return {"usage_count": len(ref_article_ids), "references": references}
 
 
 class MediaDeletionService:
@@ -493,7 +516,11 @@ def process_inline_blocks_media(blocks, files, user):
                 elif file_ref in files:
                     target_file = files[file_ref]
 
-            if not target_file and not b_data.get("media_id") and positional_idx < len(positional_files):
+            if (
+                not target_file
+                and not b_data.get("media_id")
+                and positional_idx < len(positional_files)
+            ):
                 target_file = positional_files[positional_idx]
                 positional_idx += 1
 
