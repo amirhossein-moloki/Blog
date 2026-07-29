@@ -36,7 +36,8 @@ class MediaAPITest(TestCase):
 
     def _create_dummy_image(self, name="test.jpg", content_type="image/jpeg"):
         image_io = BytesIO()
-        image = Image.new("RGB", (100, 100), color="red")
+        color = "blue" if "og" in name else "red"
+        image = Image.new("RGB", (100, 100), color=color)
         image.save(image_io, "jpeg")
         image_io.seek(0)
         return SimpleUploadedFile(name, image_io.getvalue(), content_type=content_type)

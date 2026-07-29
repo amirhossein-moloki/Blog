@@ -19,6 +19,14 @@ class Media(BaseModel):
     متادیتاهایی مانند ابعاد، نوع MIME و حجم را ذخیره می‌کند.
     """
 
+    STATUS_CHOICES = (
+        ("Pending", "Pending"),
+        ("Processing", "Processing"),
+        ("Ready", "Ready"),
+        ("Rejected", "Rejected"),
+        ("Quarantined", "Quarantined"),
+    )
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -38,6 +46,16 @@ class Media(BaseModel):
     title = models.CharField(max_length=255, blank=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
+    # Added enterprise features
+    is_deleted = models.BooleanField(default=False)
+    content_hash = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    checksum_algorithm = models.CharField(max_length=10, default="SHA256")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="Ready",
+    )
+
     def __str__(self):
         """
         EN: Returns the title or storage key as the string representation.
@@ -53,6 +71,33 @@ class Media(BaseModel):
         if self.pk:
             return reverse("medias:download_media", kwargs={"media_id": self.pk})
         return ""
+
+
+class MediaVariant(BaseModel):
+    """
+    EN:
+    Stores processed variants of a parent Media object (e.g., thumbnail, small, medium, large).
+    Supports multi-format delivery (JPEG, PNG, WebP, AVIF).
+
+    FA:
+    نسخه‌های پردازش شده از یک شیء رسانه والد را ذخیره می‌کند (مانند تامبنیل، کوچک، متوسط، بزرگ).
+    از فرمت‌های چندگانه تحویل پشتیبانی می‌کند.
+    """
+
+    media = models.ForeignKey(Media, on_delete=models.CASCADE, related_name="variants")
+    variant_name = models.CharField(max_length=50)  # e.g., 'original', 'large', 'medium', 'small', 'thumbnail'
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
+    format = models.CharField(max_length=20)  # e.g., 'JPEG', 'PNG', 'WebP', 'AVIF'
+    storage_key = models.CharField(max_length=255)
+    url = models.URLField()
+    size_bytes = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["variant_name"]
+
+    def __str__(self):
+        return f"{self.variant_name} variant of Media {self.media_id}"
 
 
 class ArticleMedia(BaseModel):

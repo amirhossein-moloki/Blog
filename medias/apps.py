@@ -9,3 +9,6 @@ class MediasConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "medias"
+
+    def ready(self):
+        import medias.signals
