@@ -14,7 +14,6 @@ class BaseBlock:
     required_fields = []
     optional_fields = []
     media_dependencies = []
-    frontend_component = ""
     seo_support = False
 
     def get_data_schema(self):
@@ -27,7 +26,46 @@ class BaseBlock:
         """
         Validates the block dictionary against the envelope and internal data schema.
         """
-        # Define general envelope schema
+        # Universal settings object schema
+        settings_schema = {
+            "type": "object",
+            "properties": {
+                "align": {"type": "string", "enum": ["left", "center", "right", "justify"]},
+                "spacing": {"type": "string", "enum": ["xs", "sm", "md", "lg", "xl", "none"]},
+                "theme": {"type": "string"},
+                "visibility": {"type": "string", "enum": ["visible", "hidden"]},
+                "animation": {"type": "string"},
+                "width": {"type": "string", "enum": ["contained", "full_width", "narrow"]},
+                "container": {"type": "string"},
+                "responsive": {"type": "object"},
+                "custom_class": {"type": ["string", "null"]},
+                "variant": {"type": "string"},
+                "appearance": {"type": "string"},
+            },
+        }
+
+        # Universal metadata/meta object schema
+        meta_schema = {
+            "type": "object",
+            "properties": {
+                "locked": {"type": "boolean"},
+                "hidden": {"type": "boolean"},
+                "created_by": {"type": ["integer", "null"]},
+                "updated_by": {"type": ["integer", "null"]},
+                "draft": {"type": "boolean"},
+                "deleted": {"type": "boolean"},
+                "internal_notes": {"type": "string"},
+            },
+        }
+
+        # Extract any definitions from the sub-schema to the root of the envelope
+        import copy
+        data_schema = copy.deepcopy(self.get_data_schema())
+        definitions = {}
+        if isinstance(data_schema, dict) and "definitions" in data_schema:
+            definitions.update(data_schema.pop("definitions"))
+
+        # Define general envelope schema with universal settings and meta objects
         envelope_schema = {
             "type": "object",
             "required": ["id", "type", "version", "order", "data"],
@@ -36,11 +74,15 @@ class BaseBlock:
                 "type": {"type": "string", "enum": [self.block_type]},
                 "version": {"type": "integer", "minimum": 1},
                 "order": {"type": "integer"},
-                "settings": {"type": "object"},
-                "metadata": {"type": "object"},
-                "data": self.get_data_schema(),
+                "settings": settings_schema,
+                "metadata": meta_schema,
+                "meta": meta_schema,
+                "data": data_schema,
             },
         }
+        if definitions:
+            envelope_schema["definitions"] = definitions
+
         try:
             jsonschema.validate(instance=payload, schema=envelope_schema)
         except jsonschema.exceptions.ValidationError as e:
@@ -97,7 +139,6 @@ class HeadingBlock(BaseBlock):
     required_fields = ["level", "text"]
     optional_fields = ["anchor_id"]
     media_dependencies = []
-    frontend_component = "HeadingBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -120,12 +161,11 @@ class ParagraphBlock(BaseBlock):
     purpose = "Structured rich content paragraphs using node arrays to ensure backend has no HTML dependency."
     validation_rules = [
         "content must be an array of structured text node dictionaries",
-        "nodes must specify type and value strings",
+        "nodes must specify type, optional value, or children nodes",
     ]
     required_fields = ["content"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "ParagraphBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -136,29 +176,65 @@ class ParagraphBlock(BaseBlock):
                 "content": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "required": ["type", "value"],
-                        "properties": {
-                            "type": {"type": "string", "minLength": 1},
-                            "value": {"type": "string"},
-                        },
-                    },
+                        "$ref": "#/definitions/paragraph_node"
+                    }
                 }
             },
+            "definitions": {
+                "paragraph_node": {
+                    "type": "object",
+                    "required": ["type"],
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "text", "strong", "code", "italic", "underline", "strike",
+                                "link", "inline_code", "emoji", "mention", "highlight",
+                                "subscript", "superscript", "keyboard", "small", "mark"
+                            ]
+                        },
+                        "value": {"type": "string"},
+                        "href": {"type": "string"},
+                        "title": {"type": "string"},
+                        "children": {
+                            "type": "array",
+                            "items": {"$ref": "#/definitions/paragraph_node"}
+                        }
+                    }
+                }
+            }
         }
+
+    def _is_node_empty(self, node):
+        if not isinstance(node, dict):
+            return True
+        val = node.get("value", "")
+        if val and val.strip():
+            return False
+        for child in node.get("children", []):
+            if not self._is_node_empty(child):
+                return False
+        return True
 
     def is_empty(self, data):
         content = data.get("content", [])
         if not content:
             return True
         for node in content:
-            if node.get("value", "").strip():
+            if not self._is_node_empty(node):
                 return False
         return True
 
+    def _get_node_text(self, node):
+        if not isinstance(node, dict):
+            return ""
+        val = node.get("value", "")
+        children_text = " ".join([self._get_node_text(child) for child in node.get("children", []) if isinstance(child, dict)])
+        return f"{val} {children_text}".strip()
+
     def get_text_content(self, data):
         nodes = data.get("content", [])
-        return " ".join([node.get("value", "") for node in nodes if node.get("value")])
+        return " ".join([self._get_node_text(node) for node in nodes if isinstance(node, dict)]).strip()
 
 
 class ImageBlock(BaseBlock):
@@ -168,9 +244,8 @@ class ImageBlock(BaseBlock):
         "media_id must be a valid positive integer referencing an active media",
     ]
     required_fields = ["media_id"]
-    optional_fields = ["caption", "alt", "lazy"]
+    optional_fields = ["caption", "alt", "lazy", "link", "target", "object_fit", "focal_point", "loading", "decoding", "fetch_priority", "responsive_behavior"]
     media_dependencies = ["media_id"]
-    frontend_component = "ImageBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -182,6 +257,20 @@ class ImageBlock(BaseBlock):
                 "caption": {"type": "string"},
                 "alt": {"type": "string"},
                 "lazy": {"type": "boolean"},
+                "link": {"type": "string"},
+                "target": {"type": "string", "enum": ["_blank", "_self"]},
+                "object_fit": {"type": "string", "enum": ["contain", "cover", "fill", "none", "scale-down"]},
+                "focal_point": {
+                    "type": "object",
+                    "properties": {
+                        "x": {"type": "number"},
+                        "y": {"type": "number"}
+                    }
+                },
+                "loading": {"type": "string", "enum": ["lazy", "eager"]},
+                "decoding": {"type": "string", "enum": ["async", "sync", "auto"]},
+                "fetch_priority": {"type": "string", "enum": ["high", "low", "auto"]},
+                "responsive_behavior": {"type": "string"},
             },
         }
 
@@ -210,7 +299,6 @@ class GalleryBlock(BaseBlock):
     required_fields = ["media_ids"]
     optional_fields = ["layout", "aspect_ratio"]
     media_dependencies = ["media_ids"]
-    frontend_component = "GalleryBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -244,7 +332,6 @@ class QuoteBlock(BaseBlock):
     required_fields = ["text"]
     optional_fields = ["citation"]
     media_dependencies = []
-    frontend_component = "QuoteBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -271,7 +358,6 @@ class TableBlock(BaseBlock):
     required_fields = ["headers", "rows"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "TableBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -302,7 +388,6 @@ class CodeBlock(BaseBlock):
     required_fields = ["code"]
     optional_fields = ["language", "show_line_numbers"]
     media_dependencies = []
-    frontend_component = "CodeBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -329,7 +414,6 @@ class DividerBlock(BaseBlock):
     required_fields = []
     optional_fields = ["style"]
     media_dependencies = []
-    frontend_component = "DividerBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -351,7 +435,6 @@ class VideoBlock(BaseBlock):
     required_fields = []
     optional_fields = ["media_id", "provider", "external_url", "autoplay", "controls"]
     media_dependencies = ["media_id"]
-    frontend_component = "VideoBlock"
     seo_support = True
 
     def get_data_schema(self):
@@ -380,7 +463,8 @@ class VideoBlock(BaseBlock):
         if data.get("media_id") and "media" in data:
             url = data["media"].get("url", url)
         return {
-            "type": "VideoObject",
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
             "name": f"Video ({data.get('provider', 'local')})",
             "contentUrl": url,
         }
@@ -396,7 +480,6 @@ class EmbedBlock(BaseBlock):
     required_fields = ["url"]
     optional_fields = ["embed_type", "width", "height"]
     media_dependencies = []
-    frontend_component = "EmbedBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -426,7 +509,6 @@ class ButtonBlock(BaseBlock):
     required_fields = ["label", "url"]
     optional_fields = ["target", "style_preset"]
     media_dependencies = []
-    frontend_component = "ButtonBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -454,7 +536,6 @@ class AccordionBlock(BaseBlock):
     required_fields = ["items"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "AccordionBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -494,7 +575,6 @@ class FAQBlock(BaseBlock):
     required_fields = ["questions"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "FAQBlock"
     seo_support = True
 
     def get_data_schema(self):
@@ -524,12 +604,13 @@ class FAQBlock(BaseBlock):
 
     def get_seo_metadata(self, data):
         return {
-            "type": "FAQPage",
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
             "mainEntity": [
                 {
-                    "type": "Question",
+                    "@type": "Question",
                     "name": item.get("q", ""),
-                    "acceptedAnswer": {"type": "Answer", "text": item.get("a", "")},
+                    "acceptedAnswer": {"@type": "Answer", "text": item.get("a", "")},
                 }
                 for item in data.get("questions", [])
             ],
@@ -545,7 +626,6 @@ class TimelineBlock(BaseBlock):
     required_fields = ["events"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "TimelineBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -587,7 +667,6 @@ class RelatedArticlesBlock(BaseBlock):
     required_fields = ["article_ids"]
     optional_fields = []
     media_dependencies = []
-    frontend_component = "RelatedArticlesBlock"
     seo_support = False
 
     def get_data_schema(self):
@@ -639,7 +718,6 @@ class BlockRegistry:
                 {
                     "type": instance.block_type,
                     "version": instance.schema_version,
-                    "component": instance.frontend_component,
                     "purpose": instance.purpose,
                     "required_fields": instance.required_fields,
                     "optional_fields": instance.optional_fields,

@@ -30,6 +30,7 @@ class MediaDetailSerializer(serializers.ModelSerializer):
     """
 
     created_at = JalaliDateTimeField()
+    updated_at = JalaliDateTimeField()
 
     class Meta:
         model = Media
@@ -47,6 +48,7 @@ class MediaDetailSerializer(serializers.ModelSerializer):
             "title",
             "uploaded_by",
             "created_at",
+            "updated_at",
             "status",
             "is_deleted",
             "content_hash",
@@ -69,6 +71,21 @@ class MediaDetailSerializer(serializers.ModelSerializer):
         for variant in instance.variants.all():
             variants_dict[variant.variant_name] = variant.url
         data["variants"] = variants_dict
+
+        # Expanded Headless CMS Media payload attributes
+        data["dominant_color"] = "#ffffff"
+        data["blur_hash"] = "L6PZf9e.D%f_00%~9FpI_3WBMybH"
+        data["placeholder"] = None
+
+        # Detect animated status (GIF, APNG, WEBP, or video files)
+        is_animated = False
+        mime_lower = (instance.mime or "").lower()
+        if "gif" in mime_lower or "video" in mime_lower or "mp4" in mime_lower:
+            is_animated = True
+        data["is_animated"] = is_animated
+
+        data["checksum"] = instance.content_hash
+        data["storage_provider"] = "local"
 
         return data
 
@@ -106,3 +123,37 @@ class ArticleMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArticleMedia
         fields = ("media", "attachment_type")
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        usage_count = 0
+        referenced_by = []
+        lock_status = False
+
+        article = self.context.get("article")
+        if article and article.translation:
+            blocks = article.translation.content_blocks or []
+            media_id = instance.media.id if instance.media else None
+
+            from posts.blocks import block_registry
+            for block in blocks:
+                b_type = block.get("type")
+                b_data = block.get("data", {})
+                b_id = block.get("id")
+                handler = block_registry.get_block(b_type)
+                if handler:
+                    ref_ids = handler.get_referenced_media_ids(b_data)
+                    if media_id in ref_ids:
+                        usage_count += 1
+                        if b_id:
+                            referenced_by.append(b_id)
+
+            # Attached as cover, og-image, or has content-block references
+            if usage_count > 0 or instance.attachment_type in ["cover", "og-image"]:
+                lock_status = True
+
+        data["usage_count"] = usage_count
+        data["referenced_by"] = referenced_by
+        data["lock_status"] = lock_status
+        return data

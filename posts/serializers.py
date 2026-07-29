@@ -256,6 +256,65 @@ class ArticleListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
         )
 
 
+def migrate_and_normalize_block(block):
+    """
+    Normalizes on-the-fly and migrates old Visual configurations / structures
+    to presentation-agnostic Headless CMS standards.
+    """
+    # 1. Ensure settings dict exists with universal presentation properties
+    if "settings" not in block or not isinstance(block["settings"], dict):
+        block["settings"] = {}
+
+    settings_defaults = {
+        "align": "left",
+        "spacing": "md",
+        "theme": "default",
+        "visibility": "visible",
+        "animation": "none",
+        "width": "contained",
+        "container": "default",
+        "responsive": {},
+        "custom_class": None
+    }
+    for k, v in settings_defaults.items():
+        if k not in block["settings"]:
+            block["settings"][k] = v
+
+    # 2. Migrate legacy visual properties from 'data' to 'settings'
+    b_type = block.get("type")
+    b_data = block.get("data", {})
+    if isinstance(b_data, dict):
+        if b_type == "divider" and "style" in b_data:
+            block["settings"]["variant"] = b_data.pop("style")
+        elif b_type == "button" and "style_preset" in b_data:
+            block["settings"]["appearance"] = b_data.pop("style_preset")
+
+    # 3. Ensure metadata/meta exists (accept both inputs, normalize to 'meta' output)
+    meta_key = "meta" if "meta" in block else ("metadata" if "metadata" in block else "meta")
+    meta_data = block.get(meta_key, {})
+    if not isinstance(meta_data, dict):
+        meta_data = {}
+
+    meta_defaults = {
+        "locked": False,
+        "hidden": False,
+        "created_by": None,
+        "updated_by": None,
+        "draft": False,
+        "deleted": False,
+        "internal_notes": ""
+    }
+    for k, v in meta_defaults.items():
+        if k not in meta_data:
+            meta_data[k] = v
+
+    block["meta"] = meta_data
+    if "metadata" in block:
+        del block["metadata"]
+
+    return block
+
+
 class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     """
     EN: Comprehensive serializer for detailed Article view, including content and attachments.
@@ -273,6 +332,8 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     )
     media_attachments = serializers.SerializerMethodField()
     related_articles = ArticleListSerializer(many=True, read_only=True)
+    article_schema_version = serializers.SerializerMethodField()
+    structured_data = serializers.SerializerMethodField()
 
     class Meta(ArticleListSerializer.Meta):
         fields = ArticleListSerializer.Meta.fields + (
@@ -286,7 +347,12 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             "og_image",
             "media_attachments",
             "related_articles",
+            "article_schema_version",
+            "structured_data",
         )
+
+    def get_article_schema_version(self, obj):
+        return 2
 
     @extend_schema_field(ArticleMediaSerializer(many=True))
     def get_media_attachments(self, obj):
@@ -294,7 +360,8 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         EN: Retrieves media attachments related to the article.
         FA: پیوست‌های رسانه‌ای مرتبط با مقاله را واکشی می‌کند.
         """
-        return ArticleMediaSerializer(obj.media_attachments.all(), many=True).data
+        # Pass the article object itself to the ArticleMediaSerializer context so it can compute references
+        return ArticleMediaSerializer(obj.media_attachments.all(), many=True, context={"article": obj, "request": self.context.get("request")}).data
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_blocks(self, obj):
@@ -336,22 +403,36 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
                     media, context=self.context
                 ).data
 
-        # Embed Media into blocks generically
+        # Embed Media into blocks generically & normalize / migrate on-the-fly
+        normalized_blocks = []
         for block in blocks:
             b_type = block.get("type")
             b_data = block.get("data", {})
             handler = block_registry.get_block(b_type)
             if handler:
                 handler.expand_media_references(b_data, media_map)
-                # Inject component reference dynamically
-                if "component" not in block:
-                    block["component"] = handler.frontend_component
-                # Inject structured SEO support if available
+
+                # Perform on-the-fly migration for settings, meta, and styles
+                block = migrate_and_normalize_block(block)
+                normalized_blocks.append(block)
+
+        return normalized_blocks
+
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
+    def get_structured_data(self, obj):
+        processed_blocks = self.get_content_blocks(obj)
+        from posts.blocks import block_registry
+
+        structured_data = []
+        for block in processed_blocks:
+            b_type = block.get("type")
+            b_data = block.get("data", {})
+            handler = block_registry.get_block(b_type)
+            if handler:
                 seo_meta = handler.get_seo_metadata(b_data)
                 if seo_meta:
-                    block["seo"] = seo_meta
-
-        return blocks
+                    structured_data.append(seo_meta)
+        return structured_data
 
 
 class ArticleCreateUpdateSerializer(
