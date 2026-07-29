@@ -455,7 +455,7 @@ class BlockEngineIntegrationTests(TestCase):
         self.assertEqual(media_expanded["id"], self.media1.id)
         self.assertEqual(media_expanded["url"], self.media1.url)
 
-    def test_headless_component_identifier_and_seo_and_blocks_alias(self):
+    def test_presentation_agnostic_headless_attributes(self):
         trans = self.article.translation
         trans.content_blocks = [
             {
@@ -485,13 +485,32 @@ class BlockEngineIntegrationTests(TestCase):
         blocks = repr_data["blocks"]
         self.assertEqual(len(blocks), 2)
 
-        # 2. Frontend Component Name validation
-        self.assertEqual(blocks[0]["component"], "ParagraphBlock")
-        self.assertEqual(blocks[1]["component"], "FAQBlock")
+        # 2. Frontend Component Name must be COMPLETELY REMOVED
+        self.assertNotIn("component", blocks[0])
+        self.assertNotIn("component", blocks[1])
 
-        # 3. Structured SEO Support validation
-        self.assertNotIn("seo", blocks[0])  # Paragraph has no SEO metadata support
-        self.assertIn("seo", blocks[1])  # FAQ has SEO metadata support
-        self.assertEqual(blocks[1]["seo"]["type"], "FAQPage")
-        self.assertEqual(len(blocks[1]["seo"]["mainEntity"]), 1)
-        self.assertEqual(blocks[1]["seo"]["mainEntity"][0]["name"], "Question 1?")
+        # 3. Block-level SEO must be COMPLETELY REMOVED
+        self.assertNotIn("seo", blocks[0])
+        self.assertNotIn("seo", blocks[1])
+
+        # 4. Universal Settings Object must exist on ALL blocks (with default presentation properties)
+        for block in blocks:
+            self.assertIn("settings", block)
+            self.assertEqual(block["settings"]["align"], "left")
+            self.assertEqual(block["settings"]["spacing"], "md")
+
+        # 5. Universal Meta Object must exist on ALL blocks
+        for block in blocks:
+            self.assertIn("meta", block)
+            self.assertEqual(block["meta"]["locked"], False)
+
+        # 6. Structured data must be aggregated at the article level
+        self.assertIn("structured_data", repr_data)
+        self.assertEqual(len(repr_data["structured_data"]), 1)
+        self.assertEqual(repr_data["structured_data"][0]["@type"], "FAQPage")
+        self.assertEqual(
+            repr_data["structured_data"][0]["@context"], "https://schema.org"
+        )
+
+        # 7. Article Schema Version must be present
+        self.assertEqual(repr_data["article_schema_version"], 2)

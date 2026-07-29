@@ -1,0 +1,250 @@
+{
+  "status": "success",
+  "data": {
+    "id": 101,
+    "language_code": "fa",
+    "title": "راهنمای معماری مدرن Headless CMS با جنگو",
+    "slug": "راهنمای-معماری-مدرن-headless-cms",
+    "excerpt": "در این مقاله به بررسی عمیق و پیاده‌سازی یک سیستم مدیریت محتوای کاملاً مستقل از فرانت‌اند (Presentation-Agnostic) با جنگو می‌پردازیم.",
+    "short_description": "یک راهنمای کاملاً فنی برای توسعه‌دهندگان ارشد جهت طراحی قراردادهای داده‌ای تمیز و مستقل از فریم‌ورک.",
+    "reading_time_sec": 120,
+    "status": "published",
+    "is_hot": true,
+    "published_at": "1405/05/08 12:00:00",
+    "article_schema_version": 2,
+    "structured_data": [
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "چرا باید نام کامپوننت‌های فرانت‌اند را از بک‌اند حذف کنیم؟",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "جدا نگه‌داشتن بک‌اند از جزئیات پیاده‌سازی فرانت‌اند به سیستم اجازه می‌دهد کاملاً مستقل از پلتفرم (وب، موبایل، ساعت هوشمند) کار کند و تغییرات فرانت‌اند نیازی به تغییرات API نداشته باشد."
+            }
+          }
+        ]
+      }
+    ],
+    "blocks": [
+      {
+        "id": "blk_heading_1",
+        "type": "heading",
+        "version": 1,
+        "order": 1,
+        "settings": {
+          "align": "right",
+          "spacing": "lg",
+          "theme": "primary",
+          "visibility": "visible",
+          "animation": "fade-in",
+          "width": "contained",
+          "container": "default",
+          "responsive": {},
+          "custom_class": "main-title-class"
+        },
+        "meta": {
+          "locked": true,
+          "hidden": false,
+          "created_by": 1,
+          "updated_by": null,
+          "draft": false,
+          "deleted": false,
+          "internal_notes": "این هدر اصلی مقاله است و نباید ویرایش شود."
+        },
+        "data": {
+          "level": 2,
+          "text": "اصول معماری مستقل از نمایش (Presentation-Agnostic)"
+        }
+      },
+      {
+        "id": "blk_paragraph_1",
+        "type": "paragraph",
+        "version": 1,
+        "order": 2,
+        "settings": {
+          "align": "justify",
+          "spacing": "md",
+          "theme": "default",
+          "visibility": "visible",
+          "animation": "none",
+          "width": "contained",
+          "container": "default",
+          "responsive": {},
+          "custom_class": null
+        },
+        "meta": {
+          "locked": false,
+          "hidden": false,
+          "created_by": 1,
+          "updated_by": null,
+          "draft": false,
+          "deleted": false,
+          "internal_notes": ""
+        },
+        "data": {
+          "content": [
+            {
+              "type": "text",
+              "value": "سیستم جدید ما با استفاده از "
+            },
+            {
+              "type": "strong",
+              "value": "آرایه‌های ساختاریافته از نودها"
+            },
+            {
+              "type": "text",
+              "value": " کار می‌کند تا هیچ وابستگی به کد خام HTML در دیتابیس وجود نداشته باشد. به این ترتیب می‌توانید محتوا را به راحتی در "
+            },
+            {
+              "type": "link",
+              "href": "https://react.dev",
+              "title": "React JS Website",
+              "children": [
+                {
+                  "type": "italic",
+                  "value": "React"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "value": " یا اپلیکیشن‌های موبایل رندر کنید."
+            }
+          ]
+        }
+      },
+      {
+        "id": "blk_image_1",
+        "type": "image",
+        "version": 1,
+        "order": 3,
+        "settings": {
+          "align": "center",
+          "spacing": "md",
+          "theme": "default",
+          "visibility": "visible",
+          "animation": "zoom-in",
+          "width": "full_width",
+          "container": "default",
+          "responsive": {},
+          "custom_class": null
+        },
+        "meta": {
+          "locked": false,
+          "hidden": false,
+          "created_by": 1,
+          "updated_by": null,
+          "draft": false,
+          "deleted": false,
+          "internal_notes": "تصویر با کیفیت از ساختار درختی"
+        },
+        "data": {
+          "media_id": 42,
+          "caption": "نمودار معماری توزیع شده با بافت درختی نودها",
+          "alt": "Distributed Headless Architecture Tree Schema",
+          "lazy": true,
+          "link": "https://cdn.example.com",
+          "target": "_blank",
+          "object_fit": "cover",
+          "focal_point": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "loading": "lazy",
+          "decoding": "async",
+          "fetch_priority": "high",
+          "responsive_behavior": "responsive",
+          "media": {
+            "id": 42,
+            "storage_key": "headless-tree.jpg",
+            "url": "https://cdn.example.com/headless-tree.jpg",
+            "type": "image",
+            "mime": "image/jpeg",
+            "width": 1200,
+            "height": 800,
+            "size_bytes": 124500,
+            "alt_text": "Headless tree structure",
+            "title": "Headless Tree Structure Diagram",
+            "uploaded_by": 1,
+            "created_at": "1405/05/08 11:30:00",
+            "updated_at": "1405/05/08 11:32:00",
+            "status": "Ready",
+            "is_deleted": false,
+            "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "checksum_algorithm": "SHA256",
+            "dominant_color": "#2c3e50",
+            "blur_hash": "L6PZf9e.D%f_00%~9FpI_3WBMybH",
+            "placeholder": null,
+            "is_animated": false,
+            "storage_provider": "local",
+            "metadata": {
+              "width": 1200,
+              "height": 800,
+              "mime": "image/jpeg",
+              "size": 124500
+            },
+            "variants": {
+              "thumbnail": "https://cdn.example.com/headless-tree_thumb.jpg",
+              "medium": "https://cdn.example.com/headless-tree_medium.jpg"
+            }
+          }
+        }
+      },
+      {
+        "id": "blk_faq_1",
+        "type": "faq",
+        "version": 1,
+        "order": 4,
+        "settings": {
+          "align": "right",
+          "spacing": "md",
+          "theme": "default",
+          "visibility": "visible",
+          "animation": "none",
+          "width": "contained",
+          "container": "default",
+          "responsive": {},
+          "custom_class": null
+        },
+        "meta": {
+          "locked": false,
+          "hidden": false,
+          "created_by": 1,
+          "updated_by": null,
+          "draft": false,
+          "deleted": false,
+          "internal_notes": "سوالات متداول امنیتی"
+        },
+        "data": {
+          "questions": [
+            {
+              "q": "چرا باید نام کامپوننت‌های فرانت‌اند را از بک‌اند حذف کنیم؟",
+              "a": "جدا نگه‌داشتن بک‌اند از جزئیات پیاده‌سازی فرانت‌اند به سیستم اجازه می‌دهد کاملاً مستقل از پلتفرم (وب، موبایل، ساعت هوشمند) کار کند و تغییرات فرانت‌اند نیازی به تغییرات API نداشته باشد."
+            }
+          ]
+        }
+      }
+    ],
+    "media_attachments": [
+      {
+        "media": {
+          "id": 42,
+          "url": "https://cdn.example.com/headless-tree.jpg",
+          "type": "image",
+          "mime": "image/jpeg"
+        },
+        "attachment_type": "in-content",
+        "usage_count": 1,
+        "referenced_by": [
+          "blk_image_1"
+        ],
+        "lock_status": true
+      }
+    ]
+  },
+  "messagesList": []
+}
