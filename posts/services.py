@@ -203,7 +203,15 @@ def validate_and_sanitize_blocks(blocks, language_code="en"):
     for block in blocks:
         sanitize_dict(block.get("data", {}))
 
-    # 8. Sort blocks by order and normalize them so orders are contiguous integers starting from 1
+    # 8. Normalize block internal data (e.g., sorting timeline events)
+    for block in blocks:
+        b_type = block.get("type")
+        b_data = block.get("data", {})
+        handler = block_registry.get_block(b_type)
+        if handler:
+            handler.normalize_block_data(b_data)
+
+    # 9. Sort blocks by order and normalize them so orders are contiguous integers starting from 1
     blocks.sort(key=lambda b: b.get("order", 0))
     for i, block in enumerate(blocks, start=1):
         block["order"] = i

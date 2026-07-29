@@ -417,6 +417,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             handler = block_registry.get_block(b_type)
             if handler:
                 handler.expand_media_references(b_data, media_map)
+                handler.normalize_block_data(b_data)
 
                 # Perform on-the-fly migration for settings, meta, and styles
                 block = migrate_and_normalize_block(block)
@@ -437,7 +438,10 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             if handler:
                 seo_meta = handler.get_seo_metadata(b_data)
                 if seo_meta:
-                    structured_data.append(seo_meta)
+                    if isinstance(seo_meta, list):
+                        structured_data.extend(seo_meta)
+                    else:
+                        structured_data.append(seo_meta)
         return structured_data
 
 

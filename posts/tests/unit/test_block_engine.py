@@ -212,22 +212,72 @@ class BlockEngineUnitTests(TestCase):
                 "version": 1,
                 "order": 14,
                 "data": {
+                    "title": "Timeline of Construction",
+                    "orientation": "vertical",
                     "events": [
-                        {"date": "2026", "title": "Milestone", "description": "desc"}
+                        {
+                            "id": "ev_1",
+                            "date": {"type": "year", "value": "1300"},
+                            "title": "Build",
+                            "description": "desc",
+                            "media_id": self.media1.id,
+                            "metadata": {"location": "Tabriz", "category": "heritage"}
+                        }
                     ]
                 },
             },
             {
                 "id": "b15",
-                "type": "related_articles",
+                "type": "location",
                 "version": 1,
                 "order": 15,
+                "data": {
+                    "title": "Alavi House",
+                    "description": "Historical building",
+                    "address": {
+                        "country": "Iran",
+                        "province": "East Azerbaijan",
+                        "city": "Tabriz",
+                        "street": "Alavi Alley"
+                    },
+                    "coordinates": {
+                        "latitude": 38.08,
+                        "longitude": 46.29
+                    },
+                    "geo": {
+                        "type": "Point",
+                        "coordinates": [46.29, 38.08]
+                    },
+                    "contact": {
+                        "phone": "123456",
+                        "website": "http://alavi.com",
+                        "email": None
+                    },
+                    "opening_hours": [
+                        {
+                            "day": "saturday",
+                            "open": "09:00",
+                            "close": "17:00"
+                        }
+                    ],
+                    "map": {
+                        "provider": "google",
+                        "zoom": 15
+                    },
+                    "media_id": self.media2.id
+                }
+            },
+            {
+                "id": "b16",
+                "type": "related_articles",
+                "version": 1,
+                "order": 16,
                 "data": {"article_ids": [1, 2, 3]},
             },
         ]
         # Full validation and normalization must pass cleanly
         normalized = validate_and_sanitize_blocks(blocks)
-        self.assertEqual(len(normalized), 15)
+        self.assertEqual(len(normalized), 16)
 
     def test_invalid_block_type_raises_error(self):
         blocks = [
@@ -514,3 +564,135 @@ class BlockEngineIntegrationTests(TestCase):
 
         # 7. Article Schema Version must be present
         self.assertEqual(repr_data["article_schema_version"], 2)
+
+    def test_location_and_timeline_blocks_integration(self):
+        # Create an article with location and timeline blocks
+        trans = self.article.translation
+        trans.content_blocks = [
+            {
+                "id": "blk_loc",
+                "type": "location",
+                "version": 1,
+                "order": 1,
+                "data": {
+                    "title": "Tabriz Alavi House",
+                    "description": "A beautiful historical house",
+                    "address": {
+                        "country": "Iran",
+                        "province": "East Azerbaijan",
+                        "city": "Tabriz",
+                        "street": "Shams Street"
+                    },
+                    "coordinates": {
+                        "latitude": 38.08,
+                        "longitude": 46.29
+                    },
+                    "geo": {
+                        "type": "Point",
+                        "coordinates": [46.29, 38.08]
+                    },
+                    "contact": {
+                        "phone": "987654",
+                        "website": None,
+                        "email": None
+                    },
+                    "opening_hours": [
+                        {
+                            "day": "saturday",
+                            "open": "08:00",
+                            "close": "18:00"
+                        }
+                    ],
+                    "map": {
+                        "provider": "google",
+                        "zoom": 16
+                    },
+                    "media_id": self.media1.id
+                }
+            },
+            {
+                "id": "blk_timeline",
+                "type": "timeline",
+                "version": 1,
+                "order": 2,
+                "data": {
+                    "title": "History of Alavi House",
+                    "orientation": "vertical",
+                    "events": [
+                        {
+                            "id": "ev_2",
+                            "date": {"type": "year", "value": "1381"},
+                            "title": "Heritage Registration",
+                            "description": "Registered as national heritage",
+                            "media_id": None,
+                            "metadata": {"category": "heritage"}
+                        },
+                        {
+                            "id": "ev_1",
+                            "date": {"type": "year", "value": "1300"},
+                            "title": "Construction",
+                            "description": "Constructed in Qajar era",
+                            "media_id": self.media1.id,
+                            "metadata": {"location": "Tabriz", "category": "construction"}
+                        }
+                    ]
+                }
+            }
+        ]
+        trans.save()
+
+        # Retrieve article details using DetailSerializer
+        serializer = ArticleDetailSerializer(self.article)
+        repr_data = serializer.data
+
+        blocks = repr_data["content_blocks"]
+        self.assertEqual(len(blocks), 2)
+
+        # 1. Location block checks
+        loc_block = blocks[0]
+        self.assertEqual(loc_block["type"], "location")
+        self.assertEqual(loc_block["data"]["title"], "Tabriz Alavi House")
+        # Ensure media expansion works for location block
+        self.assertIn("media", loc_block["data"])
+        self.assertEqual(loc_block["data"]["media"]["id"], self.media1.id)
+
+        # 2. Timeline block checks
+        timeline_block = blocks[1]
+        self.assertEqual(timeline_block["type"], "timeline")
+        self.assertEqual(timeline_block["data"]["title"], "History of Alavi House")
+
+        # Ensure events are chronological-sorted (Construction 1300 first, Heritage Registration 1381 second)
+        events = timeline_block["data"]["events"]
+        self.assertEqual(len(events), 2)
+        self.assertEqual(events[0]["id"], "ev_1")
+        self.assertEqual(events[0]["title"], "Construction")
+        # Ensure media expansion works inside timeline events
+        self.assertIn("media", events[0])
+        self.assertEqual(events[0]["media"]["id"], self.media1.id)
+
+        self.assertEqual(events[1]["id"], "ev_2")
+        self.assertEqual(events[1]["title"], "Heritage Registration")
+        self.assertNotIn("media", events[1])
+
+        # 3. Structured Data JSON-LD checks
+        structured_data = repr_data["structured_data"]
+        # Location block generates 1 Place object, Timeline block generates 2 Event objects
+        self.assertEqual(len(structured_data), 3)
+
+        # Check Place representation
+        place_ld = [item for item in structured_data if item["@type"] == "Place"][0]
+        self.assertEqual(place_ld["name"], "Tabriz Alavi House")
+        self.assertEqual(place_ld["address"]["addressLocality"], "Tabriz")
+        self.assertEqual(place_ld["geo"]["latitude"], 38.08)
+
+        # Check Event representations
+        event_lds = [item for item in structured_data if item["@type"] == "Event"]
+        self.assertEqual(len(event_lds), 2)
+
+        # Chronological sorting affects blocks list, structured data extraction follows normalized block order
+        self.assertEqual(event_lds[0]["name"], "Construction")
+        self.assertEqual(event_lds[0]["startDate"], "1300")
+        self.assertEqual(event_lds[0]["location"]["name"], "Tabriz")
+
+        self.assertEqual(event_lds[1]["name"], "Heritage Registration")
+        self.assertEqual(event_lds[1]["startDate"], "1381")
