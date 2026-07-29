@@ -221,9 +221,9 @@ class BlockEngineUnitTests(TestCase):
                             "title": "Build",
                             "description": "desc",
                             "media_id": self.media1.id,
-                            "metadata": {"location": "Tabriz", "category": "heritage"}
+                            "metadata": {"location": "Tabriz", "category": "heritage"},
                         }
-                    ]
+                    ],
                 },
             },
             {
@@ -238,34 +238,21 @@ class BlockEngineUnitTests(TestCase):
                         "country": "Iran",
                         "province": "East Azerbaijan",
                         "city": "Tabriz",
-                        "street": "Alavi Alley"
+                        "street": "Alavi Alley",
                     },
-                    "coordinates": {
-                        "latitude": 38.08,
-                        "longitude": 46.29
-                    },
-                    "geo": {
-                        "type": "Point",
-                        "coordinates": [46.29, 38.08]
-                    },
+                    "coordinates": {"latitude": 38.08, "longitude": 46.29},
+                    "geo": {"type": "Point", "coordinates": [46.29, 38.08]},
                     "contact": {
                         "phone": "123456",
                         "website": "http://alavi.com",
-                        "email": None
+                        "email": None,
                     },
                     "opening_hours": [
-                        {
-                            "day": "saturday",
-                            "open": "09:00",
-                            "close": "17:00"
-                        }
+                        {"day": "saturday", "open": "09:00", "close": "17:00"}
                     ],
-                    "map": {
-                        "provider": "google",
-                        "zoom": 15
-                    },
-                    "media_id": self.media2.id
-                }
+                    "map": {"provider": "google", "zoom": 15},
+                    "media_id": self.media2.id,
+                },
             },
             {
                 "id": "b16",
@@ -581,34 +568,17 @@ class BlockEngineIntegrationTests(TestCase):
                         "country": "Iran",
                         "province": "East Azerbaijan",
                         "city": "Tabriz",
-                        "street": "Shams Street"
+                        "street": "Shams Street",
                     },
-                    "coordinates": {
-                        "latitude": 38.08,
-                        "longitude": 46.29
-                    },
-                    "geo": {
-                        "type": "Point",
-                        "coordinates": [46.29, 38.08]
-                    },
-                    "contact": {
-                        "phone": "987654",
-                        "website": None,
-                        "email": None
-                    },
+                    "coordinates": {"latitude": 38.08, "longitude": 46.29},
+                    "geo": {"type": "Point", "coordinates": [46.29, 38.08]},
+                    "contact": {"phone": "987654", "website": None, "email": None},
                     "opening_hours": [
-                        {
-                            "day": "saturday",
-                            "open": "08:00",
-                            "close": "18:00"
-                        }
+                        {"day": "saturday", "open": "08:00", "close": "18:00"}
                     ],
-                    "map": {
-                        "provider": "google",
-                        "zoom": 16
-                    },
-                    "media_id": self.media1.id
-                }
+                    "map": {"provider": "google", "zoom": 16},
+                    "media_id": self.media1.id,
+                },
             },
             {
                 "id": "blk_timeline",
@@ -625,7 +595,7 @@ class BlockEngineIntegrationTests(TestCase):
                             "title": "Heritage Registration",
                             "description": "Registered as national heritage",
                             "media_id": None,
-                            "metadata": {"category": "heritage"}
+                            "metadata": {"category": "heritage"},
                         },
                         {
                             "id": "ev_1",
@@ -633,11 +603,14 @@ class BlockEngineIntegrationTests(TestCase):
                             "title": "Construction",
                             "description": "Constructed in Qajar era",
                             "media_id": self.media1.id,
-                            "metadata": {"location": "Tabriz", "category": "construction"}
-                        }
-                    ]
-                }
-            }
+                            "metadata": {
+                                "location": "Tabriz",
+                                "category": "construction",
+                            },
+                        },
+                    ],
+                },
+            },
         ]
         trans.save()
 

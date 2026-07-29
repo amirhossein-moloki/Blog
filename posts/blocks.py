@@ -1,4 +1,5 @@
 import re
+
 import jsonschema
 from django.core.exceptions import ValidationError
 
@@ -765,8 +766,14 @@ class LocationBlock(BaseBlock):
                                     "friday",
                                 ],
                             },
-                            "open": {"type": "string", "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"},
-                            "close": {"type": "string", "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"},
+                            "open": {
+                                "type": "string",
+                                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+                            },
+                            "close": {
+                                "type": "string",
+                                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+                            },
                         },
                     },
                 },
@@ -774,7 +781,17 @@ class LocationBlock(BaseBlock):
                     "type": "object",
                     "required": ["provider", "zoom"],
                     "properties": {
-                        "provider": {"type": "string", "enum": ["google", "openstreetmap", "leaflet", "mapbox", "neshan", "balad"]},
+                        "provider": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "openstreetmap",
+                                "leaflet",
+                                "mapbox",
+                                "neshan",
+                                "balad",
+                            ],
+                        },
                         "zoom": {"type": "integer", "minimum": 1, "maximum": 20},
                     },
                 },
@@ -827,7 +844,7 @@ class LocationBlock(BaseBlock):
                 "@type": "GeoCoordinates",
                 "latitude": coords.get("latitude"),
                 "longitude": coords.get("longitude"),
-            }
+            },
         }
         if postal_code:
             seo["address"]["postalCode"] = postal_code
@@ -872,7 +889,10 @@ class TimelineBlock(BaseBlock):
                                 "type": "object",
                                 "required": ["type", "value"],
                                 "properties": {
-                                    "type": {"type": "string", "enum": ["year", "date", "range"]},
+                                    "type": {
+                                        "type": "string",
+                                        "enum": ["year", "date", "range"],
+                                    },
                                     "value": {"type": "string", "minLength": 1},
                                 },
                             },
@@ -942,7 +962,8 @@ class TimelineBlock(BaseBlock):
         events_text = " ".join(
             [
                 f"{e.get('title', '')} {e.get('description', '')}"
-                for e in events if isinstance(e, dict)
+                for e in events
+                if isinstance(e, dict)
             ]
         ).strip()
         return f"{title} {events_text}".strip()
