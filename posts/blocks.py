@@ -1,3 +1,5 @@
+import re
+
 import jsonschema
 from django.core.exceptions import ValidationError
 
@@ -123,6 +125,12 @@ class BaseBlock:
     def expand_media_references(self, data, media_map):
         """
         Mutates data in-place to expand/inject media object representations.
+        """
+        pass
+
+    def normalize_block_data(self, data):
+        """
+        Performs custom block-specific normalization in place on 'data'.
         """
         pass
 
@@ -658,45 +666,347 @@ class FAQBlock(BaseBlock):
         }
 
 
-class TimelineBlock(BaseBlock):
-    block_type = "timeline"
-    purpose = "Visual chronological events stream contract."
+class LocationBlock(BaseBlock):
+    block_type = "location"
+    purpose = "The location block represents a physical place, historical site, business location, museum, landmark, event venue, or geographical point."
     validation_rules = [
-        "events must be an array of objects specifying date and title values",
+        "title must be a non-empty string",
+        "description can be a string",
+        "address must contain country, province, city, street, and optionally postal_code",
+        "coordinates must contain latitude and longitude",
+        "geo must contain type and coordinates (GeoJSON)",
+        "contact can contain phone, website, and email",
+        "opening_hours must be an array of objects representing daily schedules",
+        "map must specify provider and zoom",
+        "media_id can reference an active media library item",
     ]
-    required_fields = ["events"]
-    optional_fields = []
-    media_dependencies = []
-    seo_support = False
+    required_fields = [
+        "title",
+        "address",
+        "coordinates",
+        "geo",
+        "contact",
+        "opening_hours",
+        "map",
+    ]
+    optional_fields = ["description", "media_id"]
+    media_dependencies = ["media_id"]
+    seo_support = True
 
     def get_data_schema(self):
         return {
             "type": "object",
-            "required": ["events"],
+            "required": [
+                "title",
+                "address",
+                "coordinates",
+                "geo",
+                "contact",
+                "opening_hours",
+                "map",
+            ],
             "properties": {
+                "title": {"type": "string", "minLength": 1},
+                "description": {"type": ["string", "null"]},
+                "address": {
+                    "type": "object",
+                    "required": ["country", "province", "city", "street"],
+                    "properties": {
+                        "country": {"type": "string", "minLength": 1},
+                        "province": {"type": "string", "minLength": 1},
+                        "city": {"type": "string", "minLength": 1},
+                        "street": {"type": "string", "minLength": 1},
+                        "postal_code": {"type": ["string", "null"]},
+                    },
+                },
+                "coordinates": {
+                    "type": "object",
+                    "required": ["latitude", "longitude"],
+                    "properties": {
+                        "latitude": {"type": "number"},
+                        "longitude": {"type": "number"},
+                    },
+                },
+                "geo": {
+                    "type": "object",
+                    "required": ["type", "coordinates"],
+                    "properties": {
+                        "type": {"type": "string", "enum": ["Point"]},
+                        "coordinates": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": {"type": "number"},
+                        },
+                    },
+                },
+                "contact": {
+                    "type": "object",
+                    "properties": {
+                        "phone": {"type": ["string", "null"]},
+                        "website": {"type": ["string", "null"]},
+                        "email": {"type": ["string", "null"]},
+                    },
+                },
+                "opening_hours": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["day", "open", "close"],
+                        "properties": {
+                            "day": {
+                                "type": "string",
+                                "enum": [
+                                    "saturday",
+                                    "sunday",
+                                    "monday",
+                                    "tuesday",
+                                    "wednesday",
+                                    "thursday",
+                                    "friday",
+                                ],
+                            },
+                            "open": {
+                                "type": "string",
+                                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+                            },
+                            "close": {
+                                "type": "string",
+                                "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+                            },
+                        },
+                    },
+                },
+                "map": {
+                    "type": "object",
+                    "required": ["provider", "zoom"],
+                    "properties": {
+                        "provider": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "openstreetmap",
+                                "leaflet",
+                                "mapbox",
+                                "neshan",
+                                "balad",
+                            ],
+                        },
+                        "zoom": {"type": "integer", "minimum": 1, "maximum": 20},
+                    },
+                },
+                "media_id": {"type": ["integer", "null"], "minimum": 1},
+            },
+        }
+
+    def get_referenced_media_ids(self, data):
+        media_id = data.get("media_id")
+        return {media_id} if media_id else set()
+
+    def is_empty(self, data):
+        return not data.get("title")
+
+    def expand_media_references(self, data, media_map):
+        media_id = data.get("media_id")
+        if media_id in media_map:
+            data["media"] = media_map[media_id]
+
+    def get_text_content(self, data):
+        title = data.get("title", "")
+        desc = data.get("description", "") or ""
+        addr = data.get("address", {})
+        addr_str = " ".join([v for v in addr.values() if isinstance(v, str)])
+        return f"{title} {desc} {addr_str}".strip()
+
+    def get_seo_metadata(self, data):
+        addr = data.get("address", {})
+        coords = data.get("coordinates", {})
+
+        # Format physical address
+        street_address = addr.get("street", "")
+        locality = addr.get("city", "")
+        region = addr.get("province", "")
+        country = addr.get("country", "")
+        postal_code = addr.get("postal_code", "")
+
+        seo = {
+            "@context": "https://schema.org",
+            "@type": "Place",
+            "name": data.get("title", ""),
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": street_address,
+                "addressLocality": locality,
+                "addressRegion": region,
+                "addressCountry": country,
+            },
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": coords.get("latitude"),
+                "longitude": coords.get("longitude"),
+            },
+        }
+        if postal_code:
+            seo["address"]["postalCode"] = postal_code
+        if data.get("description"):
+            seo["description"] = data.get("description")
+
+        # Include media URL if available
+        if data.get("media_id") and "media" in data:
+            seo["image"] = data["media"].get("url", "")
+
+        return seo
+
+
+class TimelineBlock(BaseBlock):
+    block_type = "timeline"
+    purpose = "The timeline block represents chronological information, event historical sequences, and biography items."
+    validation_rules = [
+        "title must be a non-empty string",
+        "orientation should be vertical or horizontal",
+        "events must be an array of objects specifying chronological milestones",
+    ]
+    required_fields = ["title", "events"]
+    optional_fields = ["orientation"]
+    media_dependencies = []
+    seo_support = True
+
+    def get_data_schema(self):
+        return {
+            "type": "object",
+            "required": ["title", "events"],
+            "properties": {
+                "title": {"type": "string", "minLength": 1},
+                "orientation": {"type": "string", "enum": ["vertical", "horizontal"]},
                 "events": {
                     "type": "array",
                     "items": {
                         "type": "object",
-                        "required": ["date", "title"],
+                        "required": ["id", "date", "title", "description"],
                         "properties": {
-                            "date": {"type": "string", "minLength": 1},
+                            "id": {"type": "string", "minLength": 1},
+                            "date": {
+                                "type": "object",
+                                "required": ["type", "value"],
+                                "properties": {
+                                    "type": {
+                                        "type": "string",
+                                        "enum": ["year", "date", "range"],
+                                    },
+                                    "value": {"type": "string", "minLength": 1},
+                                },
+                            },
                             "title": {"type": "string", "minLength": 1},
-                            "description": {"type": "string"},
+                            "description": {"type": "string", "minLength": 1},
+                            "media_id": {"type": ["integer", "null"], "minimum": 1},
+                            "metadata": {
+                                "type": "object",
+                                "properties": {
+                                    "location": {"type": "string"},
+                                    "category": {"type": "string"},
+                                },
+                            },
                         },
                     },
-                }
+                },
             },
         }
 
-    def get_text_content(self, data):
+    def get_referenced_media_ids(self, data):
+        media_ids = set()
         events = data.get("events", [])
-        return " ".join(
+        for event in events:
+            if isinstance(event, dict):
+                mid = event.get("media_id")
+                if mid:
+                    media_ids.add(mid)
+        return media_ids
+
+    def is_empty(self, data):
+        return not data.get("title") or not data.get("events")
+
+    def expand_media_references(self, data, media_map):
+        events = data.get("events", [])
+        for event in events:
+            if isinstance(event, dict):
+                mid = event.get("media_id")
+                if mid and mid in media_map:
+                    event["media"] = media_map[mid]
+
+    def normalize_block_data(self, data):
+        # Sort events chronologically by date value if possible
+        events = data.get("events", [])
+        if not events:
+            return
+
+        def get_sort_key(event):
+            # Extract date value to sort
+            date_info = event.get("date", {})
+            val = str(date_info.get("value", ""))
+            # Try to extract the first 4-digit number (usually year)
+            match = re.search(r"\b\d{4}\b", val)
+            if match:
+                return int(match.group())
+            # Fallback to string-based sort if not purely numeric year
+            return val
+
+        try:
+            events.sort(key=get_sort_key)
+        except Exception:
+            # Safe fallback if sorting fails
+            pass
+
+    def get_text_content(self, data):
+        title = data.get("title", "")
+        events = data.get("events", [])
+        events_text = " ".join(
             [
-                f"{e.get('date', '')} {e.get('title', '')} {e.get('description', '')}"
+                f"{e.get('title', '')} {e.get('description', '')}"
                 for e in events
+                if isinstance(e, dict)
             ]
         ).strip()
+        return f"{title} {events_text}".strip()
+
+    def get_seo_metadata(self, data):
+        # Generates structured Schema.org Event objects for each event in the timeline
+        events = data.get("events", [])
+        seo_list = []
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+
+            date_info = event.get("date", {})
+            date_val = date_info.get("value", "")
+
+            # Map year or jalali date to schema.org ISO/numeric representations if possible
+            # But the requirement states: "startDate":"1381"
+            # So we can map value directly
+
+            event_seo = {
+                "@context": "https://schema.org",
+                "@type": "Event",
+                "name": event.get("title", ""),
+                "startDate": date_val,
+                "description": event.get("description", ""),
+            }
+
+            # Optional location reference
+            metadata = event.get("metadata", {})
+            loc_ref = metadata.get("location")
+            if loc_ref:
+                event_seo["location"] = {
+                    "@type": "Place",
+                    "name": loc_ref,
+                }
+
+            # Optional image
+            if event.get("media_id") and "media" in event:
+                event_seo["image"] = event["media"].get("url", "")
+
+            seo_list.append(event_seo)
+
+        return seo_list
 
 
 class RelatedArticlesBlock(BaseBlock):
@@ -740,6 +1050,7 @@ class BlockRegistry:
         self.register(ButtonBlock())
         self.register(AccordionBlock())
         self.register(FAQBlock())
+        self.register(LocationBlock())
         self.register(TimelineBlock())
         self.register(RelatedArticlesBlock())
 
