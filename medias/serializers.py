@@ -137,6 +137,7 @@ class ArticleMediaSerializer(serializers.ModelSerializer):
             media_id = instance.media.id if instance.media else None
 
             from posts.blocks import block_registry
+
             for block in blocks:
                 b_type = block.get("type")
                 b_data = block.get("data", {})

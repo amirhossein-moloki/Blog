@@ -30,12 +30,21 @@ class BaseBlock:
         settings_schema = {
             "type": "object",
             "properties": {
-                "align": {"type": "string", "enum": ["left", "center", "right", "justify"]},
-                "spacing": {"type": "string", "enum": ["xs", "sm", "md", "lg", "xl", "none"]},
+                "align": {
+                    "type": "string",
+                    "enum": ["left", "center", "right", "justify"],
+                },
+                "spacing": {
+                    "type": "string",
+                    "enum": ["xs", "sm", "md", "lg", "xl", "none"],
+                },
                 "theme": {"type": "string"},
                 "visibility": {"type": "string", "enum": ["visible", "hidden"]},
                 "animation": {"type": "string"},
-                "width": {"type": "string", "enum": ["contained", "full_width", "narrow"]},
+                "width": {
+                    "type": "string",
+                    "enum": ["contained", "full_width", "narrow"],
+                },
                 "container": {"type": "string"},
                 "responsive": {"type": "object"},
                 "custom_class": {"type": ["string", "null"]},
@@ -60,6 +69,7 @@ class BaseBlock:
 
         # Extract any definitions from the sub-schema to the root of the envelope
         import copy
+
         data_schema = copy.deepcopy(self.get_data_schema())
         definitions = {}
         if isinstance(data_schema, dict) and "definitions" in data_schema:
@@ -175,9 +185,7 @@ class ParagraphBlock(BaseBlock):
             "properties": {
                 "content": {
                     "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/paragraph_node"
-                    }
+                    "items": {"$ref": "#/definitions/paragraph_node"},
                 }
             },
             "definitions": {
@@ -188,21 +196,34 @@ class ParagraphBlock(BaseBlock):
                         "type": {
                             "type": "string",
                             "enum": [
-                                "text", "strong", "code", "italic", "underline", "strike",
-                                "link", "inline_code", "emoji", "mention", "highlight",
-                                "subscript", "superscript", "keyboard", "small", "mark"
-                            ]
+                                "text",
+                                "strong",
+                                "code",
+                                "italic",
+                                "underline",
+                                "strike",
+                                "link",
+                                "inline_code",
+                                "emoji",
+                                "mention",
+                                "highlight",
+                                "subscript",
+                                "superscript",
+                                "keyboard",
+                                "small",
+                                "mark",
+                            ],
                         },
                         "value": {"type": "string"},
                         "href": {"type": "string"},
                         "title": {"type": "string"},
                         "children": {
                             "type": "array",
-                            "items": {"$ref": "#/definitions/paragraph_node"}
-                        }
-                    }
+                            "items": {"$ref": "#/definitions/paragraph_node"},
+                        },
+                    },
                 }
-            }
+            },
         }
 
     def _is_node_empty(self, node):
@@ -229,12 +250,20 @@ class ParagraphBlock(BaseBlock):
         if not isinstance(node, dict):
             return ""
         val = node.get("value", "")
-        children_text = " ".join([self._get_node_text(child) for child in node.get("children", []) if isinstance(child, dict)])
+        children_text = " ".join(
+            [
+                self._get_node_text(child)
+                for child in node.get("children", [])
+                if isinstance(child, dict)
+            ]
+        )
         return f"{val} {children_text}".strip()
 
     def get_text_content(self, data):
         nodes = data.get("content", [])
-        return " ".join([self._get_node_text(node) for node in nodes if isinstance(node, dict)]).strip()
+        return " ".join(
+            [self._get_node_text(node) for node in nodes if isinstance(node, dict)]
+        ).strip()
 
 
 class ImageBlock(BaseBlock):
@@ -244,7 +273,19 @@ class ImageBlock(BaseBlock):
         "media_id must be a valid positive integer referencing an active media",
     ]
     required_fields = ["media_id"]
-    optional_fields = ["caption", "alt", "lazy", "link", "target", "object_fit", "focal_point", "loading", "decoding", "fetch_priority", "responsive_behavior"]
+    optional_fields = [
+        "caption",
+        "alt",
+        "lazy",
+        "link",
+        "target",
+        "object_fit",
+        "focal_point",
+        "loading",
+        "decoding",
+        "fetch_priority",
+        "responsive_behavior",
+    ]
     media_dependencies = ["media_id"]
     seo_support = False
 
@@ -259,13 +300,13 @@ class ImageBlock(BaseBlock):
                 "lazy": {"type": "boolean"},
                 "link": {"type": "string"},
                 "target": {"type": "string", "enum": ["_blank", "_self"]},
-                "object_fit": {"type": "string", "enum": ["contain", "cover", "fill", "none", "scale-down"]},
+                "object_fit": {
+                    "type": "string",
+                    "enum": ["contain", "cover", "fill", "none", "scale-down"],
+                },
                 "focal_point": {
                     "type": "object",
-                    "properties": {
-                        "x": {"type": "number"},
-                        "y": {"type": "number"}
-                    }
+                    "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
                 },
                 "loading": {"type": "string", "enum": ["lazy", "eager"]},
                 "decoding": {"type": "string", "enum": ["async", "sync", "auto"]},

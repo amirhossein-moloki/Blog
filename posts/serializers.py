@@ -274,7 +274,7 @@ def migrate_and_normalize_block(block):
         "width": "contained",
         "container": "default",
         "responsive": {},
-        "custom_class": None
+        "custom_class": None,
     }
     for k, v in settings_defaults.items():
         if k not in block["settings"]:
@@ -290,7 +290,9 @@ def migrate_and_normalize_block(block):
             block["settings"]["appearance"] = b_data.pop("style_preset")
 
     # 3. Ensure metadata/meta exists (accept both inputs, normalize to 'meta' output)
-    meta_key = "meta" if "meta" in block else ("metadata" if "metadata" in block else "meta")
+    meta_key = (
+        "meta" if "meta" in block else ("metadata" if "metadata" in block else "meta")
+    )
     meta_data = block.get(meta_key, {})
     if not isinstance(meta_data, dict):
         meta_data = {}
@@ -302,7 +304,7 @@ def migrate_and_normalize_block(block):
         "updated_by": None,
         "draft": False,
         "deleted": False,
-        "internal_notes": ""
+        "internal_notes": "",
     }
     for k, v in meta_defaults.items():
         if k not in meta_data:
@@ -361,7 +363,11 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         FA: پیوست‌های رسانه‌ای مرتبط با مقاله را واکشی می‌کند.
         """
         # Pass the article object itself to the ArticleMediaSerializer context so it can compute references
-        return ArticleMediaSerializer(obj.media_attachments.all(), many=True, context={"article": obj, "request": self.context.get("request")}).data
+        return ArticleMediaSerializer(
+            obj.media_attachments.all(),
+            many=True,
+            context={"article": obj, "request": self.context.get("request")},
+        ).data
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_blocks(self, obj):

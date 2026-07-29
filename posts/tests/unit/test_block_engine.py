@@ -508,7 +508,9 @@ class BlockEngineIntegrationTests(TestCase):
         self.assertIn("structured_data", repr_data)
         self.assertEqual(len(repr_data["structured_data"]), 1)
         self.assertEqual(repr_data["structured_data"][0]["@type"], "FAQPage")
-        self.assertEqual(repr_data["structured_data"][0]["@context"], "https://schema.org")
+        self.assertEqual(
+            repr_data["structured_data"][0]["@context"], "https://schema.org"
+        )
 
         # 7. Article Schema Version must be present
         self.assertEqual(repr_data["article_schema_version"], 2)
