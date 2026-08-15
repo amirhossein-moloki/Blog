@@ -46,6 +46,8 @@ The Blog Platform API is built using Django REST Framework and follows RESTful s
     - Permission: Admin or Author of the article.
 - **Categories:** `GET /api/articles/categories/`
     - Response contains hierarchical category listings with the `icon` URL (SVG supported).
+- **Content Counts Statistics:** `GET /api/stats/counts/` (Aliases: `GET /api/counts/`, `GET /api/articles/counts/`)
+    - Returns aggregate totals for published articles (`articles_count`), active podcasts (`podcasts_count`), images (`images_count`), and gallery items (`gallery_count`).
 
 ### 3. Podcast Subsystem
 - **List Podcast Categories:** `GET /api/articles/podcast-categories/`

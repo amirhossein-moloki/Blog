@@ -6,7 +6,11 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from common.cache import build_cache_key, cache_manager
@@ -19,6 +23,7 @@ from common.permissions import (
 )
 from interactions.models import Comment
 from interactions.serializers import CommentListSerializer
+from medias.models import Media
 from users.permissions import IsAdminUser, IsOwnerOrAdmin
 
 from .filters import ArticleFilter
@@ -656,3 +661,62 @@ class GalleryItemViewSet(viewsets.ModelViewSet):
     filterset_fields = ["is_active"]
     ordering_fields = ["order", "id"]
     ordering = ["order", "-id"]
+
+
+@extend_schema(
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "articles_count": {"type": "integer"},
+                "podcasts_count": {"type": "integer"},
+                "images_count": {"type": "integer"},
+                "gallery_count": {"type": "integer"},
+                "articles": {"type": "integer"},
+                "podcasts": {"type": "integer"},
+                "images": {"type": "integer"},
+            },
+        }
+    },
+    description="Returns aggregate total counts for published articles, active podcasts, and images.",
+)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def content_counts(request):
+    """
+    EN: Returns total counts for published articles, podcasts, and images with caching.
+    FA: تعداد کل مقاله‌های منتشر شده، پادکست‌ها و تصاویر را با کشینگ بازمی‌گرداند.
+    """
+    cache_key = build_cache_key("posts", "content_counts", "global")
+
+    def rebuild():
+        now = timezone.now()
+        articles_cnt = Article.objects.filter(
+            status="published", published_at__lte=now
+        ).count()
+        podcasts_cnt = Podcast.objects.filter(is_active=True).count()
+        images_cnt = (
+            Media.objects.filter(is_deleted=False)
+            .filter(Q(type="image") | Q(mime__startswith="image/"))
+            .count()
+        )
+        gallery_cnt = GalleryItem.objects.filter(is_active=True).count()
+
+        return {
+            "articles_count": articles_cnt,
+            "podcasts_count": podcasts_cnt,
+            "images_count": images_cnt,
+            "gallery_count": gallery_cnt,
+            "articles": articles_cnt,
+            "podcasts": podcasts_cnt,
+            "images": images_cnt,
+        }
+
+    data = cache_manager.get_or_create(
+        key=cache_key,
+        rebuild_callback=rebuild,
+        group="counts",
+        soft_ttl_sec=300,
+        hard_ttl_sec=900,
+    )
+    return Response(data)
