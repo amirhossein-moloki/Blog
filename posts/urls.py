@@ -13,6 +13,7 @@ from .views import (
     RevisionViewSet,
     SeriesViewSet,
     TagViewSet,
+    content_counts,
     publish_article,
     related_articles,
 )
@@ -37,6 +38,9 @@ router.register(r"podcasts", PodcastViewSet)
 router.register(r"gallery", GalleryItemViewSet, basename="galleryitem")
 
 urlpatterns = [
+    path("stats/counts/", content_counts, name="content-counts"),
+    path("counts/", content_counts, name="content-counts-alias"),
+    path("articles/counts/", content_counts, name="article-counts-alias"),
     path("articles/<slug:slug>/publish/", publish_article, name="article-publish"),
     path("articles/<slug:slug>/related/", related_articles, name="article-related"),
     path("", include(router.urls)),

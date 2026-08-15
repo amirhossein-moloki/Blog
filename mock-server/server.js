@@ -340,6 +340,28 @@ app.get('/api/posts/:slug/related/', (req, res) => {
     res.json(wrapResponse(paginated.data, paginated.pagination));
 });
 
+// Content Counts Endpoint
+const handleContentCounts = (req, res) => {
+    const publishedArticles = db.posts ? db.posts.filter(p => p.status === 'published').length : 0;
+    const podcastsCount = db.podcasts ? db.podcasts.filter(p => p.is_active !== false).length : 0;
+    const imagesCount = db.medias ? db.medias.filter(m => m.type === 'image' || (m.mime && m.mime.startsWith('image/'))).length : 0;
+    const galleryCount = db.gallery ? db.gallery.filter(g => g.is_active !== false).length : 0;
+
+    res.json(wrapResponse({
+        articles_count: publishedArticles,
+        podcasts_count: podcastsCount,
+        images_count: imagesCount,
+        gallery_count: galleryCount,
+        articles: publishedArticles,
+        podcasts: podcastsCount,
+        images: imagesCount
+    }));
+};
+
+app.get('/api/stats/counts/', handleContentCounts);
+app.get('/api/counts/', handleContentCounts);
+app.get('/api/articles/counts/', handleContentCounts);
+
 // Nested Comments
 app.get('/api/posts/:post_slug/comments/', (req, res) => {
     const post = db.posts.find(p => p.translations.some(t => t.slug === req.params.post_slug));
