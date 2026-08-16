@@ -29,6 +29,11 @@ def validate_file(value):
         ".gif",
         ".heic",
         ".avif",
+        ".mp3",
+        ".wav",
+        ".pdf",
+        ".avi",
+        ".mkv",
     ]
     ext = str(value).split(".")[-1].lower()
     if f".{ext}" not in allowed_extensions:

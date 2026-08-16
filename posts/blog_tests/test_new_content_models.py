@@ -109,13 +109,13 @@ class NewContentModelsAPITest(BaseAPITestCase):
             "slug": "new-episode",
             "category": category.pk,
             "episode_number": 12,
-            "cover_image": podcast.cover_image,  # Re-use cover file
+            "cover_image": podcast.cover_image.id if podcast.cover_image else None,
             "media_type": "audio",
             "description": "<p>A detailed podcast episode description with bullet points.</p>",
             "duration": 30,
             "published_date": "2026-07-11T12:00:00Z",
         }
-        response = self.client.post(self.podcast_list_url, payload, format="multipart")
+        response = self.client.post(self.podcast_list_url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(Podcast.objects.filter(slug="new-episode").exists())
 
@@ -133,10 +133,10 @@ class NewContentModelsAPITest(BaseAPITestCase):
         payload = {
             "caption": "Beautiful Polaroid Caption",
             "order": 5,
-            "image": item.image,
+            "image": item.image.id if item.image else None,
             "link": "https://example.com/some-article",
         }
-        response = self.client.post(self.gallery_list_url, payload, format="multipart")
+        response = self.client.post(self.gallery_list_url, payload, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(
             GalleryItem.objects.filter(caption="Beautiful Polaroid Caption").exists()

@@ -41,8 +41,8 @@ class JalaliDateTimeField(serializers.ReadOnlyField):
 
 class HybridMediaField(serializers.Field):
     """
-    EN: Custom field to accept either a Media ID (integer/string) or an uploaded file.
-    FA: فیلد سفارشی برای پذیرش شناسه رسانه (عدد/رشته) یا فایل آپلود شده.
+    EN: Custom field to accept either a Media ID (integer/string), dict with 'id', Media instance, or an uploaded file.
+    FA: فیلد سفارشی برای پذیرش شناسه رسانه (عدد/رشته)، دیکشنری شامل id، نمونه Media یا فایل آپلود شده.
     """
 
     def to_internal_value(self, data):
@@ -52,6 +52,12 @@ class HybridMediaField(serializers.Field):
 
         if not data:
             return None
+
+        if isinstance(data, Media):
+            return data
+
+        if isinstance(data, dict) and "id" in data:
+            data = data["id"]
 
         # Check if the data is a digit/integer (existing Media ID)
         if isinstance(data, (int, str)) and str(data).isdigit():
@@ -103,6 +109,32 @@ class HybridMediaField(serializers.Field):
         return MediaDetailSerializer(value, context=self.context).data
 
 
+class HybridMediaSerializerMixin:
+    """
+    EN: Mixin to validate media field pairs and reject simultaneous ID and file submissions.
+    FA: میکسین برای اعتبارسنجی زوج‌فیلدهای رسانه‌ای و عدم پذیرش همزمان شناسه و آپلود فایل.
+    """
+
+    media_field_pairs = []
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        request_data = getattr(self, "initial_data", {}) or {}
+
+        for field_name, alias_name in getattr(self, "media_field_pairs", []):
+            has_field = field_name in request_data and request_data[field_name] not in (None, "")
+            has_alias = alias_name in request_data and request_data[alias_name] not in (None, "")
+
+            if has_field and has_alias:
+                raise serializers.ValidationError(
+                    {
+                        field_name: f"Cannot provide both '{field_name}' and '{alias_name}' simultaneously."
+                    }
+                )
+
+        return attrs
+
+
 class ContentNormalizationMixin:
     """
     EN: Mixin to normalize HTML content by converting it to Markdown and cleaning up whitespace.
@@ -139,15 +171,22 @@ class ContentNormalizationMixin:
         return data
 
 
-class AuthorProfileSerializer(serializers.ModelSerializer):
+class AuthorProfileSerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
     """
     EN: Serializer for AuthorProfile model.
     FA: سریالایزر برای مدل AuthorProfile.
     """
 
+    avatar = HybridMediaField(required=False, allow_null=True)
+    avatar_id = HybridMediaField(
+        source="avatar", required=False, allow_null=True, write_only=True
+    )
+
+    media_field_pairs = [("avatar", "avatar_id")]
+
     class Meta:
         model = AuthorProfile
-        fields = ("user", "display_name", "bio", "avatar")
+        fields = ("user", "display_name", "bio", "avatar", "avatar_id")
 
 
 class AuthorForArticleSerializer(serializers.ModelSerializer):
@@ -163,15 +202,22 @@ class AuthorForArticleSerializer(serializers.ModelSerializer):
         fields = ("display_name", "avatar")
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
     """
-    EN: Serializer for Category model with support for parent categories.
-    FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد.
+    EN: Serializer for Category model with support for parent categories and hybrid icon upload.
+    FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد و آپلود هیبریدی آیکون.
     """
+
+    icon = HybridMediaField(required=False, allow_null=True)
+    icon_id = HybridMediaField(
+        source="icon", required=False, allow_null=True, write_only=True
+    )
+
+    media_field_pairs = [("icon", "icon_id")]
 
     class Meta:
         model = Category
-        fields = ("id", "slug", "name", "parent", "icon")
+        fields = ("id", "slug", "name", "parent", "description", "order", "icon", "icon_id")
 
     def to_representation(self, instance):
         """
@@ -446,7 +492,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
 
 
 class ArticleCreateUpdateSerializer(
-    ContentNormalizationMixin, serializers.ModelSerializer
+    HybridMediaSerializerMixin, ContentNormalizationMixin, serializers.ModelSerializer
 ):
     """
     EN: Serializer for creating and updating Articles, handling complex fields like tags and scheduling.
@@ -482,18 +528,25 @@ class ArticleCreateUpdateSerializer(
         required=False,
         write_only=True,
     )
+    cover_image = HybridMediaField(required=False, allow_null=True)
     cover_image_id = HybridMediaField(
         source="cover_image",
         required=False,
         allow_null=True,
         write_only=True,
     )
+    og_image = HybridMediaField(required=False, allow_null=True)
     og_image_id = HybridMediaField(
         source="og_image",
         required=False,
         allow_null=True,
         write_only=True,
     )
+
+    media_field_pairs = [
+        ("cover_image", "cover_image_id"),
+        ("og_image", "og_image_id"),
+    ]
     related_article_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Article.objects.all(),
@@ -752,26 +805,54 @@ class RevisionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PodcastCategorySerializer(serializers.ModelSerializer):
+class PodcastCategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
     """
-    EN: Serializer for PodcastCategory model.
-    FA: سریالایزر برای مدل دسته‌بندی پادکست.
+    EN: Serializer for PodcastCategory model with hybrid icon upload.
+    FA: سریالایزر برای مدل دسته‌بندی پادکست با آپلود هیبریدی آیکون.
     """
+
+    icon = HybridMediaField(required=False, allow_null=True)
+    icon_id = HybridMediaField(
+        source="icon", required=False, allow_null=True, write_only=True
+    )
+
+    media_field_pairs = [("icon", "icon_id")]
 
     class Meta:
         model = PodcastCategory
-        fields = ("id", "title", "slug", "icon", "is_active")
+        fields = ("id", "title", "slug", "icon", "icon_id", "is_active")
 
 
-class PodcastSerializer(ContentNormalizationMixin, serializers.ModelSerializer):
+class PodcastSerializer(
+    HybridMediaSerializerMixin, ContentNormalizationMixin, serializers.ModelSerializer
+):
     """
-    EN: Serializer for Podcast model.
-    FA: سریالایزر برای مدل پادکست.
+    EN: Serializer for Podcast model with hybrid media upload support.
+    FA: سریالایزر برای مدل پادکست با پشتیبانی از آپلود رسانه‌ای هیبریدی.
     """
 
     content_field_name = "description"
     category_detail = PodcastCategorySerializer(source="category", read_only=True)
     published_date_jalali = JalaliDateTimeField(source="published_date", read_only=True)
+
+    cover_image = HybridMediaField(required=False, allow_null=True)
+    cover_image_id = HybridMediaField(
+        source="cover_image", required=False, allow_null=True, write_only=True
+    )
+    audio_file = HybridMediaField(required=False, allow_null=True)
+    audio_file_id = HybridMediaField(
+        source="audio_file", required=False, allow_null=True, write_only=True
+    )
+    video_file = HybridMediaField(required=False, allow_null=True)
+    video_file_id = HybridMediaField(
+        source="video_file", required=False, allow_null=True, write_only=True
+    )
+
+    media_field_pairs = [
+        ("cover_image", "cover_image_id"),
+        ("audio_file", "audio_file_id"),
+        ("video_file", "video_file_id"),
+    ]
 
     class Meta:
         model = Podcast
@@ -783,9 +864,12 @@ class PodcastSerializer(ContentNormalizationMixin, serializers.ModelSerializer):
             "category_detail",
             "episode_number",
             "cover_image",
+            "cover_image_id",
             "audio_file",
+            "audio_file_id",
             "media_type",
             "video_file",
+            "video_file_id",
             "video_url",
             "description",
             "duration",
@@ -798,12 +882,19 @@ class PodcastSerializer(ContentNormalizationMixin, serializers.ModelSerializer):
         read_only_fields = ("view_count",)
 
 
-class GalleryItemSerializer(serializers.ModelSerializer):
+class GalleryItemSerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
     """
-    EN: Serializer for GalleryItem model.
-    FA: سریالایزر برای مدل گالری تصاویر.
+    EN: Serializer for GalleryItem model with hybrid image upload.
+    FA: سریالایزر برای مدل گالری تصاویر با آپلود هیبریدی تصویر.
     """
+
+    image = HybridMediaField(required=False, allow_null=True)
+    image_id = HybridMediaField(
+        source="image", required=False, allow_null=True, write_only=True
+    )
+
+    media_field_pairs = [("image", "image_id")]
 
     class Meta:
         model = GalleryItem
-        fields = ("id", "image", "caption", "order", "link", "is_active")
+        fields = ("id", "image", "image_id", "caption", "order", "link", "is_active")
