@@ -81,7 +81,9 @@ class HybridMediaSerializerMixin:
                     if has_f1 and has_f2:
                         from rest_framework import serializers
 
-                        raise serializers.ValidationError({
-                            f1: f"Cannot provide both '{f1}' and '{f2}' simultaneously."
-                        })
+                        raise serializers.ValidationError(
+                            {
+                                f1: f"Cannot provide both '{f1}' and '{f2}' simultaneously."
+                            }
+                        )
         return attrs

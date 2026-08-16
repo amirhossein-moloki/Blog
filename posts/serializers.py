@@ -188,7 +188,16 @@ class CategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer
 
     class Meta:
         model = Category
-        fields = ("id", "slug", "name", "parent", "description", "order", "icon", "icon_id")
+        fields = (
+            "id",
+            "slug",
+            "name",
+            "parent",
+            "description",
+            "order",
+            "icon",
+            "icon_id",
+        )
 
     def to_representation(self, instance):
         """
@@ -776,7 +785,9 @@ class RevisionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PodcastCategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
+class PodcastCategorySerializer(
+    HybridMediaSerializerMixin, serializers.ModelSerializer
+):
     """
     EN: Serializer for PodcastCategory model.
     FA: سریالایزر برای مدل دسته‌بندی پادکست.

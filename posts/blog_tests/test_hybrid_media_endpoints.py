@@ -12,9 +12,7 @@ from rest_framework.test import APIClient
 
 from medias.models import Media
 from posts.factories import (
-    CategoryFactory,
     PodcastCategoryFactory,
-    PodcastFactory,
     UserFactory,
 )
 from posts.models import (
@@ -26,7 +24,9 @@ from posts.models import (
 )
 
 User = get_user_model()
-TEST_MEDIA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_hybrid_media")
+TEST_MEDIA_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "test_hybrid_media"
+)
 
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA_DIR)
@@ -52,10 +52,12 @@ class HybridMediaEndpointsTest(TestCase):
         return SimpleUploadedFile(name, image_io.getvalue(), content_type="image/jpeg")
 
     def _create_dummy_audio(self, name="audio.mp3"):
-        return SimpleUploadedFile(name, b"ID3v2fakeaudiobytes", content_type="audio/mpeg")
+        return SimpleUploadedFile(
+            name, b"ID3v2fakeaudiobytes", content_type="audio/mpeg"
+        )
 
     def _create_media(self, filename="existing.jpg", mime="image/jpeg"):
-        file_obj = SimpleUploadedFile(filename, b"\x00" * 100, content_type=mime)
+        SimpleUploadedFile(filename, b"\x00" * 100, content_type=mime)
         return Media.objects.create(
             storage_key=f"uploads/{filename}",
             url=f"/media/uploads/{filename}",
