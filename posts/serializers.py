@@ -122,8 +122,14 @@ class HybridMediaSerializerMixin:
         request_data = getattr(self, "initial_data", {}) or {}
 
         for field_name, alias_name in getattr(self, "media_field_pairs", []):
-            has_field = field_name in request_data and request_data[field_name] not in (None, "")
-            has_alias = alias_name in request_data and request_data[alias_name] not in (None, "")
+            has_field = field_name in request_data and request_data[field_name] not in (
+                None,
+                "",
+            )
+            has_alias = alias_name in request_data and request_data[alias_name] not in (
+                None,
+                "",
+            )
 
             if has_field and has_alias:
                 raise serializers.ValidationError(
@@ -217,7 +223,16 @@ class CategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer
 
     class Meta:
         model = Category
-        fields = ("id", "slug", "name", "parent", "description", "order", "icon", "icon_id")
+        fields = (
+            "id",
+            "slug",
+            "name",
+            "parent",
+            "description",
+            "order",
+            "icon",
+            "icon_id",
+        )
 
     def to_representation(self, instance):
         """
@@ -805,7 +820,9 @@ class RevisionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PodcastCategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer):
+class PodcastCategorySerializer(
+    HybridMediaSerializerMixin, serializers.ModelSerializer
+):
     """
     EN: Serializer for PodcastCategory model with hybrid icon upload.
     FA: سریالایزر برای مدل دسته‌بندی پادکست با آپلود هیبریدی آیکون.

@@ -5,19 +5,10 @@ from rest_framework import status
 from posts.blog_tests.base import BaseAPITestCase
 from posts.factories import (
     AuthorProfileFactory,
-    CategoryFactory,
-    GalleryItemFactory,
     MediaFactory,
     PodcastCategoryFactory,
-    PodcastFactory,
 )
-from posts.models import (
-    AuthorProfile,
-    Category,
-    GalleryItem,
-    Podcast,
-    PodcastCategory,
-)
+from posts.models import Podcast
 
 
 class HybridMediaEndpointsAPITest(BaseAPITestCase):
@@ -187,7 +178,9 @@ class HybridMediaEndpointsAPITest(BaseAPITestCase):
             "slug": "direct-pod-cat",
             "icon": self.valid_image,
         }
-        response = self.client.post(self.podcast_categories_url, payload, format="multipart")
+        response = self.client.post(
+            self.podcast_categories_url, payload, format="multipart"
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data["icon"]["id"])
 
@@ -211,7 +204,9 @@ class HybridMediaEndpointsAPITest(BaseAPITestCase):
         detail_url = reverse("posts:authorprofile-detail", kwargs={"pk": author.pk})
 
         # 1. Direct upload
-        response = self.client.patch(detail_url, {"avatar": self.valid_image}, format="multipart")
+        response = self.client.patch(
+            detail_url, {"avatar": self.valid_image}, format="multipart"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIsNotNone(response.data["avatar"]["id"])
 
