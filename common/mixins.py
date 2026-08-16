@@ -57,3 +57,33 @@ class DynamicSerializerViewMixin:
                 kwargs["fields"] = fields
 
         return serializer_class(*args, **kwargs)
+
+
+class HybridMediaSerializerMixin:
+    """
+    EN: Mixin to enforce validation for hybrid media fields, preventing
+    simultaneous provision of both field and field_id (e.g., 'cover_image' and 'cover_image_id').
+    FA: Mixin برای اعمال اعتبارسنجی فیلدهای رسانه‌ای ترکیبی، جهت جلوگیری از
+    ارسال همزمان هر دو فیلد و field_id.
+    """
+
+    hybrid_media_fields = ()
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        initial = getattr(self, "initial_data", {})
+        if initial:
+            for field_pair in getattr(self, "hybrid_media_fields", ()):
+                if isinstance(field_pair, (list, tuple)) and len(field_pair) == 2:
+                    f1, f2 = field_pair
+                    has_f1 = f1 in initial and initial[f1] not in (None, "")
+                    has_f2 = f2 in initial and initial[f2] not in (None, "")
+                    if has_f1 and has_f2:
+                        from rest_framework import serializers
+
+                        raise serializers.ValidationError(
+                            {
+                                f1: f"Cannot provide both '{f1}' and '{f2}' simultaneously."
+                            }
+                        )
+        return attrs
