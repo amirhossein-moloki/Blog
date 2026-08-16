@@ -63,13 +63,7 @@ class PodcastCategoryFactory(factory.django.DjangoModelFactory):
 
     title = factory.LazyAttribute(lambda _: fake.word())
     slug = factory.Sequence(lambda n: f"podcast-cat-{n}")
-    icon = factory.LazyAttribute(
-        lambda _: SimpleUploadedFile(
-            name="icon.svg",
-            content=b"<svg></svg>",
-            content_type="image/svg+xml",
-        )
-    )
+    icon = factory.SubFactory("posts.factories.MediaFactory")
 
 
 class PodcastFactory(factory.django.DjangoModelFactory):
@@ -80,13 +74,7 @@ class PodcastFactory(factory.django.DjangoModelFactory):
     slug = factory.Sequence(lambda n: f"podcast-{n}")
     category = factory.SubFactory(PodcastCategoryFactory)
     episode_number = factory.Sequence(lambda n: n + 1)
-    cover_image = factory.LazyAttribute(
-        lambda _: SimpleUploadedFile(
-            name="cover.jpg",
-            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b",
-            content_type="image/jpeg",
-        )
-    )
+    cover_image = factory.SubFactory("posts.factories.MediaFactory")
     media_type = "audio"
     duration = 45
     published_date = factory.LazyAttribute(lambda _: timezone.now())
@@ -97,13 +85,7 @@ class GalleryItemFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = GalleryItem
 
-    image = factory.LazyAttribute(
-        lambda _: SimpleUploadedFile(
-            name="photo.jpg",
-            content=b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\xff\xff\xff\x00\x00\x00\x21\xf9\x04\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b",
-            content_type="image/jpeg",
-        )
-    )
+    image = factory.SubFactory("posts.factories.MediaFactory")
     caption = factory.LazyAttribute(lambda _: fake.sentence())
     order = factory.Sequence(lambda n: n)
 

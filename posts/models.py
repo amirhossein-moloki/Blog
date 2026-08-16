@@ -59,7 +59,13 @@ class Category(BaseModel):
     )
     description = models.TextField(blank=True)
     order = models.IntegerField(default=0)
-    icon = models.FileField(upload_to="categories/icons/", null=True, blank=True)
+    icon = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -382,8 +388,12 @@ class PodcastCategory(BaseModel):
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
-    icon = models.FileField(
-        upload_to="podcasts/categories/icons/", null=True, blank=True
+    icon = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
     )
 
     class Meta:
@@ -409,12 +419,30 @@ class Podcast(BaseModel):
         PodcastCategory, on_delete=models.CASCADE, related_name="podcasts"
     )
     episode_number = models.PositiveIntegerField()
-    cover_image = models.ImageField(upload_to="podcasts/covers/")
-    audio_file = models.FileField(upload_to="podcasts/audio/", null=True, blank=True)
+    cover_image = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    audio_file = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     media_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, default="audio"
     )
-    video_file = models.FileField(upload_to="podcasts/video/", null=True, blank=True)
+    video_file = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     video_url = models.URLField(blank=True, null=True)
     description = CKEditor5Field(config_name="default", blank=True)
     duration = models.PositiveIntegerField(help_text="Duration in minutes")
@@ -435,7 +463,13 @@ class GalleryItem(BaseModel):
     FA: نشان‌دهنده یک آیتم تصویری در اسلایدر/لیست با استایل پولاروید.
     """
 
-    image = models.ImageField(upload_to="gallery/")
+    image = models.ForeignKey(
+        "medias.Media",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
     caption = models.CharField(max_length=255)
     order = models.PositiveIntegerField(default=0)
     link = models.URLField(blank=True, null=True)
