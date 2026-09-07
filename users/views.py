@@ -22,22 +22,29 @@ logger = logging.getLogger(__name__)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
-    EN: Custom JWT token obtain view using the custom serializer.
-    FA: View سفارشی دریافت توکن JWT با استفاده از سریالایزر سفارشی.
+    EN: Custom JWT token obtain view restricted to staff users for administrative login.
+    FA: View سفارشی دریافت توکن JWT محدود به کاربران کارمند برای ورود مدیریتی.
     """
 
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
         """
-        EN: Handles JWT token generation for a user.
-        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
+        EN: Handles JWT token generation for a staff user.
+        FA: تولید توکن JWT برای کاربر کارمند را مدیریت می‌کند.
         """
         serializer = self.get_serializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
+
+        user = serializer.user
+        if not user or not user.is_staff:
+            return Response(
+                {"detail": "Administrative login is restricted to staff members only."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 

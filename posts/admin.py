@@ -1,6 +1,10 @@
+# Django Imports
+from django import forms
 from django.contrib import admin, messages
+from django.utils.html import format_html
 from jalali_date.admin import ModelAdminJalaliMixin
 
+# Local Imports
 from medias.models import ArticleMedia
 
 from .models import (
@@ -16,63 +20,72 @@ from .models import (
     Series,
     Tag,
 )
+from .services import validate_and_sanitize_blocks
+
+# --- Custom Admin Forms ---
 
 
-@admin.register(AuthorProfile)
-class AuthorProfileAdmin(admin.ModelAdmin):
+class ArticleTranslationForm(forms.ModelForm):
     """
-    EN: Admin interface for AuthorProfile.
-    FA: رابط کاربری ادمین برای پروفایل نویسنده.
-    """
-
-    list_display = ("display_name", "user")
-    search_fields = ("display_name", "user__username")
-
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    """
-    EN: Admin interface for Categories.
-    FA: رابط کاربری ادمین برای دسته‌بندی‌ها.
+    EN: Custom form for ArticleTranslation that validates JSON content_blocks via block engine.
+    FA: فرم سفارشی برای ترجمه مقاله که ساختار JSON بلوک‌های محتوا را اعتبارسنجی می‌کند.
     """
 
-    list_display = ("name", "slug", "parent", "order", "icon")
-    list_filter = ("parent",)
-    search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name",)}
+    class Meta:
+        model = ArticleTranslation
+        fields = "__all__"
+
+    def clean_content_blocks(self):
+        blocks = self.cleaned_data.get("content_blocks")
+        language_code = self.cleaned_data.get("language_code") or "en"
+        if blocks:
+            try:
+                blocks = validate_and_sanitize_blocks(
+                    blocks, language_code=language_code
+                )
+            except Exception as e:
+                raise forms.ValidationError(f"Invalid content blocks: {e}")
+        return blocks
 
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    """
-    EN: Admin interface for Tags.
-    FA: رابط کاربری ادمین برای برچسب‌ها.
-    """
-
-    list_display = ("name", "slug")
-    search_fields = ("name",)
-
-
-@admin.register(Series)
-class SeriesAdmin(admin.ModelAdmin):
-    """
-    EN: Admin interface for Series.
-    FA: رابط کاربری ادمین برای مجموعه‌ها.
-    """
-
-    list_display = ("title", "slug", "order_strategy")
-    search_fields = ("title",)
+# --- Admin Inlines ---
 
 
 class ArticleTranslationInline(admin.StackedInline):
     """
-    EN: Inline editor for Article translations.
-    FA: ویرایشگر داخلی برای ترجمه‌های مقاله.
+    EN: Inline editor for Article translations with block engine validation.
+    FA: ویرایشگر داخلی برای ترجمه‌های مقاله با اعتبارسنجی موتور بلوک‌ها.
     """
 
     model = ArticleTranslation
+    form = ArticleTranslationForm
     extra = 1
     prepopulated_fields = {"slug": ("title",)}
+    readonly_fields = ("reading_time_sec",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "language_code",
+                    "title",
+                    "slug",
+                    "excerpt",
+                    "short_description",
+                    "content",
+                    "content_blocks",
+                    "reading_time_sec",
+                )
+            },
+        ),
+        (
+            "SEO Settings",
+            {
+                "classes": ("collapse",),
+                "fields": ("seo_title", "seo_description"),
+            },
+        ),
+    )
 
 
 class ArticleTagInline(admin.TabularInline):
@@ -83,12 +96,13 @@ class ArticleTagInline(admin.TabularInline):
 
     model = ArticleTag
     extra = 1
+    autocomplete_fields = ("tag",)
 
 
 class ArticleMediaInline(admin.TabularInline):
     """
-    EN: Inline viewer for Article media attachments.
-    FA: نمایشگر داخلی برای پیوست‌های رسانه‌ای مقاله.
+    EN: Read-only inline viewer for Article media attachments.
+    FA: نمایشگر داخلی و فقط-خواندنی برای پیوست‌های رسانه‌ای مقاله.
     """
 
     model = ArticleMedia
@@ -98,51 +112,103 @@ class ArticleMediaInline(admin.TabularInline):
     verbose_name_plural = "Attachments"
 
     def has_add_permission(self, request, obj=None):
-        """
-        EN: Disables adding attachments directly from the article admin.
-        FA: اضافه کردن مستقیم پیوست‌ها از پنل ادمین مقاله را غیرفعال می‌کند.
-        """
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """
-        EN: Disables deleting attachments directly from the article admin.
-        FA: حذف مستقیم پیوست‌ها از پنل ادمین مقاله را غیرفعال می‌کند.
-        """
         return False
 
 
+# --- ModelAdmins ---
+
+
+@admin.register(AuthorProfile)
+class AuthorProfileAdmin(admin.ModelAdmin):
+    list_display = ("display_name", "user", "bio_excerpt")
+    search_fields = ("display_name", "user__username", "user__email")
+    autocomplete_fields = ("user", "avatar")
+
+    @admin.display(description="Bio Excerpt")
+    def bio_excerpt(self, obj):
+        return obj.bio[:50] + "..." if obj.bio and len(obj.bio) > 50 else obj.bio
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "parent", "order", "is_active")
+    list_editable = ("order", "is_active")
+    search_fields = ("name", "slug")
+    prepopulated_fields = {"slug": ("name",)}
+    autocomplete_fields = ("parent", "icon")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("parent", "icon")
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "description")
+    search_fields = ("name", "slug")
+    prepopulated_fields = {"slug": ("name",)}
+
+
+@admin.register(Series)
+class SeriesAdmin(admin.ModelAdmin):
+    list_display = ("title", "slug", "order_strategy")
+    search_fields = ("title", "slug")
+    prepopulated_fields = {"slug": ("title",)}
+
+
 @admin.register(Article)
-class ArticleAdmin(admin.ModelAdmin):
+class ArticleAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """
     EN:
     Comprehensive Admin interface for Articles.
-    Provides advanced fieldsets, inlines for translations, tags and media, and custom save logic.
+    Provides advanced fieldsets, N+1 optimized querysets, Jalali dates, and custom actions.
 
     FA:
     رابط کاربری جامع ادمین برای مقاله‌ها.
-    مجموعه‌فیلدهای پیشرفته، اینلاین‌ها برای ترجمه‌ها، برچسب‌ها و رسانه‌ها و منطق ذخیره‌سازی سفارشی را فراهم می‌کند.
+    مجموعه‌فیلدهای پیشرفته، کوئری‌های بهینه‌شده، تاریخ‌های جلالی و اکشن‌های سفارشی را فراهم می‌کند.
     """
 
     list_display = (
         "id",
+        "get_title",
         "author",
         "category",
         "status",
+        "visibility",
         "published_at",
         "is_hot",
+        "views_count",
     )
     list_filter = ("status", "visibility", "category", "author", "is_hot")
-    search_fields = ("translations__title", "translations__content")
-    autocomplete_fields = ("cover_image", "og_image")
+    search_fields = (
+        "translations__title",
+        "translations__content",
+        "translations__slug",
+    )
+    autocomplete_fields = (
+        "author",
+        "category",
+        "series",
+        "cover_image",
+        "og_image",
+    )
     filter_horizontal = ("related_articles",)
     inlines = [ArticleTranslationInline, ArticleTagInline, ArticleMediaInline]
+    actions = [
+        "make_published",
+        "make_draft",
+        "mark_as_hot",
+        "clear_hot_status",
+    ]
+
     fieldsets = (
         (None, {"fields": ("author",)}),
-        ("Metadata", {"fields": ("category", "series", "related_articles")}),
+        ("Metadata & Taxonomy", {"fields": ("category", "series", "related_articles")}),
         ("Media", {"fields": ("cover_image", "og_image")}),
         (
-            "Status & Visibility",
+            "Publishing & Visibility",
             {
                 "fields": (
                     "status",
@@ -154,19 +220,50 @@ class ArticleAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Other",
+            "SEO & System",
             {
                 "classes": ("collapse",),
-                "fields": ("canonical_url",),
+                "fields": ("canonical_url", "views_count"),
             },
         ),
     )
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("author", "category", "series", "cover_image")
+            .prefetch_related("translations")
+        )
+
+    @admin.display(description="Title")
+    def get_title(self, obj):
+        translation = obj.translations.first()
+        return translation.title if translation else f"Article #{obj.id}"
+
+    @admin.action(description="Publish selected articles")
+    def make_published(self, request, queryset):
+        updated = queryset.update(status="published")
+        self.message_user(
+            request, f"{updated} article(s) successfully marked as published."
+        )
+
+    @admin.action(description="Set selected articles to Draft")
+    def make_draft(self, request, queryset):
+        updated = queryset.update(status="draft")
+        self.message_user(request, f"{updated} article(s) set to draft status.")
+
+    @admin.action(description="Mark selected articles as Hot")
+    def mark_as_hot(self, request, queryset):
+        updated = queryset.update(is_hot=True)
+        self.message_user(request, f"{updated} article(s) marked as hot.")
+
+    @admin.action(description="Clear Hot status for selected articles")
+    def clear_hot_status(self, request, queryset):
+        updated = queryset.update(is_hot=False)
+        self.message_user(request, f"{updated} article(s) updated.")
+
     def save_model(self, request, obj, form, change):
-        """
-        EN: Overrides save_model to catch and display errors in the admin UI.
-        FA: متد save_model را برای دریافت و نمایش خطاها در رابط کاربری ادمین بازنویسی می‌کند.
-        """
         try:
             super().save_model(request, obj, form, change)
         except Exception as e:
@@ -181,34 +278,41 @@ class ArticleAdmin(admin.ModelAdmin):
 @admin.register(Revision)
 class RevisionAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     """
-    EN: Admin interface for Article Revisions.
-    FA: رابط کاربری ادمین برای بازنگری‌های مقاله.
+    EN: Read-only Admin interface for Article Revisions.
+    FA: رابط کاربری ادمین فقط-خواندنی برای بازنگری‌های مقاله.
     """
 
-    list_display = ("article", "editor", "created_at")
-    list_filter = ("editor",)
-    search_fields = ("article__id",)
+    list_display = ("id", "article", "editor", "language_code", "title", "created_at")
+    list_filter = ("language_code", "editor")
+    search_fields = ("title", "change_note")
+    readonly_fields = (
+        "article",
+        "language_code",
+        "editor",
+        "content",
+        "title",
+        "excerpt",
+        "change_note",
+        "created_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(PodcastCategory)
 class PodcastCategoryAdmin(admin.ModelAdmin):
-    """
-    EN: Admin interface for Podcast Categories.
-    FA: رابط کاربری ادمین برای دسته‌بندی‌های پادکست.
-    """
-
     list_display = ("title", "slug", "is_active", "icon")
     search_fields = ("title", "slug")
     prepopulated_fields = {"slug": ("title",)}
+    autocomplete_fields = ("icon",)
 
 
 @admin.register(Podcast)
 class PodcastAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
-    """
-    EN: Admin interface for Podcasts.
-    FA: رابط کاربری ادمین برای پادکست‌ها.
-    """
-
     list_display = (
         "episode_number",
         "title",
@@ -221,6 +325,7 @@ class PodcastAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
     list_filter = ("category", "media_type", "is_active")
     prepopulated_fields = {"slug": ("title",)}
     search_fields = ("title", "slug", "description")
+    autocomplete_fields = ("category", "cover_image", "audio_file", "video_file")
     filter_horizontal = ("related_podcasts",)
     fieldsets = (
         (
@@ -242,19 +347,30 @@ class PodcastAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             },
         ),
         (
-            "Statistics & Dates",
+            "Statistics & Publishing",
             {"fields": ("published_date", "view_count", "related_podcasts")},
         ),
     )
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("category", "cover_image")
+
 
 @admin.register(GalleryItem)
 class GalleryItemAdmin(admin.ModelAdmin):
-    """
-    EN: Admin interface for Gallery Items.
-    FA: رابط کاربری ادمین برای گالری تصاویر.
-    """
-
-    list_display = ("caption", "order", "is_active", "link")
+    list_display = ("preview_image", "caption", "order", "is_active", "link")
     list_editable = ("order", "is_active")
     search_fields = ("caption",)
+    autocomplete_fields = ("image",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("image")
+
+    @admin.display(description="Image Preview")
+    def preview_image(self, obj):
+        if obj.image and obj.image.url:
+            return format_html(
+                '<img src="{}" style="max-height: 40px; max-width: 60px; object-fit: cover; border-radius: 4px;" />',
+                obj.image.url,
+            )
+        return "N/A"
