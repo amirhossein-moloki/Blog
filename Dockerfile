@@ -2,8 +2,8 @@
 FROM python:3.12-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set work directory
 WORKDIR /app
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     locales \
     libavif-dev \
+    libmagic1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Generate locale
@@ -22,9 +23,9 @@ RUN echo "fa_IR.UTF-8 UTF-8" > /etc/locale.gen && \
     locale-gen
 
 # Set environment variables for locale
-ENV LANG fa_IR.UTF-8
-ENV LANGUAGE fa_IR:fa
-ENV LC_ALL fa_IR.UTF-8
+ENV LANG=fa_IR.UTF-8
+ENV LANGUAGE=fa_IR:fa
+ENV LC_ALL=fa_IR.UTF-8
 
 # Install dependencies
 COPY requirements.txt /app/
