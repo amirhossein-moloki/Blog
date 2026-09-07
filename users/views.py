@@ -1,7 +1,8 @@
 import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -18,10 +19,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework import serializers
 
 
 class TokenObtainPairResponseSerializer(serializers.Serializer):
