@@ -467,8 +467,16 @@ FILE_UPLOAD_HANDLERS = [
 # EN: Security headers and cookie protection.
 # FA: هدرهای امنیتی و محافظت از کوکی‌ها.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-USE_X_FORWARDED_HOST = True
-USE_X_FORWARDED_PORT = True
+USE_X_FORWARDED_HOST = os.environ.get("USE_X_FORWARDED_HOST", "True").lower() in (
+    "true",
+    "1",
+    "t",
+)
+USE_X_FORWARDED_PORT = os.environ.get("USE_X_FORWARDED_PORT", "True").lower() in (
+    "true",
+    "1",
+    "t",
+)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "SAMEORIGIN"
