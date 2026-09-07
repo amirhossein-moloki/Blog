@@ -20,6 +20,20 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import serializers
+
+
+class TokenObtainPairResponseSerializer(serializers.Serializer):
+    """
+    EN: Response serializer for JWT token pair.
+    FA: سریالایزر پاسخ برای جفت توکن JWT.
+    """
+
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
     EN: Custom JWT token obtain view using the custom serializer.
@@ -28,10 +42,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     serializer_class = CustomTokenObtainPairSerializer
 
+    @extend_schema(
+        responses={
+            200: TokenObtainPairResponseSerializer,
+            403: OpenApiResponse(description="Access restricted to staff users only."),
+            401: OpenApiResponse(description="Invalid credentials."),
+        }
+    )
     def post(self, request, *args, **kwargs):
         """
-        EN: Handles JWT token generation for a user.
-        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
+        EN: Handles JWT token generation for a staff user.
+        FA: تولید توکن JWT برای یک کاربر staff را مدیریت می‌کند.
         """
         serializer = self.get_serializer(data=request.data)
         try:

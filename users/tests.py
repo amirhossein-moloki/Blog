@@ -91,6 +91,46 @@ class UserViewSetTests(APITestCase):
         response = self.client.post(self.list_url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_admin_login_staff_user_success(self):
+        url = reverse("admin-login")
+        response = self.client.post(url, {"username": "admin", "password": "password"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data.get("data", response.data)
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+        self.assertTrue(len(data["access"]) > 0)
+        self.assertTrue(len(data["refresh"]) > 0)
+
+    def test_admin_login_non_staff_user_forbidden(self):
+        url = reverse("admin-login")
+        response = self.client.post(url, {"username": "user1", "password": "password"})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        data = response.data
+        if "data" in data and data["data"] is not None:
+            self.assertNotIn("access", data["data"])
+            self.assertNotIn("refresh", data["data"])
+        self.assertNotIn("access", data)
+        self.assertNotIn("refresh", data)
+
+    def test_admin_login_invalid_credentials(self):
+        url = reverse("admin-login")
+        response = self.client.post(
+            url, {"username": "admin", "password": "wrongpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        data = response.data
+        if "data" in data and data["data"] is not None:
+            self.assertNotIn("access", data["data"])
+            self.assertNotIn("refresh", data["data"])
+
+    def test_standard_token_endpoint_non_staff_user_allowed(self):
+        url = reverse("token_obtain_pair")
+        response = self.client.post(url, {"username": "user1", "password": "password"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data.get("data", response.data)
+        self.assertIn("access", data)
+        self.assertIn("refresh", data)
+
     def test_custom_token_obtain_pair_view_invalid_token(self):
         from rest_framework_simplejwt.exceptions import TokenError
 
