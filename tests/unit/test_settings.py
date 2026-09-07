@@ -2,7 +2,6 @@ import importlib
 import os
 from unittest import mock
 
-from django.conf import settings
 from django.test import SimpleTestCase
 
 
