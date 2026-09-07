@@ -1,18 +1,44 @@
+from django.contrib.auth.models import update_last_login
 from django.core.files.uploadedfile import UploadedFile
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.exceptions import PermissionDenied
+from rest_framework_simplejwt.serializers import (
+    TokenObtainPairSerializer,
+    TokenObtainSerializer,
+)
+from rest_framework_simplejwt.settings import api_settings
 
 from .models import User
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
-    EN: Custom JWT token serializer extending SimpleJWT's default.
-    FA: سریالایزر توکن JWT سفارشی که سریالایزر پیش‌فرض SimpleJWT را گسترش می‌دهد.
+    EN: Custom JWT token serializer enforcing staff-only access for administrative login.
+    FA: سریالایزر توکن JWT سفارشی که دسترسی ورود مدیریتی را فقط برای کاربران staff اعمال می‌کند.
     """
 
-    pass
+    def validate(self, attrs):
+        """
+        EN: Validates user credentials and ensures user.is_staff is True before generating tokens.
+        FA: اعتبارسنجی اعتبارنامه کاربر و اطمینان از user.is_staff قبل از تولید توکن.
+        """
+        TokenObtainSerializer.validate(self, attrs)
+
+        if not self.user or not self.user.is_staff:
+            raise PermissionDenied("Access restricted to staff users only.")
+
+        refresh = self.get_token(self.user)
+
+        data = {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
+        if api_settings.UPDATE_LAST_LOGIN:
+            update_last_login(None, self.user)
+
+        return data
 
 
 class UserReadOnlySerializer(serializers.ModelSerializer):

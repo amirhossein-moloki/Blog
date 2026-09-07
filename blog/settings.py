@@ -56,9 +56,13 @@ STATIC_API_KEY = os.environ.get("STATIC_API_KEY")
 SITE_NAME = os.environ.get("SITE_NAME", "Blog Platform")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", f"localhost,127.0.0.1,{DOMAIN}").split(
-    ","
-)
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get("ALLOWED_HOSTS", f"localhost,127.0.0.1,{DOMAIN}").split(
+        ","
+    )
+    if host.strip()
+]
 
 
 # EN: Application definition - core, third-party, and project-specific apps.
@@ -463,6 +467,8 @@ FILE_UPLOAD_HANDLERS = [
 # EN: Security headers and cookie protection.
 # FA: هدرهای امنیتی و محافظت از کوکی‌ها.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "SAMEORIGIN"
@@ -493,7 +499,9 @@ if not DEBUG and not is_testing:
     MIDDLEWARE.insert(2, "silk.middleware.SilkyMiddleware")
 
 CORS_ALLOWED_ORIGINS = [
-    origin for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if origin
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
 ]
 
 if DEBUG:
@@ -614,8 +622,16 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 CSRF_TRUSTED_ORIGINS = [
-    origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
+    origin.strip()
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
 ]
+
+# Ensure FRONTEND_URL is included in CSRF_TRUSTED_ORIGINS if valid origin
+if FRONTEND_URL and FRONTEND_URL.startswith(("http://", "https://")):
+    frontend_origin = FRONTEND_URL.rstrip("/")
+    if frontend_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(frontend_origin)
 
 
 if "test" in sys.argv or "pytest" in sys.modules or not USE_REDIS:
