@@ -33,8 +33,8 @@ class TokenObtainPairResponseSerializer(serializers.Serializer):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
-    EN: Custom JWT token obtain view using the custom serializer.
-    FA: View سفارشی دریافت توکن JWT با استفاده از سریالایزر سفارشی.
+    EN: Custom JWT token obtain view restricted to staff users for administrative login.
+    FA: View سفارشی دریافت توکن JWT محدود به کاربران کارمند برای ورود مدیریتی.
     """
 
     serializer_class = CustomTokenObtainPairSerializer
@@ -56,6 +56,13 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
             raise InvalidToken(e.args[0])
+
+        user = serializer.user
+        if not user or not user.is_staff:
+            return Response(
+                {"detail": "Administrative login is restricted to staff members only."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
