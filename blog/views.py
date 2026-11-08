@@ -78,4 +78,10 @@ def page_not_found_view(request, exception):
             },
             status=404,
         )
-    return redirect("https://atom-game.ir/404.html")
+    return JsonResponse(
+        {
+            "data": None,
+            "messagesList": ["The requested page was not found."],
+        },
+        status=404,
+    )
