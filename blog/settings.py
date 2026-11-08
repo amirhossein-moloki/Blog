@@ -50,6 +50,7 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "t")
 # EN: Site identity and connectivity configuration.
 # FA: تنظیمات هویت سایت و پیکربندی اتصال.
 DOMAIN = os.environ.get("DOMAIN", "localhost")
+FORCE_SCRIPT_NAME = os.environ.get("FORCE_SCRIPT_NAME") or None
 USE_CDN = os.environ.get("USE_CDN", "False").lower() in ("true", "1", "t")
 CDN_DOMAIN = os.environ.get("CDN_DOMAIN", "")
 STATIC_API_KEY = os.environ.get("STATIC_API_KEY")
@@ -220,7 +221,7 @@ USE_TZ = True
 if USE_CDN and CDN_DOMAIN:
     STATIC_URL = f"https://{CDN_DOMAIN}/static/"
 else:
-    STATIC_URL = "/static/"
+    STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
@@ -498,10 +499,10 @@ is_testing = (
     or any("pytest" in arg for arg in sys.argv)
 )
 
-SECURE_SSL_REDIRECT = not DEBUG and not is_testing
+SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", str(not DEBUG and not is_testing)).lower() in ("true", "1", "yes")
 # In production, use secure cookies.
-SESSION_COOKIE_SECURE = not DEBUG and not is_testing
-CSRF_COOKIE_SECURE = not DEBUG and not is_testing
+SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", str(not DEBUG and not is_testing)).lower() in ("true", "1", "yes")
+CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", str(not DEBUG and not is_testing)).lower() in ("true", "1", "yes")
 
 if not DEBUG and not is_testing:
     MIDDLEWARE.insert(2, "silk.middleware.SilkyMiddleware")
