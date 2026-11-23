@@ -152,10 +152,20 @@ class ArticleManager(models.Manager):
             .prefetch_related("tags")
             .annotate(
                 comments_count=Coalesce(
-                    Count("comments", filter=Q(comments__status="approved")), 0
+                    Count(
+                        "comments",
+                        filter=Q(comments__status="approved"),
+                        distinct=True,
+                    ),
+                    0,
                 ),
                 likes_count=Coalesce(
-                    Count("reactions", filter=Q(reactions__reaction="like")), 0
+                    Count(
+                        "reactions",
+                        filter=Q(reactions__reaction="like"),
+                        distinct=True,
+                    ),
+                    0,
                 ),
             )
         )

@@ -17,6 +17,10 @@ from .models import Article
 logger = logging.getLogger(__name__)
 
 
+ARTICLE_VIEW_BUFFER_HASH = "posts:article_views:pending"
+ARTICLE_VIEW_FALLBACK_IDS_KEY = "posts:article_views:fallback_ids"
+
+
 def increment_article_view_count(article_id):
     """
     EN: Asynchronously increments the view count for a specific article.
@@ -29,6 +33,89 @@ def increment_article_view_count(article_id):
         logger.info(f"Incremented view count for Article ID: {article_id}")
     except Exception as e:
         logger.error(f"Error incrementing view count for Article ID {article_id}: {e}")
+
+
+def buffer_article_view_count(article_id) -> bool:
+    """
+    EN: Buffers article view increments in Redis (or Django cache fallback) to avoid DB writes on GET reads.
+    FA: شمارنده بازدید مقاله را بدون نوشتن همزمان در دیتابیس داخل Redis بافر می‌کند.
+    """
+    if not article_id:
+        return False
+
+    try:
+        from common.cache import cache_manager
+
+        raw_client = cache_manager._get_raw_client()
+        if raw_client is not None:
+            raw_client.hincrby(ARTICLE_VIEW_BUFFER_HASH, str(article_id), 1)
+            return True
+
+        django_cache = cache_manager._django_cache
+        item_key = f"{ARTICLE_VIEW_BUFFER_HASH}:{article_id}"
+        try:
+            django_cache.incr(item_key)
+        except Exception:
+            current = int(django_cache.get(item_key) or 0)
+            django_cache.set(item_key, current + 1, timeout=3600)
+
+        ids = django_cache.get(ARTICLE_VIEW_FALLBACK_IDS_KEY) or set()
+        if str(article_id) not in ids:
+            updated_ids = set(ids)
+            updated_ids.add(str(article_id))
+            django_cache.set(ARTICLE_VIEW_FALLBACK_IDS_KEY, updated_ids, timeout=3600)
+        return True
+    except Exception as e:
+        logger.warning(f"Failed to buffer view count for Article ID {article_id}: {e}")
+        return False
+
+
+def flush_buffered_article_view_counts() -> int:
+    """
+    EN: Atomically drains buffered view increments from Redis/cache and flushes them to Postgres in batch.
+    FA: شمارنده‌های بافرشده بازدید مقالات را به‌صورت اتمی تخلیه کرده و به دیتابیس منتقل می‌کند.
+    """
+    flushed_total = 0
+
+    try:
+        from common.cache import cache_manager
+
+        raw_client = cache_manager._get_raw_client()
+        if raw_client is not None and raw_client.exists(ARTICLE_VIEW_BUFFER_HASH):
+            drain_key = f"{ARTICLE_VIEW_BUFFER_HASH}:draining"
+            try:
+                raw_client.rename(ARTICLE_VIEW_BUFFER_HASH, drain_key)
+            except Exception:
+                drain_key = ARTICLE_VIEW_BUFFER_HASH
+
+            raw_counts = raw_client.hgetall(drain_key) or {}
+            raw_client.delete(drain_key)
+
+            for raw_id, raw_delta in raw_counts.items():
+                try:
+                    article_id = int(raw_id.decode("utf-8") if isinstance(raw_id, bytes) else raw_id)
+                    delta = int(raw_delta.decode("utf-8") if isinstance(raw_delta, bytes) else raw_delta)
+                except (TypeError, ValueError):
+                    continue
+                if delta > 0:
+                    Article.objects.filter(pk=article_id).update(views_count=F("views_count") + delta)
+                    flushed_total += delta
+
+        django_cache = cache_manager._django_cache
+        fallback_ids = django_cache.get(ARTICLE_VIEW_FALLBACK_IDS_KEY) or set()
+        if fallback_ids:
+            django_cache.delete(ARTICLE_VIEW_FALLBACK_IDS_KEY)
+            for str_id in list(fallback_ids):
+                item_key = f"{ARTICLE_VIEW_BUFFER_HASH}:{str_id}"
+                delta = int(django_cache.get(item_key) or 0)
+                django_cache.delete(item_key)
+                if delta > 0:
+                    Article.objects.filter(pk=int(str_id)).update(views_count=F("views_count") + delta)
+                    flushed_total += delta
+    except Exception as e:
+        logger.error(f"Error flushing buffered article view counts: {e}")
+
+    return flushed_total
 
 
 def publish_scheduled_articles():
