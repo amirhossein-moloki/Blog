@@ -504,7 +504,12 @@ SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", str(not DEBUG and no
 SESSION_COOKIE_SECURE = os.environ.get("SESSION_COOKIE_SECURE", str(not DEBUG and not is_testing)).lower() in ("true", "1", "yes")
 CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", str(not DEBUG and not is_testing)).lower() in ("true", "1", "yes")
 
-if not DEBUG and not is_testing:
+ENABLE_SILK = os.environ.get("ENABLE_SILK", "False").lower() in (
+    "true",
+    "1",
+    "t",
+)
+if (DEBUG or ENABLE_SILK) and not is_testing:
     MIDDLEWARE.insert(2, "silk.middleware.SilkyMiddleware")
 
 CORS_ALLOWED_ORIGINS = [
