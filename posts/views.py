@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -51,6 +51,27 @@ from .serializers import (
     SeriesSerializer,
     TagSerializer,
 )
+
+
+def _set_public_cache_headers(
+    request,
+    response,
+    max_age: int = 120,
+    s_maxage: int = 300,
+    swr: int = 600,
+):
+    """
+    EN: Adds CDN/browser caching headers only for unauthenticated read responses.
+    FA: هدرهای کش را فقط برای درخواست‌های عمومی بدون احراز هویت تنظیم می‌کند.
+    """
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False):
+        response["Cache-Control"] = "private, no-cache"
+    else:
+        response["Cache-Control"] = (
+            f"public, max-age={max_age}, s-maxage={s_maxage}, stale-while-revalidate={swr}"
+        )
+    return response
 
 
 class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
@@ -119,7 +140,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             soft_ttl_sec=300,
             hard_ttl_sec=900,
         )
-        return Response(data)
+        return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
     def get_queryset(self):
         """
@@ -232,28 +253,39 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         """
-        EN: Increments the view count and returns article details with advanced caching.
-        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را با کشینگ پیشرفته بازمی‌گرداند.
+        EN: Serves cached article details and increments view count via an atomic SQL update
+            (avoiding Article.save() / sync_article_media on GET reads).
+        FA: جزئیات مقاله را از کش بازمی‌گرداند و شمارنده بازدید را به‌صورت اتمی و بدون اجرای save() به‌روزرسانی می‌کند.
         """
-        obj = self.get_object()
-        obj.views_count += 1
-        obj.save(update_fields=["views_count"])
-
-        try:
-            slug = (
-                obj.translations.first().slug
-                if obj.translations.exists()
-                else str(obj.id)
-            )
-        except Exception:
-            slug = str(obj.id)
-
+        lookup_slug = kwargs.get(
+            self.lookup_url_kwarg or self.lookup_field
+        ) or str(kwargs.get("pk", ""))
         lang = request.query_params.get("lang", "en")
+        is_authenticated = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
+        )
+
+        if is_authenticated:
+            obj = self.get_object()
+            Article.objects.filter(pk=obj.pk).update(
+                views_count=F("views_count") + 1
+            )
+            serializer = self.get_serializer(obj)
+            return _set_public_cache_headers(request, Response(serializer.data))
+
         cache_key = build_cache_key(
-            "posts", "article_detail", slug, params={"lang": lang}, lang=lang
+            "posts", "article_detail", lookup_slug, params={"lang": lang}, lang=lang
         )
 
         def rebuild():
+            try:
+                obj = self.get_object()
+            except Exception:
+                return {
+                    "_negative_cache_": True,
+                    "status_code": 404,
+                    "detail": "No article was found with this slug.",
+                }
             serializer = self.get_serializer(obj)
             return serializer.data
 
@@ -261,11 +293,24 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             key=cache_key,
             rebuild_callback=rebuild,
             group="article_detail",
-            tags=[f"article_detail:{slug}"],
+            tags=[f"article_detail:{lookup_slug}"],
             soft_ttl_sec=600,
             hard_ttl_sec=1800,
         )
-        return Response(data)
+
+        if isinstance(data, dict) and data.get("_negative_cache_", False):
+            raise NotFound(data.get("detail", "No article was found with this slug."))
+
+        article_id = data.get("id") if isinstance(data, dict) else None
+        if article_id:
+            try:
+                Article.objects.filter(pk=article_id).update(
+                    views_count=F("views_count") + 1
+                )
+            except Exception:
+                pass
+
+        return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
@@ -399,7 +444,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         if isinstance(data, dict) and data.get("_negative_cache_", False):
             raise NotFound(data.get("detail", "No article was found with this slug."))
 
-        return Response(data)
+        return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
 
 @extend_schema(
@@ -553,7 +598,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             soft_ttl_sec=86400,
             hard_ttl_sec=604800,
         )
-        return Response(data)
+        return _set_public_cache_headers(request, Response(data), 300, 900, 1800)
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -585,7 +630,7 @@ class TagViewSet(viewsets.ModelViewSet):
             soft_ttl_sec=86400,
             hard_ttl_sec=604800,
         )
-        return Response(data)
+        return _set_public_cache_headers(request, Response(data), 300, 900, 1800)
 
 
 class SeriesViewSet(viewsets.ModelViewSet):
@@ -719,4 +764,4 @@ def content_counts(request):
         soft_ttl_sec=300,
         hard_ttl_sec=900,
     )
-    return Response(data)
+    return _set_public_cache_headers(request, Response(data), 300, 600, 900)

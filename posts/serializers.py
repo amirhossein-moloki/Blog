@@ -401,11 +401,20 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_content_blocks(self, obj):
+        cache = getattr(self, "_content_blocks_cache", None)
+        if cache is None:
+            cache = {}
+            self._content_blocks_cache = cache
+        if obj.pk in cache:
+            return cache[obj.pk]
+
         trans = obj.translation
         if not trans:
+            cache[obj.pk] = []
             return []
         blocks = trans.content_blocks or []
         if not blocks:
+            cache[obj.pk] = []
             return []
 
         import copy
@@ -449,6 +458,7 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
                 block = migrate_and_normalize_block(block)
                 normalized_blocks.append(block)
 
+        cache[obj.pk] = normalized_blocks
         return normalized_blocks
 
     @extend_schema_field(serializers.ListField(child=serializers.DictField()))
