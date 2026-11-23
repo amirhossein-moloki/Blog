@@ -249,6 +249,8 @@ class ArticleListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
     published_at = JalaliDateTimeField()
+    published_at_iso = serializers.SerializerMethodField()
+    updated_at_iso = serializers.SerializerMethodField()
 
     slug = serializers.CharField(source="translation.slug", read_only=True)
     title = serializers.CharField(source="translation.title", read_only=True)
@@ -259,6 +261,16 @@ class ArticleListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
     reading_time_sec = serializers.IntegerField(
         source="translation.reading_time_sec", read_only=True
     )
+
+    def get_published_at_iso(self, obj):
+        if getattr(obj, "published_at", None):
+            return obj.published_at.isoformat()
+        return None
+
+    def get_updated_at_iso(self, obj):
+        if getattr(obj, "updated_at", None):
+            return obj.updated_at.isoformat()
+        return None
 
     class Meta:
         model = Article
@@ -272,6 +284,8 @@ class ArticleListSerializer(DynamicFieldsMixin, serializers.ModelSerializer):
             "status",
             "is_hot",
             "published_at",
+            "published_at_iso",
+            "updated_at_iso",
             "author",
             "category",
             "cover_image",
