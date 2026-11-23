@@ -1,9 +1,21 @@
 from django.db import connections
 from django.db.utils import OperationalError
-from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.http import HttpResponse, JsonResponse
 
 from common.cache import cache_manager
+
+
+def robots_txt_view(request):
+    """
+    EN: Prevent search engines from crawling or indexing the headless CMS API origin directly.
+    FA: جلوگیری از خزش و ایندکس مستقیم دامنه بک‌اند headless وبلاگ توسط موتورهای جست‌وجو.
+    """
+    response = HttpResponse(
+        "User-agent: *\nDisallow: /\n",
+        content_type="text/plain; charset=utf-8",
+    )
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 def health_check(request):
@@ -61,27 +73,21 @@ def health_check(request):
 def page_not_found_view(request, exception):
     """
     EN:
-    Custom view to handle 404 Not Found errors.
-    Redirects to an external error page for general requests,
-    but returns a standardized JSON response for API requests.
-
+    Custom view to handle 404 Not Found errors without an external redirect.
     FA:
-    نمای سفارشی برای مدیریت خطاهای ۴۰۴.
-    تغییر مسیر به یک صفحه خطای خارجی برای درخواست‌های عمومی،
-    اما بازگرداندن یک پاسخ JSON استاندارد برای درخواست‌های API.
+    نمای سفارشی برای مدیریت خطاهای ۴۰۴ با کد وضعیت ۴۰۴ واقعی و هدر noindex.
     """
-    if request.path.startswith("/api/"):
-        return JsonResponse(
-            {
-                "data": None,
-                "messagesList": ["The requested API endpoint was not found."],
-            },
-            status=404,
-        )
-    return JsonResponse(
+    message = (
+        "The requested API endpoint was not found."
+        if request.path.startswith("/api/")
+        else "The requested page was not found."
+    )
+    response = JsonResponse(
         {
             "data": None,
-            "messagesList": ["The requested page was not found."],
+            "messagesList": [message],
         },
         status=404,
     )
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response

@@ -24,7 +24,7 @@ from .sitemaps import (
     ArticleSitemap,
     StaticViewSitemap,
 )
-from .views import page_not_found_view
+from .views import page_not_found_view, robots_txt_view
 
 # EN: Custom 404 handler for the project.
 # FA: مدیریت‌کننده سفارشی خطای ۴۰۴ برای پروژه.
@@ -36,6 +36,7 @@ sitemaps = {
 }
 
 urlpatterns = [
+    path("robots.txt", robots_txt_view, name="robots_txt"),
     # EN: Sitemap XML endpoint.
     # FA: اندپوینت XML نقشه سایت.
     path(

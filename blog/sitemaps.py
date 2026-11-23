@@ -1,14 +1,13 @@
-from datetime import datetime
-
 from django.contrib.sitemaps import Sitemap
+from django.utils import timezone
 
 from posts.models import Article
 
 
 class ArticleSitemap(Sitemap):
     """
-    EN: Sitemap generator for published blog articles.
-    FA: تولیدکننده نقشه سایت (Sitemap) برای مقاله‌های منتشر شده بلاگ.
+    EN: Sitemap generator for published public blog articles.
+    FA: تولیدکننده نقشه سایت (Sitemap) برای مقاله‌های منتشر شده و عمومی بلاگ.
     """
 
     changefreq = "weekly"
@@ -16,58 +15,47 @@ class ArticleSitemap(Sitemap):
 
     def items(self):
         """
-        EN: Returns the list of published articles to include in the sitemap.
-        FA: لیستی از مقاله‌های منتشر شده را برای درج در نقشه سایت بازمی‌گرداند.
+        EN: Returns published public articles that have an active translation slug.
+        FA: لیستی از مقاله‌های منتشر شده عمومی دارای اسلاگ معتبر را بازمی‌گرداند.
         """
-        return Article.objects.published()
+        articles = (
+            Article.objects.published()
+            .with_translations("fa")
+            .filter(visibility="public", published_at__lte=timezone.now())
+        )
+        return [
+            article
+            for article in articles
+            if article.translation and getattr(article.translation, "slug", None)
+        ]
 
     def lastmod(self, obj):
         """
-        EN: Returns the last modification date (publication date) of an article.
-        FA: تاریخ آخرین تغییر (تاریخ انتشار) یک مقاله را بازمی‌گرداند.
+        EN: Returns the last modification or publication date of an article.
+        FA: تاریخ آخرین تغییر یا انتشار یک مقاله را بازمی‌گرداند.
         """
-        return obj.published_at
+        return obj.updated_at or obj.published_at
 
     def location(self, obj):
         """
-        EN: Returns the URL location for a specific article.
-        FA: آدرس URL را برای یک مقاله خاص بازمی‌گرداند.
+        EN: Returns the canonical article path on the frontend site.
+        FA: مسیر کانونیکال مقاله در سایت اصلی را بازمی‌گرداند.
         """
-        return f"/articles/{obj.slug}"
+        trans = obj.translation
+        return f"/blog/{trans.slug}"
 
 
 class StaticViewSitemap(Sitemap):
     """
-    EN: Sitemap generator for static pages and important application routes.
-    FA: تولیدکننده نقشه سایت برای صفحات استاتیک و مسیرهای مهم اپلیکیشن.
+    EN: Sitemap generator for public blog listing route.
+    FA: تولیدکننده نقشه سایت برای صفحه اصلی وبلاگ.
     """
 
     priority = 0.5
     changefreq = "daily"
 
     def items(self):
-        """
-        EN: Returns the list of static URL paths.
-        FA: لیستی از مسیرهای URL استاتیک را بازمی‌گرداند.
-        """
-        return [
-            "/",
-            "/about",
-            "/register/login",
-            "/register/signup",
-            "/user-dashboard/",
-        ]
-
-    def lastmod(self, item):
-        """
-        EN: Returns the current time as the last modification for static views.
-        FA: زمان فعلی را به عنوان آخرین تغییر برای نماهای استاتیک بازمی‌گرداند.
-        """
-        return datetime.now()
+        return ["/blog"]
 
     def location(self, item):
-        """
-        EN: Returns the URL path for a static item.
-        FA: مسیر URL را برای یک آیتم استاتیک بازمی‌گرداند.
-        """
         return item
