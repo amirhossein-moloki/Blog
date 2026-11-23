@@ -4,7 +4,7 @@ FA: ردیاب‌های ابطال کش بر اساس نسخه، برچسب‌ه
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,56 @@ class InvalidationManager:
         except Exception as e:
             logger.warning(f"Error getting tag version for {tag}: {e}")
         return 1
+
+    def get_versions_batch(
+        self, group: Optional[str], tags: List[str]
+    ) -> Tuple[int, Dict[str, int]]:
+        """
+        EN: Retrieves group version and all tag versions in a single MGET/get_many round trip.
+        FA: نسخه گروه و تمام برچسب‌ها را در یک درخواست دسته‌ای (get_many/MGET) دریافت می‌کند.
+        """
+        group_key = self._get_version_key(group) if group else None
+        tag_keys = {tag: self._get_tag_key(tag) for tag in tags}
+        keys: List[str] = []
+        if group_key:
+            keys.append(group_key)
+        keys.extend(tag_keys.values())
+
+        if not keys:
+            return 1, {}
+
+        values_map: Dict[str, Any] = {}
+        try:
+            if hasattr(self.cache_client, "get_many"):
+                values_map = self.cache_client.get_many(keys) or {}
+            else:
+                for key in keys:
+                    val = self.cache_client.get(key)
+                    if val is not None:
+                        values_map[key] = val
+        except Exception as e:
+            logger.warning(f"Error batch-fetching cache versions: {e}")
+            return 1, {tag: 1 for tag in tags}
+
+        group_version = 1
+        if group_key and values_map.get(group_key) is not None:
+            try:
+                group_version = int(values_map[group_key])
+            except (TypeError, ValueError):
+                group_version = 1
+
+        tag_versions: Dict[str, int] = {}
+        for tag, tag_key in tag_keys.items():
+            raw_val = values_map.get(tag_key)
+            if raw_val is not None:
+                try:
+                    tag_versions[tag] = int(raw_val)
+                    continue
+                except (TypeError, ValueError):
+                    pass
+            tag_versions[tag] = 1
+
+        return group_version, tag_versions
 
     def invalidate_tag(self, tag: str) -> int:
         """

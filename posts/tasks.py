@@ -1,6 +1,10 @@
 from celery import shared_task
 
-from .services import increment_article_view_count, publish_scheduled_articles
+from .services import (
+    flush_buffered_article_view_counts,
+    increment_article_view_count,
+    publish_scheduled_articles,
+)
 
 
 @shared_task
@@ -10,6 +14,15 @@ def increment_article_view_count_task(article_id):
     FA: تسک Celery برای افزایش تعداد بازدیدهای یک مقاله.
     """
     increment_article_view_count(article_id)
+
+
+@shared_task
+def flush_article_view_counts_task():
+    """
+    EN: Periodic Celery beat task to flush Redis-buffered article view counts to Postgres.
+    FA: تسک دوره‌ای Celery برای انتقال دسته‌ای بازدیدهای بافرشده به دیتابیس.
+    """
+    return flush_buffered_article_view_counts()
 
 
 @shared_task

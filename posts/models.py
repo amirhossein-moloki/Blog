@@ -128,7 +128,7 @@ class Series(BaseModel):
         EN: Returns the absolute URL for the series detail view.
         FA: آدرس مطلق برای نمای جزئیات مجموعه را بازمی‌گرداند.
         """
-        return reverse("posts:series-detail", kwargs={"slug": self.slug})
+        return reverse("posts:series-detail", kwargs={"pk": self.pk})
 
 
 class ArticleManager(models.Manager):
@@ -152,10 +152,20 @@ class ArticleManager(models.Manager):
             .prefetch_related("tags")
             .annotate(
                 comments_count=Coalesce(
-                    Count("comments", filter=Q(comments__status="approved")), 0
+                    Count(
+                        "comments",
+                        filter=Q(comments__status="approved"),
+                        distinct=True,
+                    ),
+                    0,
                 ),
                 likes_count=Coalesce(
-                    Count("reactions", filter=Q(reactions__reaction="like")), 0
+                    Count(
+                        "reactions",
+                        filter=Q(reactions__reaction="like"),
+                        distinct=True,
+                    ),
+                    0,
                 ),
             )
         )
@@ -169,8 +179,8 @@ class ArticleManager(models.Manager):
 
     def with_translations(self, lang_code="fa"):
         """
-        EN: Prefetches translations for the given language code and the default 'fa'.
-        FA: ترجمه‌ها را برای کد زبان داده شده و زبان پیش‌فرض 'fa' پیش‌واکشی می‌کند.
+        EN: Prefetches translations for the given language code and fallback translations (preferring 'fa', then 'en') without N+1 queries.
+        FA: ترجمه‌ها را برای کد زبان داده شده و ترجمه‌های جایگزین (ابتدا 'fa' و سپس 'en') بدون کوئری N+1 پیش‌واکشی می‌کند.
         """
         from django.db.models import Prefetch
 
@@ -182,7 +192,7 @@ class ArticleManager(models.Manager):
             ),
             Prefetch(
                 "translations",
-                queryset=ArticleTranslation.objects.filter(language_code="fa"),
+                queryset=ArticleTranslation.objects.all(),
                 to_attr="default_translation",
             ),
         )
@@ -271,15 +281,20 @@ class Article(BaseModel):
     @property
     def translation(self):
         """
-        EN: Returns the requested translation or falls back to the default 'en' translation.
-        FA: ترجمه درخواستی را برمی‌گرداند یا به ترجمه پیش‌فرض 'en' بازمی‌گردد.
+        EN: Returns the requested translation or falls back to 'fa', then 'en', then any available translation.
+        FA: ترجمه درخواستی را برمی‌گرداند یا به ترتیب به 'fa'، 'en' یا اولین ترجمه موجود بازمی‌گردد.
         """
         if hasattr(self, "requested_translation") and self.requested_translation:
             return self.requested_translation[0]
         if hasattr(self, "default_translation") and self.default_translation:
+            for preferred_lang in ("fa", "en"):
+                for trans in self.default_translation:
+                    if trans.language_code == preferred_lang:
+                        return trans
             return self.default_translation[0]
         return (
-            self.translations.filter(language_code="en").first()
+            self.translations.filter(language_code="fa").first()
+            or self.translations.filter(language_code="en").first()
             or self.translations.first()
         )
 

@@ -3,6 +3,7 @@ EN: Central Cache Manager service. Implements Cache-Aside, Stale-While-Revalidat
 FA: سرویس مرکزی مدیریت کش. پیاده‌سازی الگوهای Cache-Aside و Stale-While-Revalidate، محدودیت‌های حجم داده و سوئیچ اضطراری.
 """
 
+import base64
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -61,6 +62,7 @@ class CacheManager:
         self._django_cache = caches["default"]
         self._redis_client = None
         self._is_redis_available = False
+        self._redis_retry_after = 0.0
 
         # EN: Setup Invalidation Manager
         # FA: راه‌اندازی مدیریت ابطال کش
@@ -82,10 +84,11 @@ class CacheManager:
                 # EN: django-redis client
                 # FA: کلاینت مخصوص django-redis
                 self._redis_client = self._django_cache.client.get_client()
-                # EN: Test ping to verify operational status
-                # FA: ارسال پینگ برای تایید در دسترس بودن سرویس
+                # EN: Test ping once during startup to verify operational status
+                # FA: ارسال پینگ اولیه برای تایید در دسترس بودن سرویس
                 self._redis_client.ping()
                 self._is_redis_available = True
+                self._redis_retry_after = 0.0
         except Exception as e:
             logger.warning(
                 f"Redis not available or not configured: {e}. Falling back to Django cache backend."
@@ -93,20 +96,23 @@ class CacheManager:
             self._redis_client = None
             self._is_redis_available = False
 
+    def _mark_redis_unavailable(self, cooldown_sec: float = 30.0) -> None:
+        self._is_redis_available = False
+        self._redis_retry_after = time.monotonic() + cooldown_sec
+
     def _get_raw_client(self) -> Optional[Any]:
         """
-        EN: Returns the active Redis client, checking ping to maintain fail-safe state.
-        FA: کلاینت فعال Redis را با ارسال پینگ بررسی کرده و برمی‌گرداند.
+        EN: Returns the active Redis client without per-call synchronous PING round trips.
+        FA: کلاینت فعال Redis را بدون ارسال پینگ همزمان در هر درخواست بازمی‌گرداند.
         """
-        if not self._is_redis_available or self._redis_client is None:
+        if self._redis_client is None:
             return None
-        try:
-            self._redis_client.ping()
+        if self._is_redis_available:
             return self._redis_client
-        except Exception:
-            logger.warning("Redis ping failed. Disabling raw Redis interactions.")
-            self._is_redis_available = False
-            return None
+        if time.monotonic() >= self._redis_retry_after:
+            self._is_redis_available = True
+            return self._redis_client
+        return None
 
     # --- CORE SYNC/ASYNC API IMPLEMENTATION ---
 
@@ -138,16 +144,11 @@ class CacheManager:
                 payload = self.compressor.compress(serialized)
                 compressed = True
 
-            # EN: Build tag-version mappings
-            # FA: ساخت مپینگ تگ-نسخه
-            tag_versions = {}
-            if tags:
-                for tag in tags:
-                    tag_versions[tag] = self.invalidation.get_tag_version(tag)
-
-            # EN: Build group-version mapping
-            # FA: ساخت مپینگ گروه-نسخه
-            group_version = self.invalidation.get_version(group) if group else 1
+            # EN: Batch-fetch group & tag versions in a single MGET round trip
+            # FA: دریافت یکجای نسخه‌های گروه و برچسب‌ها
+            group_version, tag_versions = self.invalidation.get_versions_batch(
+                group, tags or []
+            )
 
             now = time.time()
             envelope = {
@@ -161,12 +162,15 @@ class CacheManager:
                 "ht": now + (hard_ttl_sec or 600),
             }
 
-            # EN: Serialize the entire envelope with JSON
-            # FA: سریالایز کردن کل پاکت به فرمت JSON
-            # We use local helper to encode byte strings as hex to preserve data in nested JSON structure safely
-            if isinstance(envelope["p"], bytes):
-                envelope["p"] = envelope["p"].hex()
-                envelope["hex_encoded"] = True
+            # EN: Preserve native binary bytes under MessagePack; use compact base64 for JSON serializer.
+            # FA: نگهداری باینری مستقیم در MessagePack یا کدگذاری base64 فشرده‌تر برای JSON.
+            supports_native_bytes = (
+                isinstance(self.serializer, MessagePackSerializer)
+                and getattr(self.serializer, "_fallback", None) is None
+            )
+            if isinstance(envelope["p"], bytes) and not supports_native_bytes:
+                envelope["p"] = base64.b64encode(envelope["p"]).decode("ascii")
+                envelope["b64_encoded"] = True
 
             return self.serializer.serialize(envelope)
         except Exception as e:
@@ -175,8 +179,8 @@ class CacheManager:
 
     def _unpack_envelope(self, envelope_bytes: bytes) -> Tuple[Optional[Any], bool]:
         """
-        EN: Unpacks, verifies versions/tags, decompresses, and returns data and stale flag.
-        FA: باز کردن پاکت کش، بررسی نسخه‌ها/تگ‌ها، باز کردن فشرده‌سازی و بازگرداندن داده و فلگ کهنگی (stale).
+        EN: Unpacks, verifies versions/tags in batch, decompresses, and returns data and stale flag.
+        FA: باز کردن پاکت کش، بررسی دسته‌ای نسخه‌ها/تگ‌ها، باز کردن فشرده‌سازی و بازگرداندن داده و فلگ کهنگی.
         """
         if not envelope_bytes:
             return None, False
@@ -186,22 +190,22 @@ class CacheManager:
             if not isinstance(envelope, dict):
                 return None, False
 
-            # EN: Check group version validity
-            # FA: بررسی اعتبار نسخه گروه
+            # EN: Batch-validate group & tag versions
+            # FA: بررسی دسته‌ای اعتبار نسخه گروه و تگ‌ها
             group = envelope.get("g")
-            if group:
-                current_group_ver = self.invalidation.get_version(group)
-                if envelope.get("gv", 1) < current_group_ver:
-                    logger.debug(
-                        f"Cache stale: group '{group}' version changed from {envelope.get('gv')} to {current_group_ver}"
-                    )
-                    return None, False
+            tag_versions = envelope.get("tv", {}) or {}
+            current_group_ver, current_tag_versions = (
+                self.invalidation.get_versions_batch(group, list(tag_versions.keys()))
+            )
 
-            # EN: Check tag versions validity
-            # FA: بررسی اعتبار نسخه‌های تگ‌ها
-            tag_versions = envelope.get("tv", {})
+            if group and envelope.get("gv", 1) < current_group_ver:
+                logger.debug(
+                    f"Cache stale: group '{group}' version changed from {envelope.get('gv')} to {current_group_ver}"
+                )
+                return None, False
+
             for tag, stored_ver in tag_versions.items():
-                current_tag_ver = self.invalidation.get_tag_version(tag)
+                current_tag_ver = current_tag_versions.get(tag, 1)
                 if stored_ver < current_tag_ver:
                     logger.debug(
                         f"Cache stale: tag '{tag}' version changed from {stored_ver} to {current_tag_ver}"
@@ -221,10 +225,12 @@ class CacheManager:
 
             is_stale = now > soft_expire
 
-            # EN: Extract payload
+            # EN: Extract payload (supports native bytes, base64, and legacy hex)
             # FA: استخراج داده اصلی
             payload = envelope.get("p")
-            if envelope.get("hex_encoded", False) and isinstance(payload, str):
+            if envelope.get("b64_encoded", False) and isinstance(payload, str):
+                payload = base64.b64decode(payload.encode("ascii"))
+            elif envelope.get("hex_encoded", False) and isinstance(payload, str):
                 payload = bytes.fromhex(payload)
 
             if envelope.get("c", False):

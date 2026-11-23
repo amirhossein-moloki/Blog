@@ -171,7 +171,13 @@ if is_testing_db:
 else:
     DATABASE_URL = os.environ.get("DATABASE_URL")
     if DATABASE_URL:
-        DATABASES = {"default": dj_database_url.config(default=DATABASE_URL)}
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=int(os.environ.get("DB_CONN_MAX_AGE", "60")),
+                conn_health_checks=True,
+            )
+        }
     else:
         DATABASES = {
             "default": {
@@ -599,6 +605,12 @@ CELERY_BEAT_SCHEDULE = {
     "publish-scheduled-articles": {
         "task": "posts.tasks.publish_scheduled_articles_task",
         "schedule": timedelta(minutes=1),
+    },
+    "flush-article-view-counts": {
+        "task": "posts.tasks.flush_article_view_counts_task",
+        "schedule": timedelta(
+            minutes=int(os.environ.get("VIEW_COUNT_FLUSH_INTERVAL_MINUTES", "2"))
+        ),
     },
     "backup-database-daily": {
         "task": "common.tasks.backup_database_task",

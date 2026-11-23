@@ -51,6 +51,34 @@ from .serializers import (
     SeriesSerializer,
     TagSerializer,
 )
+from .services import buffer_article_view_count
+
+ARTICLE_LIST_CACHE_PARAMS = (
+    "page",
+    "page_size",
+    "pageNo",
+    "pageSize",
+    "category",
+    "tags",
+    "series",
+    "visibility",
+    "published_after",
+    "published_before",
+    "is_hot",
+    "search",
+    "ordering",
+    "lang",
+    "fields",
+)
+
+
+def _extract_allowlisted_cache_params(query_params, allowed_keys):
+    params = {}
+    for key in allowed_keys:
+        values = query_params.getlist(key)
+        if values:
+            params[key] = values[0] if len(values) == 1 else sorted(values)
+    return params
 
 
 def _set_public_cache_headers(
@@ -115,16 +143,14 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         """
-        EN: Lists articles with advanced caching and fallback.
-        FA: مقاله‌ها را با قابلیت کشینگ پیشرفته و پشتیبانی اضطراری لیست می‌کند.
+        EN: Lists articles with advanced caching (strictly public-scoped) and fallback.
+        FA: مقاله‌ها را با قابلیت کشینگ امن (تفکیک‌شده برای کاربران عادی و احرازهویت‌شده) لیست می‌کند.
         """
-        lang = request.query_params.get("lang", "fa")
-        params = request.query_params.dict()
-        cache_key = build_cache_key(
-            "posts", "article_list", "list", params=params, lang=lang
+        is_authenticated = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
         )
 
-        def rebuild():
+        def build_response_data():
             queryset = self.filter_queryset(self.get_queryset())
             page = self.paginate_queryset(queryset)
             if page is not None:
@@ -133,9 +159,20 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             return serializer.data
 
+        if is_authenticated:
+            return _set_public_cache_headers(request, Response(build_response_data()))
+
+        lang = request.query_params.get("lang", "fa")
+        params = _extract_allowlisted_cache_params(
+            request.query_params, ARTICLE_LIST_CACHE_PARAMS
+        )
+        cache_key = build_cache_key(
+            "posts", "article_list", "list_public", params=params, lang=lang
+        )
+
         data = cache_manager.get_or_create(
             key=cache_key,
-            rebuild_callback=rebuild,
+            rebuild_callback=build_response_data,
             group="latest_articles",
             soft_ttl_sec=300,
             hard_ttl_sec=900,
@@ -178,10 +215,12 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
             if "author" in fields:
                 selects.add("author__avatar")
+                prefetches.add("author__avatar__variants")
             if "category" in fields:
                 selects.add("category")
             if "cover_image" in fields:
                 selects.add("cover_image")
+                prefetches.add("cover_image__variants")
             if "tags" in fields:
                 prefetches.add("tags")
             if "likes_count" in fields:
@@ -267,9 +306,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
         if is_authenticated:
             obj = self.get_object()
-            Article.objects.filter(pk=obj.pk).update(
-                views_count=F("views_count") + 1
-            )
+            buffer_article_view_count(obj.pk)
             serializer = self.get_serializer(obj)
             return _set_public_cache_headers(request, Response(serializer.data))
 
@@ -303,21 +340,17 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
 
         article_id = data.get("id") if isinstance(data, dict) else None
         if article_id:
-            try:
-                Article.objects.filter(pk=article_id).update(
-                    views_count=F("views_count") + 1
-                )
-            except Exception:
-                pass
+            buffer_article_view_count(article_id)
 
         return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
     @action(detail=True, methods=["get"])
     def similar(self, request, slug=None):
         """
-        EN: Returns similar articles based on the category.
-        FA: مقاله‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
+        EN: Returns similar articles based on the category with O(1) prefetched queries.
+        FA: مقاله‌های مشابه را بر اساس دسته‌بندی با کوئری‌های پیش‌واکشی‌شده بهینه بازمی‌گرداند.
         """
+        lang = request.query_params.get("lang", "fa")
         try:
             current_article = self.get_object()
         except Article.DoesNotExist:
@@ -325,31 +358,57 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 "The requested article to find similar articles was not found."
             )
 
-        if not current_article.category:
-            return Response([])
+        if not current_article.category_id:
+            return _set_public_cache_headers(request, Response([]), 120, 300, 600)
 
-        lang = request.query_params.get("lang", "fa")
-        similar_articles = (
-            Article.objects.filter(
-                status="published", category=current_article.category
+        def rebuild():
+            similar_articles = (
+                Article.objects.with_translations(lang)
+                .filter(status="published", category_id=current_article.category_id)
+                .exclude(pk=current_article.pk)
+                .select_related("author__avatar", "category", "cover_image")
+                .prefetch_related(
+                    "tags", "cover_image__variants", "author__avatar__variants"
+                )
+                .order_by("-published_at", "-id")[:5]
             )
-            .exclude(pk=current_article.pk)
-            .with_translations(lang)
-            .order_by("-published_at", "-id")[:5]
-        )
+            serializer = ArticleListSerializer(
+                similar_articles, many=True, context=self.get_serializer_context()
+            )
+            return serializer.data
 
-        serializer = ArticleListSerializer(similar_articles, many=True)
-        return _set_public_cache_headers(request, Response(serializer.data), 120, 300, 600)
+        is_authenticated = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
+        )
+        if is_authenticated:
+            return _set_public_cache_headers(request, Response(rebuild()))
+
+        cache_key = build_cache_key(
+            "posts",
+            "article_similar",
+            str(current_article.pk),
+            params={"lang": lang, "category": current_article.category_id},
+            lang=lang,
+        )
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="latest_articles",
+            soft_ttl_sec=300,
+            hard_ttl_sec=900,
+        )
+        return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
     @action(detail=True, methods=["get"], url_path="same-category")
     def same_category(self, request, slug=None):
         """
-        EN: Returns paginated articles from the same category.
-        FA: مقاله‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
+        EN: Returns paginated articles from the same category with O(1) prefetched queries.
+        FA: مقاله‌های هم‌دسته‌بندی را به‌صورت صفحه‌بندی‌شده و بدون N+1 بازمی‌گرداند.
         """
+        lang = request.query_params.get("lang", "fa")
         current_article = self.get_object()
 
-        if not current_article.category:
+        if not current_article.category_id:
             return Response(
                 {
                     "data": [],
@@ -364,27 +423,56 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 }
             )
 
-        lang = request.query_params.get("lang", "fa")
         paginator = self.pagination_class()
 
-        category_articles = (
-            Article.objects.filter(
-                status="published",
-                category=current_article.category,
-                published_at__lte=timezone.now(),
+        def rebuild():
+            category_articles = (
+                Article.objects.with_translations(lang)
+                .filter(
+                    status="published",
+                    category_id=current_article.category_id,
+                    published_at__lte=timezone.now(),
+                )
+                .exclude(pk=current_article.pk)
+                .select_related("author__avatar", "category", "cover_image")
+                .prefetch_related(
+                    "tags", "cover_image__variants", "author__avatar__variants"
+                )
+                .order_by("-published_at", "-id")
             )
-            .exclude(pk=current_article.pk)
-            .with_translations(lang)
-            .order_by("-published_at", "-id")
-        )
 
-        paginated_articles = paginator.paginate_queryset(
-            category_articles, request, view=self
+            paginated_articles = paginator.paginate_queryset(
+                category_articles, request, view=self
+            )
+            serializer = ArticleListSerializer(
+                paginated_articles, many=True, context=self.get_serializer_context()
+            )
+            return paginator.get_paginated_response(serializer.data).data
+
+        is_authenticated = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
         )
-        serializer = ArticleListSerializer(
-            paginated_articles, many=True, context=self.get_serializer_context()
+        if is_authenticated:
+            return _set_public_cache_headers(request, Response(rebuild()))
+
+        page_params = _extract_allowlisted_cache_params(
+            request.query_params, ("page", "page_size", "pageNo", "pageSize", "lang")
         )
-        return paginator.get_paginated_response(serializer.data)
+        cache_key = build_cache_key(
+            "posts",
+            "article_same_category",
+            str(current_article.pk),
+            params={"category": current_article.category_id, **page_params},
+            lang=lang,
+        )
+        data = cache_manager.get_or_create(
+            key=cache_key,
+            rebuild_callback=rebuild,
+            group="latest_articles",
+            soft_ttl_sec=300,
+            hard_ttl_sec=900,
+        )
+        return _set_public_cache_headers(request, Response(data), 120, 300, 600)
 
     @action(detail=False, methods=["get"], url_path="block-definitions")
     def block_definitions(self, request):
@@ -402,39 +490,46 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن به همراه کشینگ پیشرفته.
         """
         lang = request.query_params.get("lang", "fa")
+        is_authenticated = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
+        )
+
+        def fetch_serialized():
+            article = (
+                self.get_queryset()
+                .filter(translations__slug=slug, translations__language_code=lang)
+                .first()
+            )
+            if not article:
+                article = self.get_queryset().filter(translations__slug=slug).first()
+            if not article:
+                return None
+            serializer = ArticleDetailSerializer(
+                article, context=self.get_serializer_context()
+            )
+            return serializer.data
+
+        if is_authenticated:
+            payload = fetch_serialized()
+            if payload is None:
+                raise NotFound("No article was found with this slug.")
+            return _set_public_cache_headers(request, Response(payload))
         cache_key = build_cache_key(
             "posts", "article_by_slug", slug, params={"lang": lang}, lang=lang
         )
 
         def rebuild():
             try:
-                article = (
-                    self.get_queryset()
-                    .filter(translations__slug=slug, translations__language_code=lang)
-                    .first()
-                )
-                if not article:
-                    article = (
-                        self.get_queryset().filter(translations__slug=slug).first()
-                    )
-
-                if not article:
-                    return {
-                        "_negative_cache_": True,
-                        "status_code": 404,
-                        "detail": "No article was found with this slug.",
-                    }
+                serialized = fetch_serialized()
+                if serialized is not None:
+                    return serialized
             except Exception:
-                return {
-                    "_negative_cache_": True,
-                    "status_code": 404,
-                    "detail": "No article was found with this slug.",
-                }
-
-            serializer = ArticleDetailSerializer(
-                article, context=self.get_serializer_context()
-            )
-            return serializer.data
+                pass
+            return {
+                "_negative_cache_": True,
+                "status_code": 404,
+                "detail": "No article was found with this slug.",
+            }
 
         data = cache_manager.get_or_create(
             key=cache_key,
