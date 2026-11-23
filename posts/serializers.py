@@ -136,6 +136,8 @@ class ContentNormalizationMixin:
         FA: نمایش سریالایزر را برای شامل شدن محتوای نرمال‌سازی شده بازنویسی می‌کند.
         """
         data = super().to_representation(instance)
+        if data.get("content_blocks"):
+            return data
         content_value = data.get(self.content_field_name)
         if isinstance(content_value, str) and content_value.strip():
             data[self.content_field_name] = self._normalize_content(content_value)
@@ -744,7 +746,9 @@ class ArticleCreateUpdateSerializer(
         if not translation_data["slug"]:
             from django.utils.text import slugify
 
-            translation_data["slug"] = slugify(translation_data["title"])
+            translation_data["slug"] = slugify(
+                translation_data["title"], allow_unicode=True
+            )
 
         validated_data = self._handle_publication_date(validated_data)
 

@@ -128,7 +128,7 @@ class Series(BaseModel):
         EN: Returns the absolute URL for the series detail view.
         FA: آدرس مطلق برای نمای جزئیات مجموعه را بازمی‌گرداند.
         """
-        return reverse("posts:article-detail", kwargs={"slug": self.slug})
+        return reverse("posts:series-detail", kwargs={"slug": self.slug})
 
 
 class ArticleManager(models.Manager):
@@ -167,10 +167,10 @@ class ArticleManager(models.Manager):
         """
         return self.get_queryset().filter(status="published")
 
-    def with_translations(self, lang_code="en"):
+    def with_translations(self, lang_code="fa"):
         """
-        EN: Prefetches translations for the given language code and the default 'en'.
-        FA: ترجمه‌ها را برای کد زبان داده شده و زبان پیش‌فرض 'en' پیش‌واکشی می‌کند.
+        EN: Prefetches translations for the given language code and the default 'fa'.
+        FA: ترجمه‌ها را برای کد زبان داده شده و زبان پیش‌فرض 'fa' پیش‌واکشی می‌کند.
         """
         from django.db.models import Prefetch
 
@@ -182,7 +182,7 @@ class ArticleManager(models.Manager):
             ),
             Prefetch(
                 "translations",
-                queryset=ArticleTranslation.objects.filter(language_code="en"),
+                queryset=ArticleTranslation.objects.filter(language_code="fa"),
                 to_attr="default_translation",
             ),
         )

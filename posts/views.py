@@ -118,7 +118,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Lists articles with advanced caching and fallback.
         FA: مقاله‌ها را با قابلیت کشینگ پیشرفته و پشتیبانی اضطراری لیست می‌کند.
         """
-        lang = request.query_params.get("lang", "en")
+        lang = request.query_params.get("lang", "fa")
         params = request.query_params.dict()
         cache_key = build_cache_key(
             "posts", "article_list", "list", params=params, lang=lang
@@ -152,7 +152,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         QuerySet را با استفاده از select_related و prefetch_related بر اساس فیلدهای درخواستی بهینه می‌کند.
         همچنین قوانین مشاهده‌پذیری و بومی‌سازی را مدیریت می‌کند.
         """
-        lang = self.request.query_params.get("lang", "en")
+        lang = self.request.query_params.get("lang", "fa")
         if self.action == "list":
             queryset = Article.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
@@ -260,7 +260,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         lookup_slug = kwargs.get(
             self.lookup_url_kwarg or self.lookup_field
         ) or str(kwargs.get("pk", ""))
-        lang = request.query_params.get("lang", "en")
+        lang = request.query_params.get("lang", "fa")
         is_authenticated = bool(
             getattr(request, "user", None) and request.user.is_authenticated
         )
@@ -328,16 +328,18 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         if not current_article.category:
             return Response([])
 
+        lang = request.query_params.get("lang", "fa")
         similar_articles = (
             Article.objects.filter(
                 status="published", category=current_article.category
             )
             .exclude(pk=current_article.pk)
+            .with_translations(lang)
             .order_by("-published_at", "-id")[:5]
         )
 
         serializer = ArticleListSerializer(similar_articles, many=True)
-        return Response(serializer.data)
+        return _set_public_cache_headers(request, Response(serializer.data), 120, 300, 600)
 
     @action(detail=True, methods=["get"], url_path="same-category")
     def same_category(self, request, slug=None):
@@ -362,6 +364,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 }
             )
 
+        lang = request.query_params.get("lang", "fa")
         paginator = self.pagination_class()
 
         category_articles = (
@@ -371,6 +374,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 published_at__lte=timezone.now(),
             )
             .exclude(pk=current_article.pk)
+            .with_translations(lang)
             .order_by("-published_at", "-id")
         )
 
@@ -397,7 +401,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Endpoint to retrieve a single article by its slug and language with advanced caching.
         FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن به همراه کشینگ پیشرفته.
         """
-        lang = request.query_params.get("lang", "en")
+        lang = request.query_params.get("lang", "fa")
         cache_key = build_cache_key(
             "posts", "article_by_slug", slug, params={"lang": lang}, lang=lang
         )
