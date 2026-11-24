@@ -38,17 +38,18 @@ class ArticleFilter(filters.FilterSet):
 
     def filter_is_hot(self, queryset, name, value):
         """
-        EN: Filters articles based on 'hot' criteria: published recently and has high view count.
-        FA: مقاله‌ها را بر اساس معیارهای 'داغ' بودن فیلتر می‌کند: اخیراً منتشر شده و تعداد بازدید بالایی دارد.
+        EN: Filters articles based on explicit editorial 'is_hot' flag or high recent engagement.
+        FA: مقاله‌ها را بر اساس پرچم سردبیری 'is_hot' یا معیارهای بازدید و انتشار اخیر فیلتر می‌کند.
         """
-        hot_article_criteria = Q(
+        if value is None:
+            return queryset
+        hot_article_criteria = Q(is_hot=True) | Q(
             published_at__gte=timezone.now() - timedelta(days=HOT_ARTICLE_MAX_AGE_DAYS),
             views_count__gt=HOT_ARTICLE_MIN_VIEWS,
         )
         if value:
             return queryset.filter(hot_article_criteria)
-        else:
-            return queryset.exclude(hot_article_criteria)
+        return queryset.exclude(hot_article_criteria)
 
     class Meta:
         model = Article

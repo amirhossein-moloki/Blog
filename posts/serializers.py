@@ -562,7 +562,7 @@ class ArticleCreateUpdateSerializer(
 
     language_code = serializers.CharField(write_only=True, default="en")
     title = serializers.CharField(write_only=True)
-    slug = serializers.SlugField(write_only=True, required=False)
+    slug = serializers.SlugField(write_only=True, required=False, allow_unicode=True)
     excerpt = serializers.CharField(write_only=True)
     short_description = serializers.CharField(
         write_only=True, required=False, allow_blank=True, allow_null=True

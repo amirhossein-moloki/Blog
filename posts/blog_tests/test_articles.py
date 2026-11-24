@@ -135,16 +135,34 @@ class ArticleAPITest(BaseAPITestCase):
         tag1 = TagFactory()
         tag2 = TagFactory()
 
-        ArticleFactory(
+        private_article = ArticleFactory(
             series=series, visibility="private", category=category, tags=[tag1]
+        )
+        unlisted_article = ArticleFactory(
+            series=series, visibility="unlisted", category=category, tags=[tag1]
         )
         ArticleFactory.create_batch(2, visibility="public", tags=[tag2])
         url = reverse("posts:article-list")
 
+        # Guests must only ever see public articles in list responses
+        guest_list = self.client.get(url, format="json")
+        self.assertEqual(guest_list.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(guest_list.data["data"]), 2)
+        guest_ids = {item["id"] for item in guest_list.data["data"]}
+        self.assertNotIn(private_article.pk, guest_ids)
+        self.assertNotIn(unlisted_article.pk, guest_ids)
+
+        guest_private = self.client.get(url, {"visibility": "private"}, format="json")
+        self.assertEqual(guest_private.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(guest_private.data["data"]), 0)
+
+        # Staff users can filter across private/unlisted/public articles
+        self._authenticate_as_staff()
+
         # Filter by series
         response = self.client.get(url, {"series": series.pk}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["data"]), 1)
+        self.assertEqual(len(response.data["data"]), 2)
 
         # Filter by visibility
         response = self.client.get(url, {"visibility": "public"}, format="json")
@@ -154,12 +172,12 @@ class ArticleAPITest(BaseAPITestCase):
         # Filter by category
         response = self.client.get(url, {"category": category.slug}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["data"]), 1)
+        self.assertEqual(len(response.data["data"]), 2)
 
         # Filter by tags
         response = self.client.get(url, {"tags": tag1.slug}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["data"]), 1)
+        self.assertEqual(len(response.data["data"]), 2)
 
         response = self.client.get(url, {"tags": tag2.slug}, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -304,3 +322,113 @@ class ArticleAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["data"]), 7)
         self.assertIn("pagination", response.data)
+
+    def test_guest_visibility_access_control(self):
+        category = CategoryFactory()
+        tag = TagFactory()
+        public_article = ArticleFactory(
+            status="published",
+            visibility="public",
+            category=category,
+            tags=[tag],
+        )
+        private_article = ArticleFactory(
+            status="published",
+            visibility="private",
+            category=category,
+            tags=[tag],
+        )
+        unlisted_article = ArticleFactory(
+            status="published",
+            visibility="unlisted",
+            category=category,
+            tags=[tag],
+        )
+
+        # Guests get 404 for private articles via detail and by-slug
+        private_detail = reverse(
+            "posts:article-detail", kwargs={"slug": private_article.translation.slug}
+        )
+        private_by_slug = reverse(
+            "posts:article-by-slug", kwargs={"slug": private_article.translation.slug}
+        )
+        self.assertEqual(
+            self.client.get(private_detail).status_code, status.HTTP_404_NOT_FOUND
+        )
+        self.assertEqual(
+            self.client.get(private_by_slug).status_code, status.HTTP_404_NOT_FOUND
+        )
+
+        # Guests CAN access published unlisted articles directly by slug/detail
+        unlisted_detail = reverse(
+            "posts:article-detail", kwargs={"slug": unlisted_article.translation.slug}
+        )
+        unlisted_by_slug = reverse(
+            "posts:article-by-slug", kwargs={"slug": unlisted_article.translation.slug}
+        )
+        self.assertEqual(self.client.get(unlisted_detail).status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(unlisted_by_slug).status_code, status.HTTP_200_OK)
+
+        # Similar, same-category, and related endpoints must exclude private & unlisted
+        similar_url = reverse(
+            "posts:article-similar", kwargs={"slug": public_article.translation.slug}
+        )
+        same_cat_url = reverse(
+            "posts:article-same-category",
+            kwargs={"slug": public_article.translation.slug},
+        )
+        related_url = reverse(
+            "posts:article-related", kwargs={"slug": public_article.translation.slug}
+        )
+
+        self.assertEqual(self.client.get(similar_url).data, [])
+        self.assertEqual(self.client.get(same_cat_url).data["data"], [])
+        self.assertEqual(self.client.get(related_url).data["data"], [])
+
+    def test_article_is_hot_editorial_flag(self):
+        editorial_hot = ArticleFactory(
+            status="published",
+            visibility="public",
+            is_hot=True,
+            published_at=timezone.now() - timedelta(days=90),
+            views_count=10,
+        )
+        regular_article = ArticleFactory(
+            status="published",
+            visibility="public",
+            is_hot=False,
+            published_at=timezone.now() - timedelta(days=90),
+            views_count=10,
+        )
+        url = reverse("posts:article-list")
+
+        hot_res = self.client.get(url, {"is_hot": "true"}, format="json")
+        self.assertEqual(hot_res.status_code, status.HTTP_200_OK)
+        hot_ids = {item["id"] for item in hot_res.data["data"]}
+        self.assertIn(editorial_hot.pk, hot_ids)
+        self.assertNotIn(regular_article.pk, hot_ids)
+
+        not_hot_res = self.client.get(url, {"is_hot": "false"}, format="json")
+        self.assertEqual(not_hot_res.status_code, status.HTTP_200_OK)
+        not_hot_ids = {item["id"] for item in not_hot_res.data["data"]}
+        self.assertNotIn(editorial_hot.pk, not_hot_ids)
+        self.assertIn(regular_article.pk, not_hot_ids)
+
+    def test_article_normalized_persian_arabic_search(self):
+        article = ArticleFactory(
+            status="published",
+            visibility="public",
+            translation__language_code="fa",
+            translation__title="راهنماي جامع فيفا ۲۶ و كالاف دیوتی",
+            translation__excerpt="تنظيمات كنسول بازي",
+            translation__content="آموزش كامل فيفا ۲۶ در گیم‌نت",
+        )
+        url = reverse("posts:article-list")
+
+        # Search using Persian Yeh/Kaf and ASCII digits instead of Arabic letters / Persian digits
+        response = self.client.get(
+            url, {"search": "فیفا 26 کالاف", "lang": "fa"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        result_ids = {item["id"] for item in response.data["data"]}
+        self.assertIn(article.pk, result_ids)

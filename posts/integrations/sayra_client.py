@@ -269,6 +269,7 @@ def get_rankings(
     city: str = "",
     neighborhood: str = "",
     device_type: str = "",
+    game: str = "",
     limit: int = 10,
     min_reviews: Optional[int] = None,
     m: Optional[float] = None,
@@ -290,6 +291,8 @@ def get_rankings(
         params["neighborhood"] = neighborhood.strip()
     if device_type and device_type.strip():
         params["deviceType"] = device_type.strip()
+    if game and game.strip():
+        params["game"] = game.strip()
     if min_reviews is not None:
         params["minReviews"] = int(min_reviews)
     if m is not None:

@@ -5,7 +5,7 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
@@ -14,6 +14,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 
 from common.cache import build_cache_key, cache_manager
+from common.filters import NormalizedSearchFilter
 from common.mixins import DynamicSerializerViewMixin
 from common.pagination import CustomPageNumberPagination
 from common.permissions import (
@@ -81,6 +82,14 @@ def _extract_allowlisted_cache_params(query_params, allowed_keys):
     return params
 
 
+def _is_staff_user(user) -> bool:
+    return bool(
+        user
+        and getattr(user, "is_authenticated", False)
+        and getattr(user, "is_staff", False)
+    )
+
+
 def _set_public_cache_headers(
     request,
     response,
@@ -118,7 +127,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
     queryset = Article.objects.all()
     permission_classes = [IsArticleAuthorOrAdmin]
     pagination_class = CustomPageNumberPagination
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, NormalizedSearchFilter, OrderingFilter]
     filterset_class = ArticleFilter
     search_fields = [
         "translations__title",
@@ -232,14 +241,22 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 queryset = queryset.prefetch_related(*prefetches)
 
             user = self.request.user
-            if user.is_authenticated and user.is_staff:
+            if _is_staff_user(user):
                 return queryset
             if user.is_authenticated:
                 return queryset.filter(
-                    Q(status="published", published_at__lte=timezone.now())
-                    | Q(author__user=user, status__in=["draft", "review"])
+                    Q(
+                        status="published",
+                        published_at__lte=timezone.now(),
+                        visibility="public",
+                    )
+                    | Q(author__user=user)
                 ).distinct()
-            return queryset.filter(status="published", published_at__lte=timezone.now())
+            return queryset.filter(
+                status="published",
+                published_at__lte=timezone.now(),
+                visibility="public",
+            )
         else:
             queryset = Article.objects.with_translations(lang)
             fields_query = self.request.query_params.get("fields")
@@ -279,7 +296,24 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 queryset = queryset.select_related(*selects)
             if prefetches:
                 queryset = queryset.prefetch_related(*prefetches)
-            return queryset
+
+            user = self.request.user
+            if _is_staff_user(user):
+                return queryset
+            if user.is_authenticated:
+                return queryset.filter(
+                    Q(
+                        status="published",
+                        published_at__lte=timezone.now(),
+                        visibility__in=["public", "unlisted"],
+                    )
+                    | Q(author__user=user)
+                ).distinct()
+            return queryset.filter(
+                status="published",
+                published_at__lte=timezone.now(),
+                visibility__in=["public", "unlisted"],
+            )
 
     def perform_create(self, serializer):
         """
@@ -364,11 +398,19 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             return _set_public_cache_headers(request, Response([]), 120, 300, 600)
 
         def rebuild():
-            similar_articles = (
+            similar_qs = (
                 Article.objects.with_translations(lang)
-                .filter(status="published", category_id=current_article.category_id)
+                .filter(
+                    status="published",
+                    category_id=current_article.category_id,
+                    published_at__lte=timezone.now(),
+                )
                 .exclude(pk=current_article.pk)
-                .select_related("author__avatar", "category", "cover_image")
+            )
+            if not _is_staff_user(request.user):
+                similar_qs = similar_qs.filter(visibility="public")
+            similar_articles = (
+                similar_qs.select_related("author__avatar", "category", "cover_image")
                 .prefetch_related(
                     "tags", "cover_image__variants", "author__avatar__variants"
                 )
@@ -428,7 +470,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         paginator = self.pagination_class()
 
         def rebuild():
-            category_articles = (
+            category_qs = (
                 Article.objects.with_translations(lang)
                 .filter(
                     status="published",
@@ -436,7 +478,11 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                     published_at__lte=timezone.now(),
                 )
                 .exclude(pk=current_article.pk)
-                .select_related("author__avatar", "category", "cover_image")
+            )
+            if not _is_staff_user(request.user):
+                category_qs = category_qs.filter(visibility="public")
+            category_articles = (
+                category_qs.select_related("author__avatar", "category", "cover_image")
                 .prefetch_related(
                     "tags", "cover_image__variants", "author__avatar__variants"
                 )
@@ -632,9 +678,26 @@ def related_articles(request, slug):
     EN: Returns related articles sharing common tags with the specified article.
     FA: مقاله‌های مرتبط که دارای برچسب‌های مشترک با مقاله مشخص شده هستند را بازمی‌گرداند.
     """
-    try:
-        current_article = Article.objects.get(translations__slug=slug)
-    except Article.DoesNotExist:
+    base_qs = Article.objects.all()
+    if not _is_staff_user(request.user):
+        if request.user and request.user.is_authenticated:
+            base_qs = base_qs.filter(
+                Q(
+                    status="published",
+                    published_at__lte=timezone.now(),
+                    visibility__in=["public", "unlisted"],
+                )
+                | Q(author__user=request.user)
+            ).distinct()
+        else:
+            base_qs = base_qs.filter(
+                status="published",
+                published_at__lte=timezone.now(),
+                visibility__in=["public", "unlisted"],
+            )
+
+    current_article = base_qs.filter(translations__slug=slug).first()
+    if not current_article:
         raise NotFound("The requested article to find related articles was not found.")
 
     paginator = CustomPageNumberPagination()
@@ -644,10 +707,16 @@ def related_articles(request, slug):
         related = Article.objects.none()
     else:
         related = (
-            Article.objects.filter(status="published", tags__in=tag_ids)
+            Article.objects.filter(
+                status="published",
+                published_at__lte=timezone.now(),
+                tags__in=tag_ids,
+            )
             .exclude(pk=current_article.pk)
-            .distinct()
         )
+        if not _is_staff_user(request.user):
+            related = related.filter(visibility="public")
+        related = related.distinct()
         related = related.annotate(
             common_tags=Count("tags", filter=Q(tags__in=tag_ids))
         ).order_by("-common_tags", "-published_at", "-id")
@@ -679,19 +748,24 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.select_related("parent").all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [NormalizedSearchFilter]
+    search_fields = ["name", "slug"]
 
     def list(self, request, *args, **kwargs):
         """
-        EN: Lists categories with Level 4 (Long Cache).
+        EN: Lists categories with Level 4 (Long Cache) when unsearched.
         FA: لیست دسته‌بندی‌ها را با کش طولانی‌مدت بازمی‌گرداند.
         """
-        cache_key = build_cache_key("posts", "category_list", "list")
-
         def rebuild():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
             return serializer.data
 
+        search_query = (request.query_params.get("search") or "").strip()
+        if search_query:
+            return _set_public_cache_headers(request, Response(rebuild()), 60, 120, 300)
+
+        cache_key = build_cache_key("posts", "category_list", "list")
         data = cache_manager.get_or_create(
             key=cache_key,
             rebuild_callback=rebuild,
@@ -711,19 +785,24 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [NormalizedSearchFilter]
+    search_fields = ["name", "slug"]
 
     def list(self, request, *args, **kwargs):
         """
-        EN: Lists tags with Level 4 (Long Cache).
+        EN: Lists tags with Level 4 (Long Cache) when unsearched.
         FA: لیست برچسب‌ها را با کش طولانی‌مدت بازمی‌گرداند.
         """
-        cache_key = build_cache_key("posts", "tag_list", "list")
-
         def rebuild():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
             return serializer.data
 
+        search_query = (request.query_params.get("search") or "").strip()
+        if search_query:
+            return _set_public_cache_headers(request, Response(rebuild()), 60, 120, 300)
+
+        cache_key = build_cache_key("posts", "tag_list", "list")
         data = cache_manager.get_or_create(
             key=cache_key,
             rebuild_callback=rebuild,
@@ -743,6 +822,8 @@ class SeriesViewSet(viewsets.ModelViewSet):
     queryset = Series.objects.all()
     serializer_class = SeriesSerializer
     permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [NormalizedSearchFilter]
+    search_fields = ["title", "slug"]
 
 
 class RevisionViewSet(viewsets.ModelViewSet):
@@ -765,7 +846,7 @@ class PodcastCategoryViewSet(viewsets.ModelViewSet):
     queryset = PodcastCategory.objects.all()
     serializer_class = PodcastCategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, NormalizedSearchFilter]
     filterset_fields = ["is_active"]
     search_fields = ["title", "slug"]
 
@@ -779,7 +860,7 @@ class PodcastViewSet(viewsets.ModelViewSet):
     queryset = Podcast.objects.select_related("category").all()
     serializer_class = PodcastSerializer
     permission_classes = [IsAdminUserOrReadOnly]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, NormalizedSearchFilter, OrderingFilter]
     filterset_fields = ["category", "media_type", "is_active"]
     search_fields = ["title", "description"]
     ordering_fields = ["published_date", "view_count", "episode_number", "id"]
