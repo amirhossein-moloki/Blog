@@ -17,19 +17,24 @@ logger = logging.getLogger(__name__)
 
 def invalidate_article_cache(sender, instance, **kwargs) -> None:
     """
-    EN: Invalidates related article caches on save or delete of an Article.
-    FA: ابطال کش‌های مرتبط با مقاله در زمان ذخیره یا حذف مقاله.
+    EN: Invalidates related article caches across all translation slugs on save or delete of an Article.
+    FA: ابطال کش‌های مرتبط با مقاله در تمام ترجمه‌ها در زمان ذخیره یا حذف مقاله.
     """
+    slugs = []
     try:
-        slug = (
-            instance.translations.first().slug
-            if hasattr(instance, "translations") and instance.translations.exists()
-            else str(instance.id)
-        )
+        if hasattr(instance, "translations"):
+            slugs = [
+                s
+                for s in instance.translations.values_list("slug", flat=True)
+                if s
+            ]
     except Exception:
-        slug = str(instance.id)
+        slugs = []
 
-    logger.info(f"Signal received: Invalidate cache for Article: {slug}")
+    if not slugs:
+        slugs = [str(instance.id)]
+
+    logger.info(f"Signal received: Invalidate cache for Article slugs: {slugs}")
 
     # EN: 1. Version based invalidation for list of articles
     # FA: ۱. ابطال بر اساس نسخه برای لیست مقالات
@@ -37,18 +42,44 @@ def invalidate_article_cache(sender, instance, **kwargs) -> None:
     cache_manager.remove_by_version("latest_articles")
     cache_manager.remove_by_version("homepage")
 
-    # EN: 2. Tag based invalidation for specific tags and categories
-    # FA: ۲. ابطال بر اساس تگ برای دسته‌بندی‌ها و تگ‌های خاص
-    cache_manager.invalidation.invalidate_tag(f"article_detail:{slug}")
-    if instance.category:
+    # EN: 2. Tag based invalidation for all translation slugs and category
+    # FA: ۲. ابطال بر اساس تگ برای تمامی اسلاگ‌های ترجمه و دسته‌بندی
+    for slug in slugs:
+        cache_manager.invalidation.invalidate_tag(f"article_detail:{slug}")
+    if getattr(instance, "category", None):
         cache_manager.invalidation.invalidate_tag(f"category:{instance.category.id}")
 
     # EN: 3. Trigger selective predictive Warmup
     # FA: ۳. آغاز پیش‌گرم کردن پیش‌بینانه انتخابی
     warmup_service.warmup_after_mutation(
-        article_slug=slug,
-        category_slug=instance.category.slug if instance.category else None,
+        article_slug=slugs[0],
+        category_slug=instance.category.slug if getattr(instance, "category", None) else None,
     )
+
+    # EN: 4. Trigger Next.js ISR revalidation when configured
+    # FA: ۴. درخواست بازسازی کش Next.js در صورت پیکربندی
+    try:
+        from urllib.parse import quote
+        from django.conf import settings
+
+        if getattr(settings, "NEXT_REVALIDATE_URL", ""):
+            from posts.tasks import trigger_frontend_revalidation_task
+
+            paths = ["/blog", *(f"/blog/{quote(str(s), safe='')}" for s in slugs)]
+            tags = ["blog-posts", *(f"blog-post:{s}" for s in slugs)]
+            trigger_frontend_revalidation_task.delay(paths=paths, tags=tags)
+    except Exception as exc:
+        logger.debug(f"Skipping async frontend revalidation on signal: {exc}")
+
+
+def invalidate_article_related_cache(sender, instance, **kwargs) -> None:
+    """
+    EN: Invalidates parent Article caches when an ArticleTranslation or ArticleGamingCenter changes.
+    FA: ابطال کش مقاله والد هنگام تغییر ترجمه یا اتصال گیم‌نت.
+    """
+    article = getattr(instance, "article", None)
+    if article is not None:
+        invalidate_article_cache(sender, article, **kwargs)
 
 
 def invalidate_category_cache(sender, instance, **kwargs) -> None:
@@ -104,7 +135,13 @@ def register_cache_signals() -> None:
     """
     try:
         from interactions.models import Comment
-        from posts.models import Article, Category, Tag
+        from posts.models import (
+            Article,
+            ArticleGamingCenter,
+            ArticleTranslation,
+            Category,
+            Tag,
+        )
 
         # EN: Article Signals
         # FA: سیگنال‌های مقاله
@@ -115,6 +152,26 @@ def register_cache_signals() -> None:
             invalidate_article_cache,
             sender=Article,
             dispatch_uid="cache_article_delete",
+        )
+        post_save.connect(
+            invalidate_article_related_cache,
+            sender=ArticleTranslation,
+            dispatch_uid="cache_article_translation_save",
+        )
+        post_delete.connect(
+            invalidate_article_related_cache,
+            sender=ArticleTranslation,
+            dispatch_uid="cache_article_translation_delete",
+        )
+        post_save.connect(
+            invalidate_article_related_cache,
+            sender=ArticleGamingCenter,
+            dispatch_uid="cache_article_gc_save",
+        )
+        post_delete.connect(
+            invalidate_article_related_cache,
+            sender=ArticleGamingCenter,
+            dispatch_uid="cache_article_gc_delete",
         )
 
         # EN: Category Signals

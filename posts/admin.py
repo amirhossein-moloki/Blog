@@ -9,6 +9,7 @@ from medias.models import ArticleMedia
 
 from .models import (
     Article,
+    ArticleGamingCenter,
     ArticleTag,
     ArticleTranslation,
     AuthorProfile,
@@ -118,6 +119,20 @@ class ArticleMediaInline(admin.TabularInline):
         return False
 
 
+class ArticleGamingCenterInline(admin.TabularInline):
+    """
+    EN: Inline editor for manually linking Sayra GamingCenters to an Article.
+    FA: ویرایشگر داخلی برای اتصال دستی گیم‌نت‌های سایرا به مقاله.
+    """
+
+    model = ArticleGamingCenter
+    extra = 1
+    fields = ("gaming_center_id", "display_order", "custom_description")
+    ordering = ("display_order", "id")
+    verbose_name = "Linked Gaming Center"
+    verbose_name_plural = "Linked Gaming Centers"
+
+
 # --- ModelAdmins ---
 
 
@@ -195,7 +210,12 @@ class ArticleAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
         "og_image",
     )
     filter_horizontal = ("related_articles",)
-    inlines = [ArticleTranslationInline, ArticleTagInline, ArticleMediaInline]
+    inlines = [
+        ArticleTranslationInline,
+        ArticleTagInline,
+        ArticleMediaInline,
+        ArticleGamingCenterInline,
+    ]
     actions = [
         "make_published",
         "make_draft",
@@ -220,6 +240,23 @@ class ArticleAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             },
         ),
         (
+            "Gaming Center Integration (Sayra)",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "gaming_center_mode",
+                    "ranking_city",
+                    "ranking_neighborhood",
+                    "ranking_device_type",
+                    "ranking_limit",
+                    "ranking_min_reviews",
+                    "ranking_bayesian_m",
+                    "ranking_sort",
+                    "include_newly_registered",
+                ),
+            },
+        ),
+        (
             "SEO & System",
             {
                 "classes": ("collapse",),
@@ -233,7 +270,7 @@ class ArticleAdmin(ModelAdminJalaliMixin, admin.ModelAdmin):
             super()
             .get_queryset(request)
             .select_related("author", "category", "series", "cover_image")
-            .prefetch_related("translations")
+            .prefetch_related("translations", "gaming_center_links")
         )
 
     @admin.display(description="Title")

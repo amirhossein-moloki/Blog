@@ -2,8 +2,7 @@ openapi: 3.0.3
 info:
   title: Blog Platform API
   version: 1.0.0
-  description: API for managing posts, medias, interactions, pages, navigation and
-    users.
+  description: API for managing posts, medias, interactions, navigation and users.
   contact:
     name: Admin
     url: https://example.com
@@ -15,15 +14,8 @@ paths:
     get:
       operationId: articles_list
       description: |-
-        EN:
-        ViewSet for managing blog articles.
-        Provides advanced filtering, searching, and dynamic field selection.
-        Handles complex queryset optimizations and access control for drafts/scheduled articles.
-
-        FA:
-        ViewSet برای مدیریت مقاله‌های بلاگ.
-        فیلترینگ پیشرفته، جستجو و انتخاب داینامیک فیلدها را فراهم می‌کند.
-        بهینه‌سازی‌های پیچیده QuerySet و کنترل دسترسی برای پیش‌نویس‌ها و مقاله‌های زمان‌بندی شده را مدیریت می‌کند.
+        EN: Lists articles with advanced caching (strictly public-scoped) and fallback.
+        FA: مقاله‌ها را با قابلیت کشینگ امن (تفکیک‌شده برای کاربران عادی و احرازهویت‌شده) لیست می‌کند.
       parameters:
       - in: query
         name: category
@@ -219,8 +211,9 @@ paths:
     get:
       operationId: articles_retrieve
       description: |-
-        EN: Increments the view count and returns article details.
-        FA: تعداد بازدیدها را افزایش داده و جزئیات مقاله را بازمی‌گرداند.
+        EN: Serves cached article details and increments view count via an atomic SQL update
+            (avoiding Article.save() / sync_article_media on GET reads).
+        FA: جزئیات مقاله را از کش بازمی‌گرداند و شمارنده بازدید را به‌صورت اتمی و بدون اجرای save() به‌روزرسانی می‌کند.
       parameters:
       - in: path
         name: slug
@@ -399,8 +392,8 @@ paths:
     get:
       operationId: articles_same_category_retrieve
       description: |-
-        EN: Returns paginated articles from the same category.
-        FA: مقاله‌های هم‌دسته‌بندی را به صورت صفحه‌بندی شده بازمی‌گرداند.
+        EN: Returns paginated articles from the same category with O(1) prefetched queries.
+        FA: مقاله‌های هم‌دسته‌بندی را به‌صورت صفحه‌بندی‌شده و بدون N+1 بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -423,8 +416,8 @@ paths:
     get:
       operationId: articles_similar_retrieve
       description: |-
-        EN: Returns similar articles based on the category.
-        FA: مقاله‌های مشابه را بر اساس دسته‌بندی بازمی‌گرداند.
+        EN: Returns similar articles based on the category with O(1) prefetched queries.
+        FA: مقاله‌های مشابه را بر اساس دسته‌بندی با کوئری‌های پیش‌واکشی‌شده بهینه بازمی‌گرداند.
       parameters:
       - in: path
         name: slug
@@ -443,12 +436,62 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdArticleSimilarGetArticleListSerializer200'
           description: ''
+  /api/articles/block-definitions/:
+    get:
+      operationId: articles_block_definitions_retrieve
+      description: 'EN: Returns the complete content contract specifications list
+        for headless components.'
+      tags:
+      - articles
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdArticleBlock_definitionsGetArticleListSerializer200'
+          description: ''
+  /api/articles/counts/:
+    get:
+      operationId: articles_counts_retrieve
+      description: Returns aggregate total counts for published articles, active podcasts,
+        and images.
+      tags:
+      - articles
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles_count:
+                    type: integer
+                  podcasts_count:
+                    type: integer
+                  images_count:
+                    type: integer
+                  gallery_count:
+                    type: integer
+                  articles:
+                    type: integer
+                  podcasts:
+                    type: integer
+                  images:
+                    type: integer
+          description: ''
   /api/articles/slug/{slug}/:
     get:
       operationId: articles_slug_retrieve
       description: |-
-        EN: Endpoint to retrieve a single article by its slug and language.
-        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن.
+        EN: Endpoint to retrieve a single article by its slug and language with advanced caching.
+        FA: اندپوینت برای دریافت یک مقاله واحد با استفاده از اسلاگ و زبان آن به همراه کشینگ پیشرفته.
       parameters:
       - in: path
         name: slug
@@ -471,8 +514,8 @@ paths:
     post:
       operationId: auth_admin_login_create
       description: |-
-        EN: Handles JWT token generation for a user.
-        FA: تولید توکن JWT برای یک کاربر را مدیریت می‌کند.
+        EN: Handles JWT token generation for a staff user.
+        FA: تولید توکن JWT برای یک کاربر staff را مدیریت می‌کند.
       tags:
       - auth
       requestBody:
@@ -492,8 +535,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200'
+                $ref: '#/components/schemas/TokenObtainPairResponse'
           description: ''
+        '403':
+          description: Access restricted to staff users only.
+        '401':
+          description: Invalid credentials.
   /api/authors/:
     get:
       operationId: authors_list
@@ -663,8 +710,8 @@ paths:
     get:
       operationId: categories_list
       description: |-
-        EN: ViewSet for managing article categories.
-        FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
+        EN: Lists categories with Level 4 (Long Cache).
+        FA: لیست دسته‌بندی‌ها را با کش طولانی‌مدت بازمی‌گرداند.
       tags:
       - categories
       security:
@@ -1044,6 +1091,39 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/counts/:
+    get:
+      operationId: counts_retrieve
+      description: Returns aggregate total counts for published articles, active podcasts,
+        and images.
+      tags:
+      - counts
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles_count:
+                    type: integer
+                  podcasts_count:
+                    type: integer
+                  images_count:
+                    type: integer
+                  gallery_count:
+                    type: integer
+                  articles:
+                    type: integer
+                  podcasts:
+                    type: integer
+                  images:
+                    type: integer
+          description: ''
   /api/gallery/:
     get:
       operationId: gallery_list
@@ -1220,6 +1300,23 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/integrations/webhooks/sayra-events/:
+    post:
+      operationId: integrations_webhooks_sayra_events_create
+      description: |-
+        EN: Receives Express outbox events, invalidates Sayra/article caches, and triggers Next.js ISR.
+        FA: دریافت رویدادهای Outbox اکسپرس، ابطال کش مقالات و ارسال درخواست بازسازی به Next.js.
+      tags:
+      - integrations
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StdSayraEventWebhookViewPostNoneType200'
+          description: ''
   /api/media/:
     get:
       operationId: media_list
@@ -1259,8 +1356,8 @@ paths:
     post:
       operationId: media_create
       description: |-
-        EN: Handles media file upload and returns the detailed representation of the created object.
-        FA: آپلود فایل رسانه را مدیریت کرده و نمایش جزئی شیء ایجاد شده را بازمی‌گرداند.
+        EN: Handles media file upload, duplicate check, and returns the detailed representation.
+        FA: آپلود فایل رسانه را مدیریت کرده، فایل‌های تکراری را شناسایی کرده و نمایش جزئیات را بازمی‌گرداند.
       tags:
       - media
       requestBody:
@@ -1399,13 +1496,8 @@ paths:
     delete:
       operationId: media_destroy
       description: |-
-        EN:
-        ViewSet for managing media library.
-        Allows authenticated users to upload files and owners/admins to edit/delete them.
-
-        FA:
-        ViewSet برای مدیریت کتابخانه رسانه.
-        به کاربران احراز هویت شده اجازه آپلود فایل و به صاحبان/ادمین‌ها اجازه ویرایش/حذف آن‌ها را می‌دهد.
+        EN: Safely deletes a media file, blocking deletion if actively used unless force override is passed.
+        FA: فایل رسانه را با امنیت بالا حذف می‌کند؛ در صورتی که فایل فعال باشد از حذف آن جلوگیری می‌شود مگر با اعمال force.
       parameters:
       - in: path
         name: id
@@ -1421,125 +1513,32 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/pages/:
-    get:
-      operationId: pages_list
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - pages
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StdPageListGetPageSerializer200'
-          description: ''
+  /api/media/{id}/purge/:
     post:
-      operationId: pages_create
+      operationId: media_purge_create
       description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      tags:
-      - pages
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PageRequest'
-        required: true
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPageCreatePostPageSerializer200'
-          description: ''
-  /api/pages/{id}/:
-    get:
-      operationId: pages_retrieve
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+        EN: Permanently deletes physical files and database record.
+        FA: به طور فیزیکی و همیشگی فایل و رکورد دیتابیس را حذف می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this page.
+        description: A unique integer value identifying this media.
         required: true
       tags:
-      - pages
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StdPageRetrieveGetPageSerializer200'
-          description: ''
-    put:
-      operationId: pages_update
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
+      - media
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
         required: true
       security:
       - StaticAPIKeyAuth: []
@@ -1549,38 +1548,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPageUpdatePutPageSerializer200'
+                $ref: '#/components/schemas/StdMediaPurgePostMediaDetailSerializer200'
           description: ''
-    patch:
-      operationId: pages_partial_update
+  /api/media/{id}/restore/:
+    post:
+      operationId: media_restore_create
       description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
+        EN: Restores a soft-deleted media file.
+        FA: یک رسانه حذف شده به صورت نرم را بازیابی می‌کند.
       parameters:
       - in: path
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this page.
+        description: A unique integer value identifying this media.
         required: true
       tags:
-      - pages
+      - media
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedPageRequest'
+              $ref: '#/components/schemas/MediaDetailRequest'
+        required: true
       security:
       - StaticAPIKeyAuth: []
       - jwtAuth: []
@@ -1589,33 +1585,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StdPagePartial_updatePatchPageSerializer200'
+                $ref: '#/components/schemas/StdMediaRestorePostMediaDetailSerializer200'
           description: ''
-    delete:
-      operationId: pages_destroy
-      description: |-
-        EN:
-        ViewSet for managing static pages.
-        Provides read-only access to everyone and full access to administrators.
-
-        FA:
-        ViewSet برای مدیریت صفحات استاتیک.
-        دسترسی فقط خواندنی برای همه و دسترسی کامل برای مدیران را فراهم می‌کند.
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this page.
-        required: true
-      tags:
-      - pages
-      security:
-      - StaticAPIKeyAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/podcast-categories/:
     get:
       operationId: podcast_categories_list
@@ -2509,12 +2480,45 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/stats/counts/:
+    get:
+      operationId: stats_counts_retrieve
+      description: Returns aggregate total counts for published articles, active podcasts,
+        and images.
+      tags:
+      - stats
+      security:
+      - StaticAPIKeyAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles_count:
+                    type: integer
+                  podcasts_count:
+                    type: integer
+                  images_count:
+                    type: integer
+                  gallery_count:
+                    type: integer
+                  articles:
+                    type: integer
+                  podcasts:
+                    type: integer
+                  images:
+                    type: integer
+          description: ''
   /api/tags/:
     get:
       operationId: tags_list
       description: |-
-        EN: ViewSet for managing article tags.
-        FA: ViewSet برای مدیریت برچسب‌های مقاله.
+        EN: Lists tags with Level 4 (Long Cache).
+        FA: لیست برچسب‌ها را با کش طولانی‌مدت بازمی‌گرداند.
       tags:
       - tags
       security:
@@ -3011,6 +3015,36 @@ components:
           items:
             $ref: '#/components/schemas/ArticleList'
           readOnly: true
+        gaming_center_mode:
+          $ref: '#/components/schemas/GamingCenterModeEnum'
+        ranking_city:
+          type: string
+          maxLength: 120
+        ranking_neighborhood:
+          type: string
+          maxLength: 120
+        ranking_device_type:
+          type: string
+          maxLength: 40
+        ranking_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        ranking_min_reviews:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        ranking_bayesian_m:
+          type: number
+          format: double
+          nullable: true
+        ranking_sort:
+          $ref: '#/components/schemas/RankingSortEnum'
+        include_newly_registered:
+          type: boolean
       required:
       - category
       - cover_image
@@ -3047,7 +3081,9 @@ components:
         content:
           type: string
           writeOnly: true
-          minLength: 1
+          nullable: true
+        content_blocks:
+          writeOnly: true
         status:
           $ref: '#/components/schemas/PostStatusEnum'
         visibility:
@@ -3101,8 +3137,42 @@ components:
           format: date-time
           writeOnly: true
           nullable: true
+        gaming_center_mode:
+          $ref: '#/components/schemas/GamingCenterModeEnum'
+        ranking_city:
+          type: string
+          maxLength: 120
+        ranking_neighborhood:
+          type: string
+          maxLength: 120
+        ranking_device_type:
+          type: string
+          maxLength: 40
+        ranking_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        ranking_min_reviews:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        ranking_bayesian_m:
+          type: number
+          format: double
+          nullable: true
+        ranking_sort:
+          $ref: '#/components/schemas/RankingSortEnum'
+        include_newly_registered:
+          type: boolean
+        gaming_center_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleGamingCenterInputRequest'
+          writeOnly: true
       required:
-      - content
       - excerpt
       - title
     ArticleDetail:
@@ -3138,6 +3208,12 @@ components:
           format: date-time
           nullable: true
           readOnly: true
+        published_at_iso:
+          type: string
+          readOnly: true
+        updated_at_iso:
+          type: string
+          readOnly: true
         author:
           allOf:
           - $ref: '#/components/schemas/AuthorForArticle'
@@ -3168,6 +3244,18 @@ components:
         content:
           type: string
           readOnly: true
+        content_blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
+        blocks:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
         canonical_url:
           type: string
           format: uri
@@ -3197,18 +3285,73 @@ components:
           items:
             $ref: '#/components/schemas/ArticleList'
           readOnly: true
+        article_schema_version:
+          type: string
+          readOnly: true
+        structured_data:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
+        gaming_center_mode:
+          $ref: '#/components/schemas/GamingCenterModeEnum'
+        ranking_city:
+          type: string
+          maxLength: 120
+        ranking_neighborhood:
+          type: string
+          maxLength: 120
+        ranking_device_type:
+          type: string
+          maxLength: 40
+        ranking_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        ranking_min_reviews:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        ranking_bayesian_m:
+          type: number
+          format: double
+          nullable: true
+        ranking_sort:
+          $ref: '#/components/schemas/RankingSortEnum'
+        include_newly_registered:
+          type: boolean
+        gaming_center_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleGamingCenter'
+          readOnly: true
+        gaming_centers_section:
+          type: object
+          additionalProperties: {}
+          nullable: true
+          readOnly: true
       required:
+      - article_schema_version
       - author
+      - blocks
       - category
       - comments_count
       - content
+      - content_blocks
       - cover_image
       - excerpt
+      - gaming_center_links
+      - gaming_centers_section
       - id
       - likes_count
       - media_attachments
       - og_image
       - published_at
+      - published_at_iso
       - reading_time_sec
       - related_articles
       - seo_description
@@ -3216,8 +3359,81 @@ components:
       - series
       - short_description
       - slug
+      - structured_data
       - tags
       - title
+      - updated_at_iso
+    ArticleGamingCenter:
+      type: object
+      description: |-
+        EN: Read serializer for gaming centers linked to an article (references only).
+        FA: سریالایزر خواندن ارتباط گیم‌نت با مقاله (فقط شناسه‌ها و تنظیمات تحریریه).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        gaming_center_id:
+          type: string
+          maxLength: 128
+        display_order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        custom_description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: The time the record was created.
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: The time of the last update to the record.
+      required:
+      - created_at
+      - gaming_center_id
+      - id
+      - updated_at
+    ArticleGamingCenterInput:
+      type: object
+      description: |-
+        EN: Write serializer for attaching a Sayra gaming center to an article.
+        FA: سریالایزر نوشتن برای اتصال گیم‌نت سایرا به مقاله.
+      properties:
+        gaming_center_id:
+          type: string
+          maxLength: 128
+        display_order:
+          type: integer
+          minimum: 0
+          default: 0
+        custom_description:
+          type: string
+          default: ''
+      required:
+      - gaming_center_id
+    ArticleGamingCenterInputRequest:
+      type: object
+      description: |-
+        EN: Write serializer for attaching a Sayra gaming center to an article.
+        FA: سریالایزر نوشتن برای اتصال گیم‌نت سایرا به مقاله.
+      properties:
+        gaming_center_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        display_order:
+          type: integer
+          minimum: 0
+          default: 0
+        custom_description:
+          type: string
+          default: ''
+      required:
+      - gaming_center_id
     ArticleList:
       type: object
       description: |-
@@ -3251,6 +3467,12 @@ components:
           format: date-time
           nullable: true
           readOnly: true
+        published_at_iso:
+          type: string
+          readOnly: true
+        updated_at_iso:
+          type: string
+          readOnly: true
         author:
           allOf:
           - $ref: '#/components/schemas/AuthorForArticle'
@@ -3287,11 +3509,13 @@ components:
       - id
       - likes_count
       - published_at
+      - published_at_iso
       - reading_time_sec
       - short_description
       - slug
       - tags
       - title
+      - updated_at_iso
     ArticleListRequest:
       type: object
       description: |-
@@ -3364,7 +3588,7 @@ components:
         bio:
           type: string
         avatar:
-          type: integer
+          type: string
           nullable: true
       required:
       - display_name
@@ -3384,7 +3608,11 @@ components:
         bio:
           type: string
         avatar:
-          type: integer
+          type: string
+          nullable: true
+        avatar_id:
+          type: string
+          writeOnly: true
           nullable: true
       required:
       - display_name
@@ -3408,9 +3636,15 @@ components:
         parent:
           type: integer
           nullable: true
+        description:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         icon:
           type: string
-          format: uri
           nullable: true
       required:
       - id
@@ -3434,9 +3668,19 @@ components:
         parent:
           type: integer
           nullable: true
+        description:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         icon:
           type: string
-          format: binary
+          nullable: true
+        icon_id:
+          type: string
+          writeOnly: true
           nullable: true
       required:
       - name
@@ -3557,8 +3801,8 @@ components:
     CustomTokenObtainPairRequest:
       type: object
       description: |-
-        EN: Custom JWT token serializer extending SimpleJWT's default.
-        FA: سریالایزر توکن JWT سفارشی که سریالایزر پیش‌فرض SimpleJWT را گسترش می‌دهد.
+        EN: Custom JWT token serializer enforcing staff-only access for administrative login.
+        FA: سریالایزر توکن JWT سفارشی که دسترسی ورود مدیریتی را فقط برای کاربران staff اعمال می‌کند.
       properties:
         username:
           type: string
@@ -3582,7 +3826,7 @@ components:
           readOnly: true
         image:
           type: string
-          format: uri
+          nullable: true
         caption:
           type: string
           maxLength: 255
@@ -3602,7 +3846,6 @@ components:
       required:
       - caption
       - id
-      - image
     GalleryItemRequest:
       type: object
       description: |-
@@ -3611,7 +3854,11 @@ components:
       properties:
         image:
           type: string
-          format: binary
+          nullable: true
+        image_id:
+          type: string
+          writeOnly: true
+          nullable: true
         caption:
           type: string
           minLength: 1
@@ -3631,7 +3878,16 @@ components:
           description: Specifies whether this record is active or not.
       required:
       - caption
-      - image
+    GamingCenterModeEnum:
+      enum:
+      - none
+      - manual
+      - auto_ranking
+      type: string
+      description: |-
+        * `none` - None
+        * `manual` - Manual
+        * `auto_ranking` - Auto Ranking
     MediaCreate:
       type: object
       description: |-
@@ -3665,8 +3921,8 @@ components:
     MediaDetail:
       type: object
       description: |-
-        EN: Detailed serializer for the Media model, including Jalali creation date.
-        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
+        EN: Detailed serializer for the Media model, including Jalali creation date, metadata, and variants.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی، متادیتا و نسخه‌های مختلف فایل.
       properties:
         id:
           type: integer
@@ -3721,18 +3977,35 @@ components:
           format: date-time
           readOnly: true
           description: The time the record was created.
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: The time of the last update to the record.
+        status:
+          $ref: '#/components/schemas/MediaDetailStatusEnum'
+        is_deleted:
+          type: boolean
+        content_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        checksum_algorithm:
+          type: string
+          maxLength: 10
       required:
       - created_at
       - id
       - mime
       - storage_key
       - type
+      - updated_at
       - url
     MediaDetailRequest:
       type: object
       description: |-
-        EN: Detailed serializer for the Media model, including Jalali creation date.
-        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
+        EN: Detailed serializer for the Media model, including Jalali creation date, metadata, and variants.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی، متادیتا و نسخه‌های مختلف فایل.
       properties:
         storage_key:
           type: string
@@ -3783,11 +4056,37 @@ components:
         uploaded_by:
           type: integer
           nullable: true
+        status:
+          $ref: '#/components/schemas/MediaDetailStatusEnum'
+        is_deleted:
+          type: boolean
+        content_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        checksum_algorithm:
+          type: string
+          minLength: 1
+          maxLength: 10
       required:
       - mime
       - storage_key
       - type
       - url
+    MediaDetailStatusEnum:
+      enum:
+      - Pending
+      - Processing
+      - Ready
+      - Rejected
+      - Quarantined
+      type: string
+      description: |-
+        * `Pending` - Pending
+        * `Processing` - Processing
+        * `Ready` - Ready
+        * `Rejected` - Rejected
+        * `Quarantined` - Quarantined
     MediaTypeEnum:
       enum:
       - audio
@@ -3894,91 +4193,6 @@ components:
         lastId:
           type: string
           nullable: true
-    Page:
-      type: object
-      description: |-
-        EN: Serializer for the Page model, providing all fields for individual pages.
-        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time the record was created.
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The time of the last update to the record.
-        slug:
-          type: string
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        title:
-          type: string
-          maxLength: 255
-        content:
-          type: string
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        published_at:
-          type: string
-          format: date-time
-          nullable: true
-        seo_title:
-          type: string
-          maxLength: 255
-        seo_description:
-          type: string
-      required:
-      - content
-      - created_at
-      - id
-      - slug
-      - title
-      - updated_at
-    PageRequest:
-      type: object
-      description: |-
-        EN: Serializer for the Page model, providing all fields for individual pages.
-        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        slug:
-          type: string
-          minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-        content:
-          type: string
-          minLength: 1
-        status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        published_at:
-          type: string
-          format: date-time
-          nullable: true
-        seo_title:
-          type: string
-          maxLength: 255
-        seo_description:
-          type: string
-      required:
-      - content
-      - slug
-      - title
     PaginatedStdArticleCommentListGetCommentListSerializer200List:
       type: object
       required:
@@ -4097,7 +4311,9 @@ components:
         content:
           type: string
           writeOnly: true
-          minLength: 1
+          nullable: true
+        content_blocks:
+          writeOnly: true
         status:
           $ref: '#/components/schemas/PostStatusEnum'
         visibility:
@@ -4151,6 +4367,41 @@ components:
           format: date-time
           writeOnly: true
           nullable: true
+        gaming_center_mode:
+          $ref: '#/components/schemas/GamingCenterModeEnum'
+        ranking_city:
+          type: string
+          maxLength: 120
+        ranking_neighborhood:
+          type: string
+          maxLength: 120
+        ranking_device_type:
+          type: string
+          maxLength: 40
+        ranking_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        ranking_min_reviews:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        ranking_bayesian_m:
+          type: number
+          format: double
+          nullable: true
+        ranking_sort:
+          $ref: '#/components/schemas/RankingSortEnum'
+        include_newly_registered:
+          type: boolean
+        gaming_center_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleGamingCenterInputRequest'
+          writeOnly: true
     PatchedAuthorProfileRequest:
       type: object
       description: |-
@@ -4166,7 +4417,11 @@ components:
         bio:
           type: string
         avatar:
-          type: integer
+          type: string
+          nullable: true
+        avatar_id:
+          type: string
+          writeOnly: true
           nullable: true
     PatchedCategoryRequest:
       type: object
@@ -4186,9 +4441,19 @@ components:
         parent:
           type: integer
           nullable: true
+        description:
+          type: string
+        order:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         icon:
           type: string
-          format: binary
+          nullable: true
+        icon_id:
+          type: string
+          writeOnly: true
           nullable: true
     PatchedCommentRequest:
       type: object
@@ -4214,7 +4479,11 @@ components:
       properties:
         image:
           type: string
-          format: binary
+          nullable: true
+        image_id:
+          type: string
+          writeOnly: true
+          nullable: true
         caption:
           type: string
           minLength: 1
@@ -4235,8 +4504,8 @@ components:
     PatchedMediaDetailRequest:
       type: object
       description: |-
-        EN: Detailed serializer for the Media model, including Jalali creation date.
-        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی.
+        EN: Detailed serializer for the Media model, including Jalali creation date, metadata, and variants.
+        FA: سریالایزر جزئیات برای مدل رسانه، شامل تاریخ ایجاد جلالی، متادیتا و نسخه‌های مختلف فایل.
       properties:
         storage_key:
           type: string
@@ -4287,38 +4556,18 @@ components:
         uploaded_by:
           type: integer
           nullable: true
-    PatchedPageRequest:
-      type: object
-      description: |-
-        EN: Serializer for the Page model, providing all fields for individual pages.
-        FA: سریالایزر برای مدل صفحه (Page)، که تمامی فیلدها را برای صفحات تکی فراهم می‌کند.
-      properties:
-        is_active:
-          type: boolean
-          description: Specifies whether this record is active or not.
-        slug:
-          type: string
-          minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-        content:
-          type: string
-          minLength: 1
         status:
-          $ref: '#/components/schemas/PostStatusEnum'
-        published_at:
+          $ref: '#/components/schemas/MediaDetailStatusEnum'
+        is_deleted:
+          type: boolean
+        content_hash:
           type: string
-          format: date-time
           nullable: true
-        seo_title:
+          maxLength: 64
+        checksum_algorithm:
           type: string
-          maxLength: 255
-        seo_description:
-          type: string
+          minLength: 1
+          maxLength: 10
     PatchedPodcastCategoryRequest:
       type: object
       description: |-
@@ -4336,7 +4585,10 @@ components:
           maxLength: 255
         icon:
           type: string
-          format: binary
+          nullable: true
+        icon_id:
+          type: string
+          writeOnly: true
           nullable: true
         is_active:
           type: boolean
@@ -4365,16 +4617,26 @@ components:
           format: int64
         cover_image:
           type: string
-          format: binary
+          nullable: true
+        cover_image_id:
+          type: string
+          writeOnly: true
+          nullable: true
         audio_file:
           type: string
-          format: binary
+          nullable: true
+        audio_file_id:
+          type: string
+          writeOnly: true
           nullable: true
         media_type:
           $ref: '#/components/schemas/MediaTypeEnum'
         video_file:
           type: string
-          format: binary
+          nullable: true
+        video_file_id:
+          type: string
+          writeOnly: true
           nullable: true
         video_url:
           type: string
@@ -4542,16 +4804,14 @@ components:
           format: int64
         cover_image:
           type: string
-          format: uri
+          nullable: true
         audio_file:
           type: string
-          format: uri
           nullable: true
         media_type:
           $ref: '#/components/schemas/MediaTypeEnum'
         video_file:
           type: string
-          format: uri
           nullable: true
         video_url:
           type: string
@@ -4586,7 +4846,6 @@ components:
       required:
       - category
       - category_detail
-      - cover_image
       - duration
       - episode_number
       - id
@@ -4613,7 +4872,6 @@ components:
           maxLength: 255
         icon:
           type: string
-          format: uri
           nullable: true
         is_active:
           type: boolean
@@ -4639,7 +4897,10 @@ components:
           maxLength: 255
         icon:
           type: string
-          format: binary
+          nullable: true
+        icon_id:
+          type: string
+          writeOnly: true
           nullable: true
         is_active:
           type: boolean
@@ -4671,16 +4932,26 @@ components:
           format: int64
         cover_image:
           type: string
-          format: binary
+          nullable: true
+        cover_image_id:
+          type: string
+          writeOnly: true
+          nullable: true
         audio_file:
           type: string
-          format: binary
+          nullable: true
+        audio_file_id:
+          type: string
+          writeOnly: true
           nullable: true
         media_type:
           $ref: '#/components/schemas/MediaTypeEnum'
         video_file:
           type: string
-          format: binary
+          nullable: true
+        video_file_id:
+          type: string
+          writeOnly: true
           nullable: true
         video_url:
           type: string
@@ -4708,7 +4979,6 @@ components:
           description: Specifies whether this record is active or not.
       required:
       - category
-      - cover_image
       - duration
       - episode_number
       - published_date
@@ -4728,6 +4998,22 @@ components:
         * `scheduled` - Scheduled
         * `published` - Published
         * `archived` - Archived
+    RankingSortEnum:
+      enum:
+      - bayesian
+      - rating
+      - reviews
+      - newest
+      - price_asc
+      - price_desc
+      type: string
+      description: |-
+        * `bayesian` - Bayesian
+        * `rating` - Rating
+        * `reviews` - Reviews
+        * `newest` - Newest
+        * `price_asc` - Price Ascending
+        * `price_desc` - Price Descending
     Reaction:
       type: object
       description: |-
@@ -4927,6 +5213,18 @@ components:
       required:
       - slug
       - title
+    StdArticleBlock_definitionsGetArticleListSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleList'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
     StdArticleBy_slugGetArticleListSerializer200:
       type: object
       properties:
@@ -5239,14 +5537,6 @@ components:
           default: []
       required:
       - data
-    StdCustomTokenObtainPairViewPostCustomTokenObtainPairSerializer200:
-      type: object
-      properties:
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
     StdGalleryItemCreatePostGalleryItemSerializer200:
       type: object
       properties:
@@ -5346,6 +5636,30 @@ components:
           default: []
       required:
       - data
+    StdMediaPurgePostMediaDetailSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/MediaDetail'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
+    StdMediaRestorePostMediaDetailSerializer200:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/MediaDetail'
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+      - data
     StdMediaRetrieveGetMediaDetailSerializer200:
       type: object
       properties:
@@ -5363,66 +5677,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/MediaDetail'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdPageCreatePostPageSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Page'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdPageListGetPageSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Page'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdPagePartial_updatePatchPageSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Page'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdPageRetrieveGetPageSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Page'
-        messagesList:
-          type: array
-          items:
-            type: string
-          default: []
-      required:
-      - data
-    StdPageUpdatePutPageSerializer200:
-      type: object
-      properties:
-        data:
-          $ref: '#/components/schemas/Page'
         messagesList:
           type: array
           items:
@@ -5670,6 +5924,14 @@ components:
           default: []
       required:
       - data
+    StdSayraEventWebhookViewPostNoneType200:
+      type: object
+      properties:
+        messagesList:
+          type: array
+          items:
+            type: string
+          default: []
     StdSeriesCreatePostSeriesSerializer200:
       type: object
       properties:
@@ -5950,6 +6212,19 @@ components:
       required:
       - password
       - username
+    TokenObtainPairResponse:
+      type: object
+      description: |-
+        EN: Response serializer for JWT token pair.
+        FA: سریالایزر پاسخ برای جفت توکن JWT.
+      properties:
+        access:
+          type: string
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
     TokenRefresh:
       type: object
       properties:

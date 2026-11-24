@@ -254,6 +254,43 @@ class Article(BaseModel):
     views_count = models.PositiveIntegerField(default=0)
     tags = models.ManyToManyField(Tag, through="ArticleTag")
     related_articles = models.ManyToManyField("self", blank=True, symmetrical=False)
+
+    # EN: Smart integration with Sayra Gaming Centers (manual editorial picks or Bayesian auto-ranking)
+    # FA: اتصال هوشمند به گیم‌نت‌های سایرا (انتخاب دستی تحریریه یا رتبه‌بندی خودکار Bayesian)
+    GAMING_CENTER_MODE_CHOICES = [
+        ("none", "None"),
+        ("manual", "Manual"),
+        ("auto_ranking", "Auto Ranking"),
+    ]
+    RANKING_SORT_CHOICES = [
+        ("bayesian", "Bayesian"),
+        ("rating", "Rating"),
+        ("reviews", "Reviews"),
+        ("newest", "Newest"),
+        ("price_asc", "Price Ascending"),
+        ("price_desc", "Price Descending"),
+    ]
+    gaming_center_mode = models.CharField(
+        max_length=20,
+        choices=GAMING_CENTER_MODE_CHOICES,
+        default="none",
+        db_index=True,
+    )
+    ranking_city = models.CharField(
+        max_length=120, blank=True, default="", db_index=True
+    )
+    ranking_neighborhood = models.CharField(max_length=120, blank=True, default="")
+    ranking_device_type = models.CharField(max_length=40, blank=True, default="")
+    ranking_limit = models.PositiveSmallIntegerField(default=10)
+    ranking_min_reviews = models.PositiveSmallIntegerField(null=True, blank=True)
+    ranking_bayesian_m = models.FloatField(null=True, blank=True)
+    ranking_sort = models.CharField(
+        max_length=20,
+        choices=RANKING_SORT_CHOICES,
+        default="bayesian",
+    )
+    include_newly_registered = models.BooleanField(default=True)
+
     reactions = GenericRelation(
         "interactions.Reaction",
         object_id_field="object_id",
@@ -371,6 +408,37 @@ class ArticleTag(BaseModel):
 
     class Meta:
         unique_together = ("article", "tag")
+
+
+class ArticleGamingCenter(BaseModel):
+    """
+    EN: Stores only reference ID, editorial ordering, and optional custom description
+        linking a blog Article to a live Sayra GamingCenter (without duplicating mutable center data).
+    FA: تنها شناسه مرجع، ترتیب نمایش و توضیح اختصاصی تحریریه را برای اتصال مقاله به گیم‌نت‌های سایرا
+        نگهداری می‌کند (بدون کپی کردن داده‌های متغیر گیم‌نت).
+    """
+
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, related_name="gaming_center_links"
+    )
+    gaming_center_id = models.CharField(max_length=128, db_index=True)
+    display_order = models.PositiveIntegerField(default=0)
+    custom_description = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["display_order", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["article", "gaming_center_id"],
+                name="uniq_article_gaming_center",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["article", "display_order"]),
+        ]
+
+    def __str__(self):
+        return f"Article {self.article_id} -> GamingCenter {self.gaming_center_id} (#{self.display_order})"
 
 
 class Revision(BaseModel):

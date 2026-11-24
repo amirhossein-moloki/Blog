@@ -726,3 +726,30 @@ CKEDITOR_5_CONFIGS = {
 # EN: Enable automatic Jalali conversion for admin list displays.
 # FA: فعال‌سازی تبدیل خودکار جلالی برای نمایش‌های لیست در پنل ادمین.
 JALALI_DATE_DEFAULTS = {"LIST_DISPLAY_AUTO_CONVERT": True}
+
+# ==============================================================================
+# Sayra Express Booking Backend & Next.js Frontend Integration
+# ==============================================================================
+SAYRA_API_BASE_URL = os.environ.get(
+    "SAYRA_API_BASE_URL", "http://sayra:3000/api/public"
+).rstrip("/")
+SAYRA_SERVICE_TOKEN = os.environ.get("SAYRA_SERVICE_TOKEN", "")
+SAYRA_SSR_SECRET = os.environ.get("SAYRA_SSR_SECRET", "")
+SAYRA_HTTP_TIMEOUT_SECONDS = float(
+    os.environ.get("SAYRA_HTTP_TIMEOUT_SECONDS", "3.5")
+)
+SAYRA_CACHE_FRESH_TTL_SECONDS = int(
+    os.environ.get("SAYRA_CACHE_FRESH_TTL_SECONDS", "120")
+)
+SAYRA_CACHE_STALE_TTL_SECONDS = int(
+    os.environ.get("SAYRA_CACHE_STALE_TTL_SECONDS", "86400")
+)
+SAYRA_WEBHOOK_SECRET = os.environ.get("SAYRA_WEBHOOK_SECRET", "")
+SAYRA_WEBHOOK_MAX_SKEW_SECONDS = int(
+    os.environ.get("SAYRA_WEBHOOK_MAX_SKEW_SECONDS", "300")
+)
+NEXT_REVALIDATE_URL = os.environ.get("NEXT_REVALIDATE_URL", "").strip()
+NEXT_REVALIDATION_SECRET = os.environ.get("NEXT_REVALIDATION_SECRET", "").strip()
+SITE_PUBLIC_URL = os.environ.get(
+    "SITE_PUBLIC_URL", "https://www.sayra-booking.ir"
+).rstrip("/")

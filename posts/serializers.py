@@ -10,6 +10,7 @@ from medias.serializers import ArticleMediaSerializer, MediaDetailSerializer
 
 from .models import (
     Article,
+    ArticleGamingCenter,
     AuthorProfile,
     Category,
     GalleryItem,
@@ -359,6 +360,37 @@ def migrate_and_normalize_block(block):
     return block
 
 
+class ArticleGamingCenterSerializer(serializers.ModelSerializer):
+    """
+    EN: Read serializer for gaming centers linked to an article (references only).
+    FA: سریالایزر خواندن ارتباط گیم‌نت با مقاله (فقط شناسه‌ها و تنظیمات تحریریه).
+    """
+
+    class Meta:
+        model = ArticleGamingCenter
+        fields = (
+            "id",
+            "gaming_center_id",
+            "display_order",
+            "custom_description",
+            "created_at",
+            "updated_at",
+        )
+
+
+class ArticleGamingCenterInputSerializer(serializers.Serializer):
+    """
+    EN: Write serializer for attaching a Sayra gaming center to an article.
+    FA: سریالایزر نوشتن برای اتصال گیم‌نت سایرا به مقاله.
+    """
+
+    gaming_center_id = serializers.CharField(max_length=128)
+    display_order = serializers.IntegerField(default=0, min_value=0)
+    custom_description = serializers.CharField(
+        required=False, allow_blank=True, default=""
+    )
+
+
 class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     """
     EN: Comprehensive serializer for detailed Article view, including content and attachments.
@@ -378,6 +410,8 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
     related_articles = ArticleListSerializer(many=True, read_only=True)
     article_schema_version = serializers.SerializerMethodField()
     structured_data = serializers.SerializerMethodField()
+    gaming_center_links = ArticleGamingCenterSerializer(many=True, read_only=True)
+    gaming_centers_section = serializers.SerializerMethodField()
 
     class Meta(ArticleListSerializer.Meta):
         fields = ArticleListSerializer.Meta.fields + (
@@ -393,7 +427,28 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
             "related_articles",
             "article_schema_version",
             "structured_data",
+            "gaming_center_mode",
+            "ranking_city",
+            "ranking_neighborhood",
+            "ranking_device_type",
+            "ranking_limit",
+            "ranking_min_reviews",
+            "ranking_bayesian_m",
+            "ranking_sort",
+            "include_newly_registered",
+            "gaming_center_links",
+            "gaming_centers_section",
         )
+
+    @extend_schema_field(serializers.DictField(allow_null=True))
+    def get_gaming_centers_section(self, obj):
+        """
+        EN: Resolves live gaming center cards & Bayesian rankings from Sayra Express.
+        FA: واکشی و ترکیب اطلاعات زنده گیم‌نت‌ها و رتبه‌بندی Bayesian از بک‌اند سایرا.
+        """
+        from .integrations.sayra_client import resolve_article_gaming_centers
+
+        return resolve_article_gaming_centers(obj)
 
     def get_article_schema_version(self, obj):
         return 2
@@ -571,6 +626,9 @@ class ArticleCreateUpdateSerializer(
         write_only=True, required=False, allow_null=True
     )
     related_articles = ArticleListSerializer(many=True, read_only=True)
+    gaming_center_links = ArticleGamingCenterInputSerializer(
+        many=True, required=False, write_only=True
+    )
 
     class Meta:
         model = Article
@@ -604,6 +662,16 @@ class ArticleCreateUpdateSerializer(
             "related_article_ids",
             "related_articles",
             "publish_at",
+            "gaming_center_mode",
+            "ranking_city",
+            "ranking_neighborhood",
+            "ranking_device_type",
+            "ranking_limit",
+            "ranking_min_reviews",
+            "ranking_bayesian_m",
+            "ranking_sort",
+            "include_newly_registered",
+            "gaming_center_links",
         )
         read_only_fields = ("views_count",)
         extra_kwargs = {"slug": {"required": False}}
@@ -718,6 +786,40 @@ class ArticleCreateUpdateSerializer(
 
         return str(soup)
 
+    def validate_gaming_center_links(self, value):
+        if value is None:
+            return []
+        seen = set()
+        for idx, item in enumerate(value):
+            cid = str(item.get("gaming_center_id") or "").strip()
+            if not cid:
+                raise serializers.ValidationError(
+                    f"gaming_center_links[{idx}].gaming_center_id cannot be empty."
+                )
+            if cid in seen:
+                raise serializers.ValidationError(
+                    f"Duplicate gaming_center_id '{cid}' in gaming_center_links."
+                )
+            seen.add(cid)
+        return value
+
+    @staticmethod
+    def _sync_gaming_center_links(article, links_data):
+        if links_data is None:
+            return
+        ArticleGamingCenter.objects.filter(article=article).delete()
+        rows = [
+            ArticleGamingCenter(
+                article=article,
+                gaming_center_id=str(item["gaming_center_id"]).strip(),
+                display_order=int(item.get("display_order", idx)),
+                custom_description=(item.get("custom_description") or "").strip(),
+            )
+            for idx, item in enumerate(links_data)
+        ]
+        if rows:
+            ArticleGamingCenter.objects.bulk_create(rows)
+
     def create(self, validated_data):
         """
         EN: Handles article and translation creation with publication date processing.
@@ -727,6 +829,7 @@ class ArticleCreateUpdateSerializer(
 
         from .models import ArticleTranslation
 
+        gaming_center_links = validated_data.pop("gaming_center_links", None)
         translation_data = {
             "language_code": validated_data.pop("language_code", "en"),
             "title": validated_data.pop("title"),
@@ -755,6 +858,8 @@ class ArticleCreateUpdateSerializer(
         with transaction.atomic():
             article = super().create(validated_data)
             ArticleTranslation.objects.create(article=article, **translation_data)
+            if gaming_center_links is not None:
+                self._sync_gaming_center_links(article, gaming_center_links)
 
         return article
 
@@ -767,6 +872,7 @@ class ArticleCreateUpdateSerializer(
 
         from .models import ArticleTranslation
 
+        gaming_center_links = validated_data.pop("gaming_center_links", None)
         language_code = validated_data.pop("language_code", "en")
         translation_fields = [
             "title",
@@ -798,6 +904,8 @@ class ArticleCreateUpdateSerializer(
                     language_code=language_code,
                     defaults=translation_data,
                 )
+            if gaming_center_links is not None:
+                self._sync_gaming_center_links(article, gaming_center_links)
 
         return article
 

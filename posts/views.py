@@ -272,6 +272,8 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
                 prefetches.add("comments__user")
             if all_fields or "media_attachments" in fields:
                 prefetches.add("media_attachments__media")
+            if all_fields or "gaming_center_links" in fields or "gaming_centers_section" in fields:
+                prefetches.add("gaming_center_links")
 
             if selects:
                 queryset = queryset.select_related(*selects)

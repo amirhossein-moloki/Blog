@@ -18,6 +18,7 @@ from rest_framework_simplejwt.views import (
 
 from common.cache.views import CacheHealthView, CacheManagerHealthView, RedisHealthView
 from posts.ckeditor_views import ckeditor_upload_view
+from posts.integrations.webhook_views import SayraEventWebhookView
 
 from .ckeditor_views import ckeditor5_upload
 from .sitemaps import (
@@ -83,6 +84,11 @@ urlpatterns = [
     path("api/", include("posts.urls", namespace="posts")),
     path("api/", include("medias.urls", namespace="medias")),
     path("api/", include("interactions.urls", namespace="interactions")),
+    path(
+        "api/integrations/webhooks/sayra-events/",
+        SayraEventWebhookView.as_view(),
+        name="sayra-event-webhook",
+    ),
     path("api/editor/upload/", ckeditor_upload_view, name="ckeditor_upload"),
 ]
 
