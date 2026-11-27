@@ -41,8 +41,8 @@ urlpatterns = [
     path("stats/counts/", content_counts, name="content-counts"),
     path("counts/", content_counts, name="content-counts-alias"),
     path("articles/counts/", content_counts, name="article-counts-alias"),
-    path("articles/<slug:slug>/publish/", publish_article, name="article-publish"),
-    path("articles/<slug:slug>/related/", related_articles, name="article-related"),
+    path("articles/<str:slug>/publish/", publish_article, name="article-publish"),
+    path("articles/<str:slug>/related/", related_articles, name="article-related"),
     path("", include(router.urls)),
     path("", include(articles_router.urls)),
 ]

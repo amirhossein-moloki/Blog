@@ -162,6 +162,8 @@ def warmup_article_detail(self, article_slug):
         return
 
     try:
+        from django.utils import timezone
+
         from posts.models import Article
         from posts.serializers import ArticleDetailSerializer
 
@@ -171,7 +173,14 @@ def warmup_article_detail(self, article_slug):
 
         # Find the article by slug across all translations
         article = (
-            Article.objects.filter(translations__slug=article_slug).distinct().first()
+            Article.objects.filter(
+                translations__slug=article_slug,
+                status="published",
+                visibility__in=["public", "unlisted"],
+                published_at__lte=timezone.now(),
+            )
+            .distinct()
+            .first()
         )
         if not article:
             logger.warning(f"Article not found for warmup: {article_slug}")

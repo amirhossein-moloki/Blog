@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from jalali_date import datetime2jalali
 from rest_framework import serializers
 
@@ -109,7 +110,12 @@ class MediaCreateSerializer(serializers.ModelSerializer):
         """
         file = validated_data.pop("file")
         uploaded_by = self.context["request"].user
-        return create_media_from_file(file, uploaded_by, **validated_data)
+        try:
+            return create_media_from_file(file, uploaded_by, **validated_data)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(
+                {"file": exc.messages if hasattr(exc, "messages") else [str(exc)]}
+            )
 
 
 class ArticleMediaSerializer(serializers.ModelSerializer):

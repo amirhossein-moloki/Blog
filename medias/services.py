@@ -8,6 +8,12 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import models
+
+try:
+    import pillow_avif  # noqa: F401
+except ImportError:
+    pass
+
 from PIL import Image
 
 from common.utils.files import get_sanitized_filename
@@ -90,6 +96,7 @@ def validate_file_security(uploaded_file):
         ".png",
         ".gif",
         ".webp",
+        ".avif",
         ".pdf",
         ".mp3",
         ".wav",
@@ -106,6 +113,20 @@ def validate_file_security(uploaded_file):
     file_header = uploaded_file.read(4096)
     uploaded_file.seek(0)
 
+    # Reject executable files
+    if file_header.startswith(b"\x7fELF") or file_header.startswith(b"MZ"):
+        raise ValidationError("Executable files are strictly prohibited.")
+
+    # Reject renamed scripts
+    suspicious_patterns = [b"<?php", b"<script", b"#!/", b"eval("]
+    for pattern in suspicious_patterns:
+        if pattern in file_header.lower():
+            raise ValidationError("File contains forbidden scripts or HTML/JS code.")
+
+    # Malware scanning
+    if not MalwareScanner.scan(file_header):
+        raise ValidationError("File is quarantined due to suspected malware content.")
+
     # Detect if file is a simple mock/test file from legacy unit tests
     # Any real media (image, video, pdf, etc.) is always larger than 100 bytes.
     is_mock = len(file_header) < 100
@@ -114,6 +135,8 @@ def validate_file_security(uploaded_file):
         detected_mime = getattr(
             uploaded_file, "content_type", "application/octet-stream"
         )
+        if ext == ".avif" and detected_mime in ("", None, "application/octet-stream"):
+            detected_mime = "image/avif"
     else:
         try:
             detected_mime = magic.from_buffer(file_header, mime=True)
@@ -136,21 +159,35 @@ def validate_file_security(uploaded_file):
                 raise ValidationError(
                     f"MIME type mismatch for PNG. Detected: {detected_mime}"
                 )
+        elif ext == ".avif":
+            ftyp_header = file_header[:64]
+            if not (
+                len(file_header) >= 12
+                and file_header[4:8] == b"ftyp"
+                and (b"avif" in ftyp_header[8:] or b"avis" in ftyp_header[8:])
+            ):
+                raise ValidationError("Invalid AVIF binary signature.")
+            allowed_avif_mimes = {
+                "image/avif",
+                "image/heif",
+                "image/heic",
+                "application/octet-stream",
+            }
+            if detected_mime not in allowed_avif_mimes:
+                raise ValidationError(
+                    f"MIME type mismatch for AVIF. Detected: {detected_mime}"
+                )
+            try:
+                uploaded_file.seek(0)
+                with Image.open(uploaded_file) as img:
+                    img.verify()
+            except Exception as exc:
+                raise ValidationError(f"Invalid or corrupted AVIF image: {exc}")
+            finally:
+                uploaded_file.seek(0)
+            detected_mime = "image/avif"
 
-    # Reject executable files
-    if file_header.startswith(b"\x7fELF") or file_header.startswith(b"MZ"):
-        raise ValidationError("Executable files are strictly prohibited.")
-
-    # Reject renamed scripts
-    suspicious_patterns = [b"<?php", b"<script", b"#!/", b"eval("]
-    for pattern in suspicious_patterns:
-        if pattern in file_header.lower():
-            raise ValidationError("File contains forbidden scripts or HTML/JS code.")
-
-    # Malware scanning
-    if not MalwareScanner.scan(file_header):
-        raise ValidationError("File is quarantined due to suspected malware content.")
-
+    uploaded_file.seek(0)
     return detected_mime
 
 
@@ -225,6 +262,8 @@ class ImageProcessor:
                     im.save(buf, format=save_fmt, quality=85, optimize=True)
                 except Exception:
                     buf = io.BytesIO()
+                    if im.mode not in ("RGB", "L"):
+                        im = im.convert("RGB")
                     im.save(buf, format="JPEG", quality=85, optimize=True)
                     save_fmt = "JPEG"
 

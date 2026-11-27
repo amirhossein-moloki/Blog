@@ -4,11 +4,84 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.urls import reverse
+from django.utils.text import slugify
 from django_ckeditor_5.fields import CKEditor5Field
 
 from core.base_models import BaseModel
 
 User = get_user_model()
+
+
+def generate_unique_slug(
+    model_cls,
+    value,
+    *,
+    instance=None,
+    slug_field="slug",
+    fallback="item",
+    extra_filters=None,
+    preserve_raw=False,
+):
+    """Generate a unique Unicode-friendly slug for `model_cls` with numeric suffixes on collision."""
+    max_length = model_cls._meta.get_field(slug_field).max_length or 255
+    raw = (value or "").strip()
+    if preserve_raw and raw:
+        base_slug = raw[:max_length].strip("-")
+    else:
+        base_slug = slugify(raw, allow_unicode=True)[:max_length].strip("-")
+
+    if not base_slug:
+        base_slug = fallback[:max_length]
+
+    qs = model_cls.objects.all()
+    if extra_filters:
+        qs = qs.filter(**extra_filters)
+    if instance is not None and instance.pk is not None:
+        qs = qs.exclude(pk=instance.pk)
+
+    candidate = base_slug
+    counter = 2
+    while qs.filter(**{slug_field: candidate}).exists():
+        suffix = f"-{counter}"
+        trimmed = base_slug[: max_length - len(suffix)].rstrip("-")
+        if not trimmed:
+            trimmed = fallback[: max_length - len(suffix)]
+        candidate = f"{trimmed}{suffix}"
+        counter += 1
+
+    return candidate
+
+
+def assign_unique_slug(
+    instance,
+    source_value,
+    *,
+    fallback="item",
+    extra_filters=None,
+    update_fields=None,
+):
+    """Populate or deduplicate `instance.slug` before saving."""
+    if update_fields is not None and "slug" not in update_fields:
+        return
+
+    raw_slug = (instance.slug or "").strip()
+    if raw_slug:
+        instance.slug = generate_unique_slug(
+            type(instance),
+            raw_slug,
+            instance=instance,
+            fallback=fallback,
+            extra_filters=extra_filters,
+            preserve_raw=True,
+        )
+    else:
+        instance.slug = generate_unique_slug(
+            type(instance),
+            source_value,
+            instance=instance,
+            fallback=fallback,
+            extra_filters=extra_filters,
+        )
 
 
 class AuthorProfile(BaseModel):
@@ -48,7 +121,7 @@ class Category(BaseModel):
     دسته‌بندی‌ها می‌توانند دسته‌های والد و فرزند داشته باشند.
     """
 
-    slug = models.SlugField(unique=True, allow_unicode=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, blank=True)
     name = models.CharField(max_length=255)
     parent = models.ForeignKey(
         "self",
@@ -70,6 +143,15 @@ class Category(BaseModel):
     class Meta:
         verbose_name_plural = "Categories"
 
+    def save(self, *args, **kwargs):
+        assign_unique_slug(
+            self,
+            self.name,
+            fallback="category",
+            update_fields=kwargs.get("update_fields"),
+        )
+        super().save(*args, **kwargs)
+
     def __str__(self):
         """
         EN: Returns the name of the category.
@@ -84,9 +166,18 @@ class Tag(BaseModel):
     FA: نشان‌دهنده برچسبی که برای برچسب‌گذاری مقاله‌ها جهت جستجوی بهتر استفاده می‌شود.
     """
 
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True, blank=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        assign_unique_slug(
+            self,
+            self.name,
+            fallback="tag",
+            update_fields=kwargs.get("update_fields"),
+        )
+        super().save(*args, **kwargs)
 
     def __str__(self):
         """
@@ -346,7 +437,7 @@ class ArticleTranslation(BaseModel):
         Article, on_delete=models.CASCADE, related_name="translations"
     )
     language_code = models.CharField(max_length=10, db_index=True)
-    slug = models.SlugField(max_length=255, allow_unicode=True)
+    slug = models.SlugField(max_length=255, allow_unicode=True, blank=True)
     title = models.CharField(max_length=255)
     excerpt = models.TextField()
     short_description = models.TextField(blank=True, null=True)
@@ -371,9 +462,16 @@ class ArticleTranslation(BaseModel):
 
     def save(self, *args, **kwargs):
         """
-        EN: Overrides save to calculate reading time and sync related media.
-        FA: متد save را برای محاسبه زمان مطالعه و همگام‌سازی رسانه‌های مرتبط بازنویسی می‌کند.
+        EN: Overrides save to ensure unique Unicode slug, calculate reading time, and sync related media.
+        FA: متد save را برای تولید اسلاگ یکتای یونیکد، محاسبه زمان مطالعه و همگام‌سازی رسانه‌های مرتبط بازنویسی می‌کند.
         """
+        assign_unique_slug(
+            self,
+            self.title,
+            fallback="article",
+            extra_filters={"language_code": self.language_code},
+            update_fields=kwargs.get("update_fields"),
+        )
         if self.content_blocks:
             from .services import calculate_blocks_reading_time
 

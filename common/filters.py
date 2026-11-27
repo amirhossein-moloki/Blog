@@ -27,9 +27,16 @@ class NormalizedSearchFilter(SearchFilter):
         if not search_fields or not search_terms:
             return queryset
 
-        orm_lookups = [
-            self.construct_search(str(search_field)) for search_field in search_fields
-        ]
+        try:
+            orm_lookups = [
+                self.construct_search(str(search_field), queryset)
+                for search_field in search_fields
+            ]
+        except TypeError:
+            orm_lookups = [
+                self.construct_search(str(search_field))
+                for search_field in search_fields
+            ]
 
         conditions = []
         for search_term in search_terms:

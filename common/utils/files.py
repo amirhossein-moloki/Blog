@@ -13,7 +13,12 @@ def get_sanitized_filename(filename):
     تولید یک نام فایل پاکسازی شده با تبدیل نام اصلی به اسلاگ و حفظ پسوند.
     """
     base, ext = os.path.splitext(filename)
-    return f"{slugify(base)}{ext}"
+    sanitized_base = (
+        slugify(base)
+        or slugify(base, allow_unicode=True)
+        or uuid.uuid4().hex[:8]
+    )
+    return f"{sanitized_base}{ext.lower()}"
 
 
 def get_sanitized_upload_path(instance, filename):

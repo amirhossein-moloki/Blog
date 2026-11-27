@@ -1,7 +1,7 @@
 from django.db.models import Count, F, Q
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -326,6 +326,26 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to create an article.")
         serializer.save(author=author_profile)
 
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        slug = self.kwargs[self.lookup_url_kwarg]
+        lang = self.request.query_params.get("lang")
+        obj = None
+        if lang:
+            obj = (
+                queryset.filter(
+                    translations__slug=slug, translations__language_code=lang
+                )
+                .distinct()
+                .first()
+            )
+        if obj is None:
+            obj = queryset.filter(translations__slug=slug).distinct().first()
+        if obj is None:
+            raise NotFound("No article was found with this slug.")
+        self.check_object_permissions(self.request, obj)
+        return obj
+
     def retrieve(self, request, *args, **kwargs):
         """
         EN: Serves cached article details and increments view count via an atomic SQL update
@@ -646,9 +666,8 @@ def publish_article(request, slug):
     EN: API view to manually publish a draft or scheduled article.
     FA: نمای API برای انتشار دستی یک مقاله پیش‌نویس یا زمان‌بندی شده.
     """
-    try:
-        article = Article.objects.get(translations__slug=slug)
-    except Article.DoesNotExist:
+    article = Article.objects.filter(translations__slug=slug).distinct().first()
+    if article is None:
         raise NotFound("No article was found with these specifications.")
 
     if article.author.user != request.user and not request.user.is_staff:
@@ -739,7 +758,44 @@ class AuthorProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorProfileOwnerOrAdmin]
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class PkOrSlugLookupMixin:
+    """Resolve detail objects by integer primary key or Unicode slug."""
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+
+        if str(lookup_value).isdigit():
+            obj = queryset.filter(pk=int(lookup_value)).first()
+            if obj is not None:
+                self.check_object_permissions(self.request, obj)
+                return obj
+
+        obj = queryset.filter(slug=lookup_value).first()
+        if obj is None:
+            raise NotFound("No matching record was found.")
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
+def _id_or_slug_schema_decorator(resource_name):
+    param = OpenApiParameter(
+        name="id",
+        type=str,
+        location=OpenApiParameter.PATH,
+        description=f"Unique integer ID or Unicode slug identifying this {resource_name}.",
+    )
+    return extend_schema_view(
+        retrieve=extend_schema(parameters=[param]),
+        update=extend_schema(parameters=[param]),
+        partial_update=extend_schema(parameters=[param]),
+        destroy=extend_schema(parameters=[param]),
+    )
+
+
+@_id_or_slug_schema_decorator("category")
+class CategoryViewSet(PkOrSlugLookupMixin, viewsets.ModelViewSet):
     """
     EN: ViewSet for managing article categories.
     FA: ViewSet برای مدیریت دسته‌بندی‌های مقاله.
@@ -776,7 +832,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return _set_public_cache_headers(request, Response(data), 300, 900, 1800)
 
 
-class TagViewSet(viewsets.ModelViewSet):
+@_id_or_slug_schema_decorator("tag")
+class TagViewSet(PkOrSlugLookupMixin, viewsets.ModelViewSet):
     """
     EN: ViewSet for managing article tags.
     FA: ViewSet برای مدیریت برچسب‌های مقاله.

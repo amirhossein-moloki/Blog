@@ -97,6 +97,40 @@ class MediaViewSetTests(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_create_media_avif_rgb_and_persian_filename(self):
+        self.client.force_authenticate(user=self.user)
+
+        buf = io.BytesIO()
+        Image.new("RGB", size=(80, 60), color=(30, 140, 210)).save(buf, format="AVIF")
+        uploaded_file = SimpleUploadedFile(
+            "عکس-تستی.avif", buf.getvalue(), content_type="image/avif"
+        )
+        response = self.client.post(
+            self.list_url,
+            {"file": uploaded_file, "title": "تصویر AVIF", "alt_text": "alt"},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        data = response.data["data"] if "data" in response.data else response.data
+        self.assertEqual(data["type"], "image")
+        self.assertEqual(data["mime"], "image/avif")
+        self.assertEqual(data["width"], 80)
+        self.assertEqual(data["height"], 60)
+        self.assertEqual(data["status"], "Ready")
+        self.assertTrue(data["storage_key"].endswith(".avif"))
+        self.assertIn("عکس-تستی", data["storage_key"])
+        self.assertGreater(len(data["variants"]), 0)
+
+    def test_create_media_invalid_avif_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        spoofed = SimpleUploadedFile(
+            "spoofed.avif", b"not-a-valid-avif-payload-" * 15, content_type="image/avif"
+        )
+        response = self.client.post(
+            self.list_url, {"file": spoofed}, format="multipart"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class MediaServiceExtraTests(APITestCase):
     def setUp(self):

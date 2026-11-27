@@ -182,6 +182,9 @@ class CategorySerializer(HybridMediaSerializerMixin, serializers.ModelSerializer
     FA: سریالایزر برای مدل دسته‌بندی با پشتیبانی از دسته‌های والد.
     """
 
+    slug = serializers.SlugField(
+        allow_unicode=True, required=False, allow_blank=True, max_length=255
+    )
     icon = HybridMediaField(required=False, allow_null=True)
     icon_id = HybridMediaField(
         source="icon", required=False, allow_null=True, write_only=True
@@ -222,6 +225,10 @@ class TagSerializer(serializers.ModelSerializer):
     EN: Serializer for Tag model.
     FA: سریالایزر برای مدل برچسب.
     """
+
+    slug = serializers.SlugField(
+        allow_unicode=True, required=False, allow_blank=True, max_length=255
+    )
 
     class Meta:
         model = Tag
@@ -552,6 +559,14 @@ class ArticleDetailSerializer(ContentNormalizationMixin, ArticleListSerializer):
         return structured_data
 
 
+class TranslationSlugField(serializers.SlugField):
+    """Writable Unicode SlugField that reads from article.translation.slug on output."""
+
+    def get_attribute(self, instance):
+        translation = getattr(instance, "translation", None)
+        return translation.slug if translation else None
+
+
 class ArticleCreateUpdateSerializer(
     ContentNormalizationMixin, HybridMediaSerializerMixin, serializers.ModelSerializer
 ):
@@ -562,7 +577,9 @@ class ArticleCreateUpdateSerializer(
 
     language_code = serializers.CharField(write_only=True, default="en")
     title = serializers.CharField(write_only=True)
-    slug = serializers.SlugField(write_only=True, required=False, allow_unicode=True)
+    slug = TranslationSlugField(
+        allow_unicode=True, required=False, allow_blank=True, max_length=255
+    )
     excerpt = serializers.CharField(write_only=True)
     short_description = serializers.CharField(
         write_only=True, required=False, allow_blank=True, allow_null=True
@@ -674,7 +691,6 @@ class ArticleCreateUpdateSerializer(
             "gaming_center_links",
         )
         read_only_fields = ("views_count",)
-        extra_kwargs = {"slug": {"required": False}}
 
     def validate_content_blocks(self, value):
         if value is None:
@@ -846,18 +862,14 @@ class ArticleCreateUpdateSerializer(
                 translation_data["content"]
             )
 
-        if not translation_data["slug"]:
-            from django.utils.text import slugify
-
-            translation_data["slug"] = slugify(
-                translation_data["title"], allow_unicode=True
-            )
-
         validated_data = self._handle_publication_date(validated_data)
 
         with transaction.atomic():
             article = super().create(validated_data)
-            ArticleTranslation.objects.create(article=article, **translation_data)
+            created_translation = ArticleTranslation.objects.create(
+                article=article, **translation_data
+            )
+            article.requested_translation = [created_translation]
             if gaming_center_links is not None:
                 self._sync_gaming_center_links(article, gaming_center_links)
 
@@ -873,7 +885,10 @@ class ArticleCreateUpdateSerializer(
         from .models import ArticleTranslation
 
         gaming_center_links = validated_data.pop("gaming_center_links", None)
-        language_code = validated_data.pop("language_code", "en")
+        language_code = validated_data.pop("language_code", None)
+        if not language_code:
+            existing_trans = instance.translation
+            language_code = existing_trans.language_code if existing_trans else "en"
         translation_fields = [
             "title",
             "slug",
@@ -899,11 +914,18 @@ class ArticleCreateUpdateSerializer(
         with transaction.atomic():
             article = super().update(instance, validated_data)
             if translation_data:
-                ArticleTranslation.objects.update_or_create(
-                    article=article,
-                    language_code=language_code,
-                    defaults=translation_data,
-                )
+                translation = ArticleTranslation.objects.filter(
+                    article=article, language_code=language_code
+                ).first()
+                if translation:
+                    for field, value in translation_data.items():
+                        setattr(translation, field, value)
+                    translation.save()
+                else:
+                    translation = ArticleTranslation.objects.create(
+                        article=article, language_code=language_code, **translation_data
+                    )
+                article.requested_translation = [translation]
             if gaming_center_links is not None:
                 self._sync_gaming_center_links(article, gaming_center_links)
 

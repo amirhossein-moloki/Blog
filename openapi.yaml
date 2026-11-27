@@ -765,8 +765,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this category.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this category.
         required: true
       tags:
       - categories
@@ -789,8 +789,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this category.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this category.
         required: true
       tags:
       - categories
@@ -825,8 +825,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this category.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this category.
         required: true
       tags:
       - categories
@@ -860,8 +860,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this category.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this category.
         required: true
       tags:
       - categories
@@ -1382,6 +1382,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/StdMediaCreatePostMediaCreateSerializer200'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    nullable: true
+                    example: null
+                  messagesList:
+                    type: array
+                    items:
+                      type: string
+          description: Validation error (unsupported extension, size > 10 MB, invalid binary signature, or corrupt media file).
   /api/media/{id}/:
     get:
       operationId: media_retrieve
@@ -2572,8 +2586,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this tag.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this tag.
         required: true
       tags:
       - tags
@@ -2596,8 +2610,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this tag.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this tag.
         required: true
       tags:
       - tags
@@ -2632,8 +2646,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this tag.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this tag.
         required: true
       tags:
       - tags
@@ -2667,8 +2681,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: A unique integer value identifying this tag.
+          type: string
+        description: Unique integer ID or Unicode slug identifying this tag.
         required: true
       tags:
       - tags
@@ -3002,6 +3016,11 @@ components:
           items:
             $ref: '#/components/schemas/Tag'
           readOnly: true
+        slug:
+          type: string
+          maxLength: 255
+          pattern: ^[-\w]+$
+          description: Unicode slug of the active article translation.
         canonical_url:
           type: string
           format: uri
@@ -3101,9 +3120,10 @@ components:
           writeOnly: true
         slug:
           type: string
-          writeOnly: true
-          minLength: 1
-          pattern: ^[-a-zA-Z0-9_]+$
+          maxLength: 255
+          pattern: ^[-\w]+$
+          description: Optional Unicode slug. If omitted or blank, auto-generated
+            uniquely per language from title using slugify(title, allow_unicode=True).
         canonical_url:
           type: string
           format: uri
@@ -3629,7 +3649,7 @@ components:
         slug:
           type: string
           pattern: ^[-\w]+$
-          maxLength: 50
+          maxLength: 255
         name:
           type: string
           maxLength: 255
@@ -3658,9 +3678,9 @@ components:
       properties:
         slug:
           type: string
-          minLength: 1
           pattern: ^[-\w]+$
-          maxLength: 50
+          maxLength: 255
+          description: Optional Unicode slug. Auto-generated uniquely from name if omitted or blank.
         name:
           type: string
           minLength: 1
@@ -3684,7 +3704,6 @@ components:
           nullable: true
       required:
       - name
-      - slug
     Comment:
       type: object
       description: |-
@@ -3910,6 +3929,7 @@ components:
           type: string
           format: binary
           writeOnly: true
+          description: Supported formats include AVIF (.avif, image/avif), JPEG, PNG, GIF, WebP, PDF, audio, and video (max 10 MB).
         alt_text:
           type: string
           maxLength: 255
@@ -4331,9 +4351,10 @@ components:
           writeOnly: true
         slug:
           type: string
-          writeOnly: true
-          minLength: 1
-          pattern: ^[-a-zA-Z0-9_]+$
+          maxLength: 255
+          pattern: ^[-\w]+$
+          description: Optional Unicode slug. If omitted or blank, auto-generated
+            uniquely per language from title using slugify(title, allow_unicode=True).
         canonical_url:
           type: string
           format: uri
@@ -4431,9 +4452,9 @@ components:
       properties:
         slug:
           type: string
-          minLength: 1
           pattern: ^[-\w]+$
-          maxLength: 50
+          maxLength: 255
+          description: Optional Unicode slug. Auto-generated uniquely from name if blank.
         name:
           type: string
           minLength: 1
@@ -4740,9 +4761,9 @@ components:
       properties:
         slug:
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
+          maxLength: 255
+          pattern: ^[-\w]+$
+          description: Optional Unicode slug. Auto-generated uniquely from name if blank.
         name:
           type: string
           minLength: 1
@@ -6159,8 +6180,8 @@ components:
           readOnly: true
         slug:
           type: string
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
+          maxLength: 255
+          pattern: ^[-\w]+$
         name:
           type: string
           maxLength: 255
@@ -6176,16 +6197,15 @@ components:
       properties:
         slug:
           type: string
-          minLength: 1
-          maxLength: 50
-          pattern: ^[-a-zA-Z0-9_]+$
+          maxLength: 255
+          pattern: ^[-\w]+$
+          description: Optional Unicode slug. Auto-generated uniquely from name if omitted or blank.
         name:
           type: string
           minLength: 1
           maxLength: 255
       required:
       - name
-      - slug
     TokenObtainPair:
       type: object
       properties:

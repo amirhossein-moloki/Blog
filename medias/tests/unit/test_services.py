@@ -1,8 +1,10 @@
+import io
 from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from PIL import Image
 
 from medias.services import (
     MediaDeletionService,
@@ -102,3 +104,32 @@ class MediaServicesTest(TestCase):
         media.refresh_from_db()
         self.assertFalse(media.is_deleted)
         self.assertTrue(media.is_active)
+
+    def test_validate_file_security_valid_avif_rgb_and_rgba(self):
+        for mode, color in [("RGB", (120, 40, 200)), ("RGBA", (120, 40, 200, 128))]:
+            buf = io.BytesIO()
+            Image.new(mode, (64, 48), color=color).save(buf, format="AVIF")
+            avif_bytes = buf.getvalue()
+            uploaded_file = SimpleUploadedFile(
+                f"valid-{mode.lower()}.avif",
+                avif_bytes,
+                content_type="application/octet-stream",
+            )
+            self.assertEqual(validate_file_security(uploaded_file), "image/avif")
+
+    def test_validate_file_security_invalid_avif_rejected(self):
+        bad_sig = SimpleUploadedFile(
+            "bad.avif", b"not-an-avif-file-" * 20, content_type="image/avif"
+        )
+        with self.assertRaises(ValidationError) as ctx1:
+            validate_file_security(bad_sig)
+        self.assertIn("AVIF binary signature", str(ctx1.exception))
+
+        fake_ftyp = SimpleUploadedFile(
+            "corrupt.avif",
+            b"\x00\x00\x00\x20ftypavif" + b"\x00" * 200,
+            content_type="image/avif",
+        )
+        with self.assertRaises(ValidationError) as ctx2:
+            validate_file_security(fake_ftyp)
+        self.assertIn("AVIF", str(ctx2.exception))

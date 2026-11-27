@@ -432,3 +432,55 @@ class ArticleAPITest(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         result_ids = {item["id"] for item in response.data["data"]}
         self.assertIn(article.pk, result_ids)
+
+    def test_persian_auto_unique_slug_and_unicode_routes(self):
+        self._authenticate_as_staff()
+        tag = TagFactory(name="یادگیری ماشین")
+        list_url = reverse("posts:article-list")
+
+        payload = {
+            "language_code": "fa",
+            "title": "آموزش هوش مصنوعی",
+            "excerpt": "خلاصه مقاله فارسی",
+            "content": "محتوای کامل مقاله فارسی.",
+            "status": "draft",
+            "tag_ids": [tag.pk],
+        }
+        r1 = self.client.post(list_url, payload, format="json")
+        self.assertEqual(r1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r1.data["slug"], "آموزش-هوش-مصنوعی")
+
+        r2 = self.client.post(list_url, {**payload, "slug": ""}, format="json")
+        self.assertEqual(r2.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r2.data["slug"], "آموزش-هوش-مصنوعی-2")
+
+        r3 = self.client.post(list_url, payload, format="json")
+        self.assertEqual(r3.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r3.data["slug"], "آموزش-هوش-مصنوعی-3")
+
+        slug1 = r1.data["slug"]
+        detail_url = reverse("posts:article-detail", kwargs={"slug": slug1})
+        self.assertEqual(
+            self.client.get(detail_url, {"lang": "fa"}).status_code,
+            status.HTTP_200_OK,
+        )
+
+        by_slug_url = reverse("posts:article-by-slug", kwargs={"slug": slug1})
+        by_slug_res = self.client.get(by_slug_url, {"lang": "fa"})
+        self.assertEqual(by_slug_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(by_slug_res.data["id"], r1.data["id"])
+
+        patch_res = self.client.patch(
+            detail_url, {"title": "آموزش هوش مصنوعی پیشرفته"}, format="json"
+        )
+        self.assertEqual(patch_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(patch_res.data["slug"], slug1)
+
+        publish_url = reverse("posts:article-publish", kwargs={"slug": slug1})
+        pub_res = self.client.post(publish_url)
+        self.assertEqual(pub_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(pub_res.data["status"], "published")
+
+        related_url = reverse("posts:article-related", kwargs={"slug": slug1})
+        rel_res = self.client.get(related_url)
+        self.assertEqual(rel_res.status_code, status.HTTP_200_OK)

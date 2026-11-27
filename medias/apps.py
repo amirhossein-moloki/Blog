@@ -11,4 +11,8 @@ class MediasConfig(AppConfig):
     name = "medias"
 
     def ready(self):
+        try:
+            import pillow_avif  # noqa: F401
+        except ImportError:
+            pass
         import medias.signals  # noqa: F401
