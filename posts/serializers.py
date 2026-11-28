@@ -578,7 +578,11 @@ class ArticleCreateUpdateSerializer(
     language_code = serializers.CharField(write_only=True, default="en")
     title = serializers.CharField(write_only=True)
     slug = TranslationSlugField(
-        allow_unicode=True, required=False, allow_blank=True, max_length=255
+        allow_unicode=True,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        max_length=255,
     )
     excerpt = serializers.CharField(write_only=True)
     short_description = serializers.CharField(
@@ -587,10 +591,14 @@ class ArticleCreateUpdateSerializer(
     content = serializers.CharField(
         write_only=True, required=False, allow_blank=True, allow_null=True
     )
-    content_blocks = serializers.JSONField(write_only=True, required=False)
-    seo_title = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    content_blocks = serializers.JSONField(
+        write_only=True, required=False, allow_null=True
+    )
+    seo_title = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, allow_null=True
+    )
     seo_description = serializers.CharField(
-        write_only=True, required=False, allow_blank=True
+        write_only=True, required=False, allow_blank=True, allow_null=True
     )
 
     tag_ids = serializers.PrimaryKeyRelatedField(
@@ -604,6 +612,7 @@ class ArticleCreateUpdateSerializer(
         queryset=Category.objects.all(),
         source="category",
         required=False,
+        allow_null=True,
         write_only=True,
     )
     cover_image = HybridMediaField(required=False, allow_null=True)
@@ -644,7 +653,7 @@ class ArticleCreateUpdateSerializer(
     )
     related_articles = ArticleListSerializer(many=True, read_only=True)
     gaming_center_links = ArticleGamingCenterInputSerializer(
-        many=True, required=False, write_only=True
+        many=True, required=False, allow_null=True, write_only=True
     )
 
     class Meta:
@@ -849,13 +858,13 @@ class ArticleCreateUpdateSerializer(
         translation_data = {
             "language_code": validated_data.pop("language_code", "en"),
             "title": validated_data.pop("title"),
-            "slug": validated_data.pop("slug", ""),
+            "slug": validated_data.pop("slug", None) or "",
             "excerpt": validated_data.pop("excerpt"),
             "short_description": validated_data.pop("short_description", ""),
             "content": validated_data.pop("content", ""),
-            "content_blocks": validated_data.pop("content_blocks", []),
-            "seo_title": validated_data.pop("seo_title", ""),
-            "seo_description": validated_data.pop("seo_description", ""),
+            "content_blocks": validated_data.pop("content_blocks", None) or [],
+            "seo_title": validated_data.pop("seo_title", None) or "",
+            "seo_description": validated_data.pop("seo_description", None) or "",
         }
         if "content" in translation_data and translation_data["content"]:
             translation_data["content"] = self._process_inline_files(
@@ -886,9 +895,13 @@ class ArticleCreateUpdateSerializer(
 
         gaming_center_links = validated_data.pop("gaming_center_links", None)
         language_code = validated_data.pop("language_code", None)
+        existing_trans = instance.translation
         if not language_code:
-            existing_trans = instance.translation
-            language_code = existing_trans.language_code if existing_trans else "en"
+            matched_lang = getattr(instance, "_matched_translation_lang", None)
+            if matched_lang:
+                language_code = matched_lang
+            else:
+                language_code = existing_trans.language_code if existing_trans else "fa"
         translation_fields = [
             "title",
             "slug",
@@ -918,12 +931,45 @@ class ArticleCreateUpdateSerializer(
                     article=article, language_code=language_code
                 ).first()
                 if translation:
+                    if (
+                        "slug" in translation_data
+                        and (
+                            translation_data["slug"] is None
+                            or str(translation_data["slug"]).strip() == ""
+                        )
+                        and translation.slug
+                    ):
+                        translation_data.pop("slug")
+
                     for field, value in translation_data.items():
+                        if field in ("title", "excerpt") and value is None:
+                            continue
+                        if field in ("slug", "seo_title", "seo_description") and value is None:
+                            value = ""
+                        elif field == "content_blocks" and value is None:
+                            value = []
                         setattr(translation, field, value)
                     translation.save()
                 else:
+                    create_data = dict(translation_data)
+                    if not create_data.get("title"):
+                        create_data["title"] = (
+                            existing_trans.title if existing_trans else ""
+                        )
+                    if create_data.get("excerpt") is None:
+                        create_data["excerpt"] = (
+                            existing_trans.excerpt if existing_trans else ""
+                        )
+                    if create_data.get("slug") is None:
+                        create_data["slug"] = ""
+                    if create_data.get("seo_title") is None:
+                        create_data["seo_title"] = ""
+                    if create_data.get("seo_description") is None:
+                        create_data["seo_description"] = ""
+                    if create_data.get("content_blocks") is None:
+                        create_data["content_blocks"] = []
                     translation = ArticleTranslation.objects.create(
-                        article=article, language_code=language_code, **translation_data
+                        article=article, language_code=language_code, **create_data
                     )
                 article.requested_translation = [translation]
             if gaming_center_links is not None:

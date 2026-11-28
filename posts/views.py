@@ -59,6 +59,7 @@ ARTICLE_LIST_CACHE_PARAMS = (
     "page_size",
     "pageNo",
     "pageSize",
+    "status",
     "category",
     "tags",
     "series",
@@ -243,7 +244,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             user = self.request.user
             if _is_staff_user(user):
                 return queryset
-            if user.is_authenticated:
+            if user and user.is_authenticated:
                 return queryset.filter(
                     Q(
                         status="published",
@@ -300,7 +301,7 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             user = self.request.user
             if _is_staff_user(user):
                 return queryset
-            if user.is_authenticated:
+            if user and user.is_authenticated:
                 return queryset.filter(
                     Q(
                         status="published",
@@ -320,14 +321,37 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
         EN: Associates the article with the author profile of the current user.
         FA: مقاله را به پروفایل نویسندگی کاربر فعلی مرتبط می‌کند.
         """
-        try:
-            author_profile = AuthorProfile.objects.get(user=self.request.user)
-        except AuthorProfile.DoesNotExist:
+        user = self.request.user
+        if not user or not user.is_authenticated:
             raise PermissionDenied("You do not have permission to create an article.")
+
+        if user.is_staff:
+            display_name = (
+                user.get_full_name().strip()
+                if hasattr(user, "get_full_name")
+                else ""
+            ) or user.username
+            author_profile, _ = AuthorProfile.objects.get_or_create(
+                user=user,
+                defaults={"display_name": display_name},
+            )
+        else:
+            try:
+                author_profile = AuthorProfile.objects.get(user=user)
+            except AuthorProfile.DoesNotExist:
+                raise PermissionDenied(
+                    "You do not have permission to create an article."
+                )
         serializer.save(author=author_profile)
 
     def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
+        is_write = (
+            getattr(self.request, "method", None) in ("PUT", "PATCH", "DELETE")
+            or self.action in ("update", "partial_update", "destroy")
+        )
+        queryset = (
+            self.get_queryset() if is_write else self.filter_queryset(self.get_queryset())
+        )
         slug = self.kwargs[self.lookup_url_kwarg]
         lang = self.request.query_params.get("lang")
         obj = None
@@ -343,6 +367,19 @@ class ArticleViewSet(DynamicSerializerViewMixin, viewsets.ModelViewSet):
             obj = queryset.filter(translations__slug=slug).distinct().first()
         if obj is None:
             raise NotFound("No article was found with this slug.")
+
+        matched_trans = None
+        if lang:
+            matched_trans = obj.translations.filter(
+                slug=slug, language_code=lang
+            ).first()
+        if matched_trans is None:
+            matched_trans = obj.translations.filter(slug=slug).first()
+        if matched_trans is not None:
+            obj._matched_translation_lang = matched_trans.language_code
+            if not lang or not getattr(obj, "requested_translation", None):
+                obj.requested_translation = [matched_trans]
+
         self.check_object_permissions(self.request, obj)
         return obj
 

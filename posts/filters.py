@@ -21,6 +21,7 @@ class ArticleFilter(filters.FilterSet):
     امکان فیلتر بر اساس بازه تاریخ انتشار، دسته‌بندی، برچسب‌ها و منطق سفارشی مقاله‌های 'داغ' (hot) را فراهم می‌کند.
     """
 
+    status = filters.ChoiceFilter(choices=Article.STATUS_CHOICES)
     published_after = filters.DateTimeFilter(
         field_name="published_at", lookup_expr="gte"
     )
@@ -54,6 +55,7 @@ class ArticleFilter(filters.FilterSet):
     class Meta:
         model = Article
         fields = [
+            "status",
             "series",
             "visibility",
             "published_after",

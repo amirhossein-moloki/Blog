@@ -33,20 +33,35 @@ class StaticAPIKeyAuthentication(authentication.BaseAuthentication):
         if api_key != static_key:
             raise exceptions.AuthenticationFailed("Invalid API Key")
 
+        anon_usernames = {"AnonymousUser"}
+        configured_anon = getattr(settings, "ANONYMOUS_USER_NAME", None)
+        if configured_anon:
+            anon_usernames.add(configured_anon)
+        active_users = User.objects.filter(is_active=True).exclude(
+            username__in=anon_usernames
+        )
+
         # EN: Optional header to specify which user to authenticate as for testing
         # FA: هدر اختیاری برای مشخص کردن اینکه برای تست به عنوان چه کاربری احراز هویت شود
         test_username = request.META.get("HTTP_X_TEST_USER")
         if test_username:
-            user = User.objects.filter(username=test_username).first()
+            if test_username in anon_usernames:
+                raise exceptions.AuthenticationFailed(
+                    f"Test user {test_username} is not allowed"
+                )
+            user = active_users.filter(username=test_username).first()
             if not user:
                 raise exceptions.AuthenticationFailed(
                     f"Test user {test_username} not found"
                 )
             return (user, None)
 
-        # EN: Fallback to the first superuser
-        # FA: جایگزین به اولین ابرکاربر
-        user = User.objects.filter(is_superuser=True).first()
+        # EN: Fallback to the first active superuser, then staff user
+        # FA: جایگزین به اولین ابرکاربر یا کاربر ادمین فعال
+        user = (
+            active_users.filter(is_superuser=True).order_by("id").first()
+            or active_users.filter(is_staff=True).order_by("id").first()
+        )
         if not user:
             return None
 

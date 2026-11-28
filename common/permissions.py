@@ -49,6 +49,9 @@ class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
+        if not request.user or not request.user.is_authenticated:
+            return False
+
         # EN: Allow writes if the user is an admin
         # FA: اجازه نوشتن در صورتی که کاربر ادمین باشد
         if request.user.is_staff:
@@ -56,7 +59,11 @@ class IsAuthorOrAdminOrReadOnly(permissions.BasePermission):
 
         # EN: Allow writes if the user is the author of the post
         # FA: اجازه نوشتن در صورتی که کاربر نویسنده پست باشد
-        return obj.author.user == request.user
+        author = getattr(obj, "author", None)
+        return bool(
+            author is not None
+            and getattr(author, "user_id", None) == getattr(request.user, "pk", None)
+        )
 
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
@@ -158,7 +165,10 @@ class IsArticleAuthorOrAdmin(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if request.user and request.user.is_staff:
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if request.user.is_staff:
             return True
 
         if request.method == "DELETE":
@@ -166,7 +176,11 @@ class IsArticleAuthorOrAdmin(permissions.BasePermission):
             # حذف منحصراً محدود به کاربران ادمین است
             return False
 
-        return obj.author.user == request.user
+        author = getattr(obj, "author", None)
+        return bool(
+            author is not None
+            and getattr(author, "user_id", None) == getattr(request.user, "pk", None)
+        )
 
 
 class IsAuthorOrAdmin(permissions.BasePermission):

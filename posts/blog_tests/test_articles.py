@@ -1,5 +1,8 @@
 from datetime import timedelta
+from unittest.mock import patch
 
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -484,3 +487,183 @@ class ArticleAPITest(BaseAPITestCase):
         related_url = reverse("posts:article-related", kwargs={"slug": slug1})
         rel_res = self.client.get(related_url)
         self.assertEqual(rel_res.status_code, status.HTTP_200_OK)
+
+    def test_patch_edit_and_convert_to_draft_with_static_api_key_fallback(self):
+        User = get_user_model()
+        User.objects.get_or_create(username="AnonymousUser")
+
+        article = ArticleFactory(
+            author=self.author_profile,
+            status="published",
+            published_at=timezone.now() - timedelta(hours=1),
+        )
+        slug = article.translation.slug
+        detail_url = reverse("posts:article-detail", kwargs={"slug": slug})
+
+        # Fallback to superuser via X-API-Key only (no X-Test-User)
+        self.client.credentials(HTTP_X_API_KEY=settings.STATIC_API_KEY)
+        draft_res = self.client.patch(detail_url, {"status": "draft"}, format="json")
+        self.assertEqual(draft_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(draft_res.data["status"], "draft")
+
+        # Fallback to non-superuser staff user when no active superuser exists
+        self.staff_user.is_superuser = False
+        self.staff_user.save(update_fields=["is_superuser"])
+        edit_res = self.client.patch(
+            detail_url,
+            {"title": "Staff API Key Edit", "status": "published"},
+            format="json",
+        )
+        self.assertEqual(edit_res.status_code, status.HTTP_200_OK)
+        article.refresh_from_db()
+        self.assertEqual(article.status, "published")
+        self.assertEqual(article.translation.title, "Staff API Key Edit")
+
+        # Explicit X-Test-User: AnonymousUser must be rejected by authentication (never 500)
+        self.client.credentials(
+            HTTP_X_API_KEY=settings.STATIC_API_KEY,
+            HTTP_X_TEST_USER="AnonymousUser",
+        )
+        anon_res = self.client.patch(detail_url, {"status": "draft"}, format="json")
+        self.assertIn(
+            anon_res.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
+        self.assertTrue(
+            any("not allowed" in str(m) for m in anon_res.data.get("messagesList", [])),
+            f"Expected auth rejection message, got: {anon_res.data}",
+        )
+
+    def test_patch_article_handles_null_and_blank_slug_and_optional_nulls(self):
+        self._authenticate_as_staff()
+        category = CategoryFactory(name="Cat For Null Test", slug="cat-null-test")
+        article = ArticleFactory(
+            author=self.staff_author_profile,
+            category=category,
+            status="published",
+            published_at=timezone.now() - timedelta(hours=1),
+            translation__language_code="fa",
+            translation__title="مقاله فارسی",
+            translation__slug="persian-stable-slug",
+        )
+        original_slug = article.translation.slug
+        detail_url = reverse("posts:article-detail", kwargs={"slug": original_slug})
+
+        null_payload_res = self.client.patch(
+            detail_url,
+            {
+                "slug": None,
+                "category_id": None,
+                "seo_title": None,
+                "seo_description": None,
+                "content_blocks": None,
+                "cover_image_id": None,
+                "publish_at": None,
+                "status": "draft",
+            },
+            format="json",
+        )
+        self.assertEqual(null_payload_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(null_payload_res.data["status"], "draft")
+        self.assertIsNone(null_payload_res.data["category"])
+        self.assertEqual(null_payload_res.data["slug"], original_slug)
+
+        blank_slug_res = self.client.patch(
+            detail_url,
+            {"slug": "", "title": "Updated Persian Title"},
+            format="json",
+        )
+        self.assertEqual(blank_slug_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(blank_slug_res.data["slug"], original_slug)
+        article.refresh_from_db()
+        self.assertEqual(article.status, "draft")
+        self.assertIsNone(article.category)
+        self.assertEqual(article.translation.slug, original_slug)
+        self.assertEqual(article.translation.title, "Updated Persian Title")
+
+    def test_patch_article_succeeds_when_cache_warmup_broker_fails(self):
+        self._authenticate_as_staff()
+        article = ArticleFactory(
+            author=self.staff_author_profile,
+            status="published",
+            published_at=timezone.now() - timedelta(hours=1),
+        )
+        detail_url = reverse(
+            "posts:article-detail", kwargs={"slug": article.translation.slug}
+        )
+
+        with patch(
+            "common.cache.tasks.warmup_homepage.delay",
+            side_effect=ConnectionError("broker down"),
+        ):
+            draft_res = self.client.patch(
+                detail_url, {"status": "draft"}, format="json"
+            )
+            self.assertEqual(draft_res.status_code, status.HTTP_200_OK)
+
+            edit_res = self.client.patch(
+                detail_url, {"title": "Still Works"}, format="json"
+            )
+            self.assertEqual(edit_res.status_code, status.HTTP_200_OK)
+
+        article.refresh_from_db()
+        self.assertEqual(article.status, "draft")
+        self.assertEqual(article.translation.title, "Still Works")
+
+    def test_list_articles_status_filter_respects_permissions(self):
+        past = timezone.now() - timedelta(days=1)
+        staff_draft = ArticleFactory(
+            author=self.staff_author_profile, status="draft", published_at=None
+        )
+        staff_published = ArticleFactory(
+            author=self.staff_author_profile,
+            status="published",
+            visibility="public",
+            published_at=past,
+        )
+        staff_archived = ArticleFactory(
+            author=self.staff_author_profile, status="archived", published_at=past
+        )
+        user_draft = ArticleFactory(
+            author=self.author_profile, status="draft", published_at=None
+        )
+        list_url = reverse("posts:article-list")
+
+        # Staff sees all statuses filtered accurately
+        self._authenticate_as_staff()
+        draft_res = self.client.get(list_url, {"status": "draft"})
+        self.assertEqual(draft_res.status_code, status.HTTP_200_OK)
+        draft_ids = {item["id"] for item in draft_res.data["data"]}
+        self.assertEqual(draft_ids, {staff_draft.pk, user_draft.pk})
+
+        pub_res = self.client.get(list_url, {"status": "published"})
+        self.assertEqual(pub_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            {item["id"] for item in pub_res.data["data"]}, {staff_published.pk}
+        )
+
+        arch_res = self.client.get(list_url, {"status": "archived"})
+        self.assertEqual(arch_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            {item["id"] for item in arch_res.data["data"]}, {staff_archived.pk}
+        )
+
+        # Non-staff author filtering by draft sees only their own draft
+        self._authenticate(self.user)
+        author_draft_res = self.client.get(list_url, {"status": "draft"})
+        self.assertEqual(author_draft_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            {item["id"] for item in author_draft_res.data["data"]}, {user_draft.pk}
+        )
+
+        # Anonymous user filtering by draft must not see drafts, published works
+        self.client.credentials()
+        anon_draft_res = self.client.get(list_url, {"status": "draft"})
+        self.assertEqual(anon_draft_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(anon_draft_res.data["data"], [])
+
+        anon_pub_res = self.client.get(list_url, {"status": "published"})
+        self.assertEqual(anon_pub_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            {item["id"] for item in anon_pub_res.data["data"]}, {staff_published.pk}
+        )

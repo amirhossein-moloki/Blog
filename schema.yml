@@ -64,6 +64,22 @@ paths:
         schema:
           type: integer
       - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - archived
+          - draft
+          - published
+          - review
+          - scheduled
+        description: |-
+          * `draft` - Draft
+          * `review` - Review
+          * `scheduled` - Scheduled
+          * `published` - Published
+          * `archived` - Archived
+      - in: query
         name: tags
         schema:
           type: array
@@ -3103,6 +3119,7 @@ components:
           nullable: true
         content_blocks:
           writeOnly: true
+          nullable: true
         status:
           $ref: '#/components/schemas/PostStatusEnum'
         visibility:
@@ -3115,11 +3132,14 @@ components:
         seo_title:
           type: string
           writeOnly: true
+          nullable: true
         seo_description:
           type: string
           writeOnly: true
+          nullable: true
         slug:
           type: string
+          nullable: true
           maxLength: 255
           pattern: ^[-\w]+$
           description: Optional Unicode slug. If omitted or blank, auto-generated
@@ -3138,6 +3158,7 @@ components:
         category_id:
           type: integer
           writeOnly: true
+          nullable: true
         cover_image_id:
           type: string
           writeOnly: true
@@ -3189,6 +3210,7 @@ components:
           type: boolean
         gaming_center_links:
           type: array
+          nullable: true
           items:
             $ref: '#/components/schemas/ArticleGamingCenterInputRequest'
           writeOnly: true
@@ -4334,6 +4356,7 @@ components:
           nullable: true
         content_blocks:
           writeOnly: true
+          nullable: true
         status:
           $ref: '#/components/schemas/PostStatusEnum'
         visibility:
@@ -4346,11 +4369,14 @@ components:
         seo_title:
           type: string
           writeOnly: true
+          nullable: true
         seo_description:
           type: string
           writeOnly: true
+          nullable: true
         slug:
           type: string
+          nullable: true
           maxLength: 255
           pattern: ^[-\w]+$
           description: Optional Unicode slug. If omitted or blank, auto-generated
@@ -4369,6 +4395,7 @@ components:
         category_id:
           type: integer
           writeOnly: true
+          nullable: true
         cover_image_id:
           type: string
           writeOnly: true
@@ -4420,6 +4447,7 @@ components:
           type: boolean
         gaming_center_links:
           type: array
+          nullable: true
           items:
             $ref: '#/components/schemas/ArticleGamingCenterInputRequest'
           writeOnly: true

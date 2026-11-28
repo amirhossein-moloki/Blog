@@ -116,20 +116,26 @@ class WarmupService:
             warmup_related_content,
         )
 
+        def _dispatch_async(task, *args):
+            try:
+                task.delay(*args)
+                metrics_tracker.record_warmup_queued()
+            except Exception as exc:
+                logger.warning(
+                    "Failed to dispatch cache warmup task %s: %s",
+                    getattr(task, "name", repr(task)),
+                    exc,
+                )
+
         # Dispatch homepage warmup (which covers categories_list as well)
-        warmup_homepage.delay()
-        metrics_tracker.record_warmup_queued()
+        _dispatch_async(warmup_homepage)
 
         if article_slug:
-            warmup_article_detail.delay(article_slug)
-            metrics_tracker.record_warmup_queued()
-
-            warmup_related_content.delay(article_slug)
-            metrics_tracker.record_warmup_queued()
+            _dispatch_async(warmup_article_detail, article_slug)
+            _dispatch_async(warmup_related_content, article_slug)
 
         if category_slug:
-            warmup_category_pages.delay(category_slug)
-            metrics_tracker.record_warmup_queued()
+            _dispatch_async(warmup_category_pages, category_slug)
 
 
 class PrefetchService:

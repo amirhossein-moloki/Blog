@@ -38,23 +38,33 @@ def invalidate_article_cache(sender, instance, **kwargs) -> None:
 
     # EN: 1. Version based invalidation for list of articles
     # FA: ۱. ابطال بر اساس نسخه برای لیست مقالات
-    cache_manager.remove_by_version("articles")
-    cache_manager.remove_by_version("latest_articles")
-    cache_manager.remove_by_version("homepage")
+    try:
+        cache_manager.remove_by_version("articles")
+        cache_manager.remove_by_version("latest_articles")
+        cache_manager.remove_by_version("homepage")
 
-    # EN: 2. Tag based invalidation for all translation slugs and category
-    # FA: ۲. ابطال بر اساس تگ برای تمامی اسلاگ‌های ترجمه و دسته‌بندی
-    for slug in slugs:
-        cache_manager.invalidation.invalidate_tag(f"article_detail:{slug}")
-    if getattr(instance, "category", None):
-        cache_manager.invalidation.invalidate_tag(f"category:{instance.category.id}")
+        # EN: 2. Tag based invalidation for all translation slugs and category
+        # FA: ۲. ابطال بر اساس تگ برای تمامی اسلاگ‌های ترجمه و دسته‌بندی
+        for slug in slugs:
+            cache_manager.invalidation.invalidate_tag(f"article_detail:{slug}")
+        if getattr(instance, "category", None):
+            cache_manager.invalidation.invalidate_tag(
+                f"category:{instance.category.id}"
+            )
+    except Exception as exc:
+        logger.warning(f"Failed to invalidate article cache cleanly: {exc}")
 
     # EN: 3. Trigger selective predictive Warmup
     # FA: ۳. آغاز پیش‌گرم کردن پیش‌بینانه انتخابی
-    warmup_service.warmup_after_mutation(
-        article_slug=slugs[0],
-        category_slug=instance.category.slug if getattr(instance, "category", None) else None,
-    )
+    try:
+        warmup_service.warmup_after_mutation(
+            article_slug=slugs[0],
+            category_slug=(
+                instance.category.slug if getattr(instance, "category", None) else None
+            ),
+        )
+    except Exception as exc:
+        logger.warning(f"Failed to trigger article warmup after mutation: {exc}")
 
     # EN: 4. Trigger Next.js ISR revalidation when configured
     # FA: ۴. درخواست بازسازی کش Next.js در صورت پیکربندی
@@ -88,12 +98,18 @@ def invalidate_category_cache(sender, instance, **kwargs) -> None:
     FA: ابطال کش‌های مرتبط با دسته‌بندی در زمان تغییر دسته‌بندی.
     """
     logger.info(f"Signal received: Invalidate Category: {instance.slug}")
-    cache_manager.remove_by_version("categories")
-    cache_manager.remove_by_version("homepage")
-    cache_manager.invalidation.invalidate_tag(f"category:{instance.id}")
-    cache_manager.invalidation.invalidate_tag(f"category_detail:{instance.slug}")
+    try:
+        cache_manager.remove_by_version("categories")
+        cache_manager.remove_by_version("homepage")
+        cache_manager.invalidation.invalidate_tag(f"category:{instance.id}")
+        cache_manager.invalidation.invalidate_tag(f"category_detail:{instance.slug}")
+    except Exception as exc:
+        logger.warning(f"Failed to invalidate category cache cleanly: {exc}")
 
-    warmup_service.warmup_after_mutation(category_slug=instance.slug)
+    try:
+        warmup_service.warmup_after_mutation(category_slug=instance.slug)
+    except Exception as exc:
+        logger.warning(f"Failed to trigger category warmup after mutation: {exc}")
 
 
 def invalidate_tag_cache(sender, instance, **kwargs) -> None:
@@ -102,8 +118,11 @@ def invalidate_tag_cache(sender, instance, **kwargs) -> None:
     FA: ابطال کش‌های مرتبط با برچسب در زمان تغییر برچسب.
     """
     logger.info(f"Signal received: Invalidate Tag: {instance.slug}")
-    cache_manager.remove_by_version("tags")
-    cache_manager.invalidation.invalidate_tag(f"tag:{instance.id}")
+    try:
+        cache_manager.remove_by_version("tags")
+        cache_manager.invalidation.invalidate_tag(f"tag:{instance.id}")
+    except Exception as exc:
+        logger.warning(f"Failed to invalidate tag cache cleanly: {exc}")
 
 
 def invalidate_comment_cache(sender, instance, **kwargs) -> None:
@@ -123,7 +142,10 @@ def invalidate_comment_cache(sender, instance, **kwargs) -> None:
             slug = str(instance.article.id)
 
         logger.info(f"Signal received: Invalidate comments for Article: {slug}")
-        cache_manager.invalidation.invalidate_tag(f"comments:{slug}")
+        try:
+            cache_manager.invalidation.invalidate_tag(f"comments:{slug}")
+        except Exception as exc:
+            logger.warning(f"Failed to invalidate comment cache cleanly: {exc}")
 
 
 # EN: Setup signal connections safely
